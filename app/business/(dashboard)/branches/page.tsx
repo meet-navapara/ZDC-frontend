@@ -1,0 +1,420 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { AddressAutocomplete, type AddressParts } from "@/components/AddressAutocomplete";
+import {
+  listBranches,
+  createBranch,
+  updateBranch,
+  deleteBranch,
+  type Branch,
+} from "@/lib/b2b";
+import { LIMITS, MAX_BRANCH_COUNT } from "@/lib/limits";
+
+type FormState = {
+  name: string;
+  phone: string;
+  line1: string;
+  city: string;
+  country: string;
+  lat: number | null;
+  lng: number | null;
+  isPrimary: boolean;
+  status: "active" | "inactive";
+};
+
+const emptyForm = (): FormState => ({
+  name: "",
+  phone: "",
+  line1: "",
+  city: "",
+  country: "",
+  lat: null,
+  lng: null,
+  isPrimary: false,
+  status: "active",
+});
+
+function formatAddress(b: Branch) {
+  const parts = [b.address?.line1, b.address?.city, b.address?.country].filter(
+    Boolean
+  );
+  return parts.length ? parts.join(", ") : "No address set";
+}
+
+export default function BranchesPage() {
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [limit, setLimit] = useState(MAX_BRANCH_COUNT);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState<FormState>(emptyForm);
+
+  const refresh = useCallback(async () => {
+    const r = await listBranches();
+    setBranches(r.branches);
+    setLimit(r.limit);
+  }, []);
+
+  useEffect(() => {
+    refresh()
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .finally(() => setLoading(false));
+  }, [refresh]);
+
+  function openCreate() {
+    setEditingId(null);
+    setForm(emptyForm());
+    setShowForm(true);
+    setError("");
+    setNotice("");
+  }
+
+  function openEdit(b: Branch) {
+    setEditingId(b.id);
+    setForm({
+      name: b.name,
+      phone: b.phone || "",
+      line1: b.address?.line1 || "",
+      city: b.address?.city || "",
+      country: b.address?.country || "",
+      lat: b.address?.lat ?? null,
+      lng: b.address?.lng ?? null,
+      isPrimary: b.isPrimary,
+      status: b.status,
+    });
+    setShowForm(true);
+    setError("");
+    setNotice("");
+  }
+
+  function onAddress(parts: Partial<AddressParts>) {
+    setForm((f) => ({
+      ...f,
+      ...(parts.line1 !== undefined ? { line1: parts.line1 } : {}),
+      ...(parts.city ? { city: parts.city } : {}),
+      ...(parts.country ? { country: parts.country } : {}),
+      ...(parts.lat != null && parts.lng != null
+        ? { lat: parts.lat, lng: parts.lng }
+        : {}),
+    }));
+  }
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+    setNotice("");
+    const body = {
+      name: form.name.trim(),
+      phone: form.phone.trim() || undefined,
+      isPrimary: form.isPrimary,
+      status: form.status,
+      address: {
+        line1: form.line1 || null,
+        city: form.city || null,
+        country: form.country || null,
+        ...(form.lat != null && form.lng != null
+          ? { lat: form.lat, lng: form.lng }
+          : {}),
+      },
+    };
+    try {
+      if (editingId) {
+        await updateBranch(editingId, body);
+        setNotice("Branch updated.");
+      } else {
+        await createBranch(body);
+        setNotice("Branch added.");
+      }
+      setShowForm(false);
+      setEditingId(null);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save branch");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onDelete(b: Branch) {
+    if (
+      !window.confirm(
+        `Remove “${b.name}”? This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    setError("");
+    setNotice("");
+    try {
+      await deleteBranch(b.id);
+      setNotice("Branch removed.");
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete");
+    }
+  }
+
+  async function makePrimary(b: Branch) {
+    setError("");
+    try {
+      await updateBranch(b.id, { isPrimary: true });
+      setNotice(`“${b.name}” is now the primary branch.`);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update");
+    }
+  }
+
+  const atLimit = branches.length >= limit;
+
+  return (
+    <div className="mx-auto max-w-3xl">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-semibold text-ink">
+            Branches
+          </h1>
+          <p className="mt-1 text-ink-muted">
+            Manage salon or boutique locations.{" "}
+            <span className="font-medium text-ink">
+              {branches.length}/{limit}
+            </span>{" "}
+            used.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={openCreate}
+          disabled={atLimit}
+          className="rounded-full bg-sage px-5 py-2.5 text-sm font-semibold text-paper transition hover:bg-sage-dark disabled:opacity-50"
+        >
+          Add branch
+        </button>
+      </div>
+
+      {atLimit && (
+        <p className="mt-4 rounded-xl border border-ink/10 bg-paper-100 px-4 py-3 text-sm text-ink-muted">
+          Branch limit reached. Raise “Number of branches” in Settings to add
+          more (up to {MAX_BRANCH_COUNT}).
+        </p>
+      )}
+
+      {notice && (
+        <div className="mt-4 rounded-xl border border-sage/40 bg-sage/10 px-4 py-3 text-sm text-sage-dark">
+          {notice}
+        </div>
+      )}
+      {error && (
+        <div className="mt-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {showForm && (
+        <form
+          onSubmit={onSubmit}
+          className="card mt-6 space-y-4 rounded-2xl p-6"
+        >
+          <h2 className="font-display text-xl font-semibold text-ink">
+            {editingId ? "Edit branch" : "New branch"}
+          </h2>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-ink-700">
+              Branch name <span className="text-red-500">*</span>
+            </label>
+            <input
+              required
+              maxLength={LIMITS.branchName}
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-sage"
+              placeholder="Westlands · Flagship"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-ink-700">
+              Phone
+            </label>
+            <input
+              maxLength={LIMITS.phone}
+              value={form.phone}
+              onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+              className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-sage"
+              placeholder="+254…"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-ink-700">
+              Address
+            </label>
+            <AddressAutocomplete
+              value={form.line1}
+              onChange={onAddress}
+              placeholder="Start typing the branch address…"
+              className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-sage"
+            />
+            {form.lat != null && form.lng != null && (
+              <p className="mt-1 text-xs text-ink-muted">
+                Pinned at {form.lat.toFixed(4)}, {form.lng.toFixed(4)}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-ink-700">
+                City
+              </label>
+              <input
+                maxLength={LIMITS.city}
+                value={form.city}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, city: e.target.value }))
+                }
+                className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-sage"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-ink-700">
+                Country
+              </label>
+              <input
+                maxLength={LIMITS.country}
+                value={form.country}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, country: e.target.value }))
+                }
+                className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-sage"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4">
+            <label className="flex items-center gap-2 text-sm text-ink">
+              <input
+                type="checkbox"
+                checked={form.isPrimary}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, isPrimary: e.target.checked }))
+                }
+                className="h-4 w-4 rounded border-ink/30 text-sage focus:ring-sage"
+              />
+              Primary / HQ branch
+            </label>
+            <label className="flex items-center gap-2 text-sm text-ink">
+              <span className="text-ink-muted">Status</span>
+              <select
+                value={form.status}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    status: e.target.value as "active" | "inactive",
+                  }))
+                }
+                className="rounded-lg border border-ink/15 bg-white px-3 py-1.5 text-sm outline-none focus:border-sage"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setShowForm(false);
+                setEditingId(null);
+              }}
+              className="rounded-full border border-ink/15 px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-ink/30"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="rounded-full bg-sage px-5 py-2.5 text-sm font-semibold text-paper transition hover:bg-sage-dark disabled:opacity-60"
+            >
+              {saving ? "Saving…" : editingId ? "Save changes" : "Add branch"}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {loading ? (
+        <div className="mt-8 space-y-3">
+          <div className="h-24 animate-pulse rounded-2xl bg-ink/5" />
+          <div className="h-24 animate-pulse rounded-2xl bg-ink/5" />
+        </div>
+      ) : branches.length === 0 ? (
+        <p className="mt-8 text-center text-ink-muted">
+          No branches yet. Add your first location.
+        </p>
+      ) : (
+        <ul className="mt-8 space-y-3">
+          {branches.map((b) => (
+            <li
+              key={b.id}
+              className="card flex flex-wrap items-start justify-between gap-4 rounded-2xl p-5"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="font-display text-lg font-semibold text-ink">
+                    {b.name}
+                  </h3>
+                  {b.isPrimary && (
+                    <span className="rounded-full bg-sage/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sage-dark">
+                      Primary
+                    </span>
+                  )}
+                  {b.status === "inactive" && (
+                    <span className="rounded-full bg-ink/5 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                      Inactive
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-sm text-ink-muted">{formatAddress(b)}</p>
+                {b.phone && (
+                  <p className="mt-0.5 text-sm text-ink-muted">{b.phone}</p>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {!b.isPrimary && (
+                  <button
+                    type="button"
+                    onClick={() => makePrimary(b)}
+                    className="rounded-full border border-ink/15 px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-sage"
+                  >
+                    Set primary
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => openEdit(b)}
+                  className="rounded-full border border-ink/15 px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-ink/30"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(b)}
+                  className="rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                >
+                  Remove
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

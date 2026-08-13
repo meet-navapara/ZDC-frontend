@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Reveal } from "@/components/Reveal";
 import { Spotlight } from "@/components/Spotlight";
+import { LandingNav } from "@/components/LandingNav";
+import { getSiteContent } from "@/lib/content";
 
 const categories = [
   "Braids",
@@ -48,80 +50,89 @@ const steps = [
   { n: "03", title: "Reveal", desc: "Your try-on lands instantly in WhatsApp or email." },
 ];
 
-export default function Home() {
+const iconClass = "h-4 w-4";
+
+const SOCIAL_LINKS = [
+  {
+    label: "WhatsApp",
+    href: process.env.NEXT_PUBLIC_SOCIAL_WHATSAPP || "https://wa.me/",
+    icon: (
+      <svg viewBox="0 0 24 24" className={iconClass} fill="currentColor" aria-hidden>
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.85 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Instagram",
+    href: process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM || "https://www.instagram.com/",
+    icon: (
+      <svg viewBox="0 0 24 24" className={iconClass} fill="currentColor" aria-hidden>
+        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Facebook",
+    href: process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK || "https://www.facebook.com/",
+    icon: (
+      <svg viewBox="0 0 24 24" className={iconClass} fill="currentColor" aria-hidden>
+        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+      </svg>
+    ),
+  },
+];
+
+export default async function Home() {
+  const content = await getSiteContent();
+  const { hero, testimonials, pricingNote } = content;
+
   return (
     <main className="relative">
       {/* ============ NAV ============ */}
-      <header className="fixed inset-x-0 top-0 z-50 px-4">
-        <div className="mx-auto mt-4 flex max-w-6xl items-center justify-between rounded-full glass px-5 py-3">
-          <Link href="#" className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sage">
-              <span className="h-2.5 w-2.5 rounded-full bg-paper" />
-            </span>
-            <span className="font-display text-xl font-semibold tracking-tight text-ink">
-              ZDC
-            </span>
-          </Link>
-          <nav className="hidden items-center gap-8 text-sm text-ink-muted md:flex">
-            <a href="#features" className="transition hover:text-ink">Features</a>
-            <a href="#lookbook" className="transition hover:text-ink">Lookbook</a>
-            <a href="#how" className="transition hover:text-ink">How it Works</a>
-            <a href="#pricing" className="transition hover:text-ink">Pricing</a>
-          </nav>
-          <Link
-            href="#how"
-            className="rounded-full bg-sage px-5 py-2 text-sm font-semibold text-paper transition hover:bg-sage-dark"
-          >
-            Try On Instantly
-          </Link>
-        </div>
-      </header>
+      <LandingNav />
 
       {/* ============ HERO ============ */}
       <Spotlight>
-        <section className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 pb-24 pt-36 md:grid-cols-[1fr_1fr] md:pt-44">
+        <section className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-8 px-4 pb-16 pt-28 sm:gap-12 sm:px-6 sm:pb-24 sm:pt-36 md:grid-cols-[1fr_1fr] md:pt-44">
           <Reveal className="relative z-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-ink/10 bg-white/60 px-4 py-1.5 text-xs font-medium text-ink-muted">
-              <span className="h-1.5 w-1.5 rounded-full bg-sage" />
-              AI Virtual Try-On • Built for Africa
+            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-ink/10 bg-white/60 px-3 py-1.5 text-[11px] font-medium text-ink-muted sm:px-4 sm:text-xs">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sage" />
+              <span className="truncate">{hero.badge}</span>
             </div>
 
-            <h1 className="mt-6 font-display text-6xl font-semibold leading-[0.95] tracking-tight text-ink sm:text-7xl">
-              Wear the{" "}
-              <span className="italic text-sage">Future.</span>
+            <h1 className="mt-5 font-display text-[2.5rem] font-semibold leading-[0.95] tracking-tight text-ink sm:mt-6 sm:text-6xl md:text-7xl">
+              {hero.titleLine1}{" "}
+              <span className="italic text-sage">{hero.titleHighlight}</span>
               <br />
-              Now.
+              {hero.titleLine2}
             </h1>
 
-            <p className="mt-6 max-w-md text-lg text-ink-muted">
-              Visualize any outfit or hairstyle on yourself before you spend a
-              shilling. Photorealistic try-ons, delivered in seconds.
+            <p className="mt-5 max-w-md text-base text-ink-muted sm:mt-6 sm:text-lg">
+              {hero.subtitle}
             </p>
 
-            <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+            <div className="mt-7 flex w-full flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-4">
               <Link
-                href="#how"
-                className="rounded-full bg-sage px-8 py-3.5 text-base font-semibold text-paper shadow-lg shadow-sage/20 transition hover:bg-sage-dark"
+                href="/try-on"
+                className="w-full rounded-full bg-sage px-8 py-3.5 text-center text-base font-semibold text-paper shadow-lg shadow-sage/20 transition hover:bg-sage-dark sm:w-auto"
               >
-                Try On Instantly
+                {hero.primaryCta}
               </Link>
               <a
                 href="#lookbook"
-                className="rounded-full border border-ink/15 px-8 py-3.5 text-base font-semibold text-ink transition hover:border-ink/30 hover:bg-white/40"
+                className="w-full rounded-full border border-ink/15 px-8 py-3.5 text-center text-base font-semibold text-ink transition hover:border-ink/30 hover:bg-white/40 sm:w-auto"
               >
                 View the lookbook
               </a>
             </div>
 
-            <div className="mt-10 flex items-center gap-8">
-              {[
-                ["~8s", "Render time"],
-                ["WhatsApp", "Instant delivery"],
-                ["M-Pesa", "Easy payments"],
-              ].map(([v, l]) => (
-                <div key={l}>
-                  <div className="font-display text-xl font-semibold text-ink">{v}</div>
-                  <div className="text-xs text-ink-muted">{l}</div>
+            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 sm:mt-10 sm:gap-x-8 sm:gap-y-4">
+              {hero.stats.map((s) => (
+                <div key={s.label}>
+                  <div className="font-display text-lg font-semibold text-ink sm:text-xl">
+                    {s.value}
+                  </div>
+                  <div className="text-[11px] text-ink-muted sm:text-xs">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -129,8 +140,8 @@ export default function Home() {
 
           {/* Hero collage */}
           <Reveal delay={140} className="relative z-10">
-            <div className="grid grid-cols-2 grid-rows-[auto_auto] gap-4">
-              <div className="card row-span-2 overflow-hidden rounded-[1.6rem]">
+            <div className="grid grid-cols-2 grid-rows-[auto_auto] gap-3 sm:gap-4">
+              <div className="card row-span-2 overflow-hidden rounded-[1.25rem] sm:rounded-[1.6rem]">
                 <div className="relative aspect-[3/4.4]">
                   <Image
                     src="/images/model-print.png"
@@ -142,7 +153,7 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="card overflow-hidden rounded-[1.6rem]">
+              <div className="card overflow-hidden rounded-[1.25rem] sm:rounded-[1.6rem]">
                 <div className="relative aspect-square">
                   <Image
                     src="/images/braids-light.png"
@@ -153,7 +164,7 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="card overflow-hidden rounded-[1.6rem]">
+              <div className="card overflow-hidden rounded-[1.25rem] sm:rounded-[1.6rem]">
                 <div className="relative aspect-square">
                   <Image
                     src="/images/bag.png"
@@ -165,13 +176,17 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="absolute -left-4 bottom-6 flex items-center gap-3 rounded-2xl glass-strong px-4 py-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sage text-sm text-paper">
+            <div className="absolute bottom-3 left-2 flex max-w-[calc(100%-1rem)] items-center gap-2 rounded-2xl glass-strong px-3 py-2.5 sm:bottom-6 sm:-left-4 sm:gap-3 sm:px-4 sm:py-3">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sage text-sm text-paper sm:h-9 sm:w-9">
                 ✓
               </span>
-              <div>
-                <div className="text-sm font-semibold text-ink">Rendered in 8s</div>
-                <div className="text-xs text-ink-muted">98% match confidence</div>
+              <div className="min-w-0">
+                <div className="truncate text-xs font-semibold text-ink sm:text-sm">
+                  Rendered in 8s
+                </div>
+                <div className="truncate text-[10px] text-ink-muted sm:text-xs">
+                  98% match confidence
+                </div>
               </div>
             </div>
           </Reveal>
@@ -180,9 +195,12 @@ export default function Home() {
 
       {/* ============ CATEGORY STRIP ============ */}
       <section className="border-y border-ink/10 bg-white/40">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-6 py-6 text-sm text-ink-muted">
+        <div className="mx-auto flex max-w-6xl gap-x-5 gap-y-2 overflow-x-auto px-4 py-5 text-sm text-ink-muted scrollbar-none sm:flex-wrap sm:justify-center sm:gap-x-8 sm:gap-y-3 sm:overflow-visible sm:px-6 sm:py-6">
           {categories.map((c) => (
-            <span key={c} className="font-display text-lg italic">
+            <span
+              key={c}
+              className="shrink-0 font-display text-base italic sm:text-lg"
+            >
               {c}
             </span>
           ))}
@@ -190,11 +208,11 @@ export default function Home() {
       </section>
 
       {/* ============ FEATURE ROWS ============ */}
-      <section id="features" className="mx-auto max-w-6xl space-y-24 px-6 py-28">
+      <section id="features" className="mx-auto max-w-6xl space-y-14 px-4 py-14 sm:px-6 sm:py-20 md:space-y-24 md:py-28">
         {features.map((f) => (
           <Reveal key={f.title}>
             <div
-              className={`grid items-center gap-10 md:grid-cols-2 ${
+              className={`grid items-center gap-8 md:grid-cols-2 md:gap-10 ${
                 f.reverse ? "md:[&>*:first-child]:order-2" : ""
               }`}
             >
@@ -202,14 +220,16 @@ export default function Home() {
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sage">
                   {f.eyebrow}
                 </p>
-                <h2 className="mt-4 font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl">
+                <h2 className="mt-3 font-display text-3xl font-semibold leading-tight text-ink sm:mt-4 sm:text-4xl md:text-5xl">
                   {f.title}
                 </h2>
-                <p className="mt-5 max-w-md text-lg text-ink-muted">{f.desc}</p>
-                <div className="mt-8 flex items-center gap-6">
+                <p className="mt-4 max-w-md text-base text-ink-muted sm:mt-5 sm:text-lg">
+                  {f.desc}
+                </p>
+                <div className="mt-6 flex flex-wrap items-center gap-4 sm:mt-8 sm:gap-6">
                   <a
                     href="#how"
-                    className="rounded-full border border-ink/15 px-6 py-2.5 text-sm font-semibold text-ink transition hover:border-ink/30 hover:bg-white/50"
+                    className="rounded-full border border-ink/15 px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-ink/30 hover:bg-white/50 sm:px-6"
                   >
                     {f.cta}
                   </a>
@@ -222,7 +242,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="card overflow-hidden rounded-[2rem]">
+              <div className="card overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
                 <div className="relative aspect-[4/3]">
                   <Image
                     src={f.img}
@@ -240,13 +260,13 @@ export default function Home() {
 
       {/* ============ LOOKBOOK ============ */}
       <section id="lookbook" className="border-y border-ink/10 bg-white/40">
-        <div className="mx-auto max-w-6xl px-6 py-28">
-          <Reveal className="flex flex-col items-end justify-between gap-6 sm:flex-row">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 md:py-28">
+          <Reveal className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end sm:gap-6">
             <div className="max-w-xl">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sage">
                 The Lookbook
               </p>
-              <h2 className="mt-4 font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl">
+              <h2 className="mt-3 font-display text-3xl font-semibold leading-tight text-ink sm:mt-4 sm:text-4xl md:text-5xl">
                 Real renders. Runway-ready results.
               </h2>
             </div>
@@ -256,7 +276,7 @@ export default function Home() {
             </p>
           </Reveal>
 
-          <div className="mt-14 grid auto-rows-[240px] grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="mt-10 grid auto-rows-[160px] grid-cols-2 gap-3 sm:mt-14 sm:auto-rows-[240px] sm:gap-4 md:grid-cols-4">
             {[
               { src: "/images/model-print.png", tag: "Ankara Couture", kind: "Apparel", cls: "row-span-2" },
               { src: "/images/cornrows-light.png", tag: "Cornrows", kind: "Hairstyle", cls: "" },
@@ -265,7 +285,7 @@ export default function Home() {
               { src: "/images/flatlay.png", tag: "Full Look", kind: "Styling", cls: "" },
             ].map((item, i) => (
               <Reveal key={item.src} delay={i * 80} className={item.cls}>
-                <div className="card group relative h-full w-full overflow-hidden rounded-3xl">
+                <div className="card group relative h-full w-full overflow-hidden rounded-2xl sm:rounded-3xl">
                   <Image
                     src={item.src}
                     alt={item.tag}
@@ -273,12 +293,12 @@ export default function Home() {
                     sizes="(max-width: 768px) 50vw, 25vw"
                     className="object-cover transition duration-700 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
-                  <div className="absolute inset-x-4 bottom-4 translate-y-2 opacity-0 transition group-hover:translate-y-0 group-hover:opacity-100">
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100" />
+                  <div className="absolute inset-x-3 bottom-3 translate-y-0 opacity-100 transition sm:inset-x-4 sm:bottom-4 sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">
                     <span className="text-[10px] uppercase tracking-widest text-paper/80">
                       {item.kind}
                     </span>
-                    <div className="font-display text-xl font-semibold text-paper">
+                    <div className="font-display text-base font-semibold text-paper sm:text-xl">
                       {item.tag}
                     </div>
                   </div>
@@ -290,28 +310,28 @@ export default function Home() {
       </section>
 
       {/* ============ HOW IT WORKS ============ */}
-      <section id="how" className="mx-auto max-w-6xl px-6 py-28">
+      <section id="how" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 md:py-28">
         <Reveal className="text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sage">
             Three taps
           </p>
-          <h2 className="mx-auto mt-4 max-w-2xl font-display text-4xl font-semibold text-ink sm:text-5xl">
+          <h2 className="mx-auto mt-3 max-w-2xl font-display text-3xl font-semibold text-ink sm:mt-4 sm:text-4xl md:text-5xl">
             From selfie to showstopper.
           </h2>
         </Reveal>
 
-        <div className="relative mt-16 grid gap-6 md:grid-cols-3">
+        <div className="relative mt-10 grid gap-4 sm:mt-16 sm:gap-6 md:grid-cols-3">
           <div className="pointer-events-none absolute left-0 right-0 top-14 hidden h-px bg-ink/10 md:block" />
           {steps.map((s, i) => (
             <Reveal key={s.n} delay={i * 120}>
-              <div className="card relative flex h-full flex-col rounded-3xl p-8">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sage font-display text-lg font-semibold text-paper">
+              <div className="card relative flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sage font-display text-base font-semibold text-paper sm:h-12 sm:w-12 sm:text-lg">
                   {s.n}
                 </div>
-                <h3 className="mt-6 font-display text-2xl font-semibold text-ink">
+                <h3 className="mt-5 font-display text-xl font-semibold text-ink sm:mt-6 sm:text-2xl">
                   {s.title}
                 </h3>
-                <p className="mt-2 text-ink-muted">{s.desc}</p>
+                <p className="mt-2 text-sm text-ink-muted sm:text-base">{s.desc}</p>
               </div>
             </Reveal>
           ))}
@@ -320,9 +340,9 @@ export default function Home() {
 
       {/* ============ B2B ============ */}
       <section id="business" className="border-y border-ink/10 bg-white/40">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-28 md:grid-cols-2">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 pb-20 sm:gap-12 sm:px-6 sm:py-20 sm:pb-24 md:grid-cols-2 md:py-28 md:pb-28">
           <Reveal className="relative order-2 md:order-1">
-            <div className="card overflow-hidden rounded-[2rem]">
+            <div className="card overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
               <div className="relative aspect-[4/3]">
                 <Image
                   src="/images/boutique.png"
@@ -333,15 +353,19 @@ export default function Home() {
                 />
               </div>
             </div>
-            <div className="absolute -bottom-6 -right-4 w-56 rounded-2xl glass-strong p-5 sm:-right-8">
+            <div className="absolute -bottom-5 right-3 w-[min(14rem,70%)] rounded-2xl glass-strong p-4 sm:-bottom-6 sm:right-4 sm:w-56 sm:p-5 md:-right-4 lg:-right-8">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-ink-muted">This week</span>
                 <span className="rounded-full bg-sage/15 px-2 py-0.5 text-[10px] font-semibold text-sage-dark">
                   +24%
                 </span>
               </div>
-              <div className="mt-2 font-display text-3xl font-semibold text-ink">3,910</div>
-              <div className="text-[10px] uppercase tracking-wider text-ink-muted">Try-ons</div>
+              <div className="mt-2 font-display text-2xl font-semibold text-ink sm:text-3xl">
+                3,910
+              </div>
+              <div className="text-[10px] uppercase tracking-wider text-ink-muted">
+                Try-ons
+              </div>
               <div className="mt-3 space-y-2">
                 {[
                   ["Goddess Braids", "82%"],
@@ -349,11 +373,14 @@ export default function Home() {
                 ].map(([name, pct]) => (
                   <div key={name}>
                     <div className="mb-1 flex justify-between text-[11px] text-ink-muted">
-                      <span>{name}</span>
+                      <span className="truncate pr-2">{name}</span>
                       <span>{pct}</span>
                     </div>
                     <div className="h-1 overflow-hidden rounded-full bg-ink/10">
-                      <div className="h-full rounded-full bg-sage" style={{ width: pct }} />
+                      <div
+                        className="h-full rounded-full bg-sage"
+                        style={{ width: pct }}
+                      />
                     </div>
                   </div>
                 ))}
@@ -365,107 +392,165 @@ export default function Home() {
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sage">
               For Boutiques &amp; Salons
             </p>
-            <h2 className="mt-4 font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl">
+            <h2 className="mt-3 font-display text-3xl font-semibold leading-tight text-ink sm:mt-4 sm:text-4xl md:text-5xl">
               Turn browsers into buyers.
             </h2>
-            <p className="mt-5 text-ink-muted">
+            <p className="mt-4 text-sm text-ink-muted sm:mt-5 sm:text-base">
               Give every customer a fitting room in their pocket. Showcase your
               catalog, cut return rates, and see exactly which styles convert —
               all from a dashboard that carries your brand.
             </p>
-            <ul className="mt-8 space-y-3">
+            <ul className="mt-6 space-y-3 sm:mt-8">
               {[
                 "Multi-branch catalogs with up to 10 categories",
                 "Prepaid credits — 1 credit = 1 render",
                 "Analytics: popular styles, conversion, engagement",
                 "Excel exports & credit top-ups in a tap",
               ].map((t) => (
-                <li key={t} className="flex items-start gap-3 text-ink-700">
-                  <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sage text-[11px] text-paper">
+                <li
+                  key={t}
+                  className="flex items-start gap-3 text-sm text-ink-700 sm:text-base"
+                >
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sage text-[11px] text-paper">
                     ✓
                   </span>
                   {t}
                 </li>
               ))}
             </ul>
+            <Link
+              href="/business/register"
+              className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-sage px-7 py-3 text-sm font-semibold text-paper transition hover:bg-sage-dark sm:mt-10 sm:w-auto"
+            >
+              Create a business account
+            </Link>
           </Reveal>
         </div>
       </section>
 
       {/* ============ PRICING ============ */}
-      <section id="pricing" className="mx-auto max-w-6xl px-6 py-28">
+      <section id="pricing" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 md:py-28">
         <Reveal className="text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sage">
             Simple, fair pricing
           </p>
-          <h2 className="mx-auto mt-4 max-w-2xl font-display text-4xl font-semibold text-ink sm:text-5xl">
+          <h2 className="mx-auto mt-3 max-w-2xl font-display text-3xl font-semibold text-ink sm:mt-4 sm:text-4xl md:text-5xl">
             Pay only for the looks you love.
           </h2>
         </Reveal>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+        <div className="mt-10 grid gap-4 sm:mt-14 sm:gap-6 md:grid-cols-3">
           <Reveal>
-            <div className="card flex h-full flex-col rounded-3xl p-8">
+            <div className="card flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
               <span className="text-sm text-ink-muted">Single</span>
-              <div className="mt-3 font-display text-5xl font-semibold text-ink">KES 20</div>
+              <div className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">
+                KES 20
+              </div>
               <p className="mt-2 text-sm text-ink-muted">1 AI try-on render</p>
               <div className="mt-6 flex-1" />
-              <a href="#" className="rounded-full border border-ink/15 py-3 text-center text-sm font-semibold text-ink transition hover:border-ink/30 hover:bg-white/50">
+              <a
+                href="/try-on"
+                className="rounded-full border border-ink/15 py-3 text-center text-sm font-semibold text-ink transition hover:border-ink/30 hover:bg-white/50"
+              >
                 Choose Single
               </a>
             </div>
           </Reveal>
 
           <Reveal delay={100}>
-            <div className="flex h-full flex-col rounded-3xl bg-sage p-8 text-paper shadow-xl shadow-sage/25">
+            <div className="flex h-full flex-col rounded-2xl bg-sage p-6 text-paper shadow-xl shadow-sage/25 sm:rounded-3xl sm:p-8">
               <span className="text-sm text-paper/80">Trio</span>
-              <div className="mt-3 font-display text-5xl font-semibold">KES 50</div>
+              <div className="mt-3 font-display text-4xl font-semibold sm:text-5xl">
+                KES 50
+              </div>
               <p className="mt-2 text-sm text-paper/80">3 AI try-on renders</p>
               <span className="mt-4 inline-block w-fit rounded-full bg-paper/20 px-3 py-1 text-xs font-semibold">
                 Best value
               </span>
               <div className="mt-6 flex-1" />
-              <a href="#" className="rounded-full bg-paper py-3 text-center text-sm font-semibold text-sage-dark transition hover:bg-white">
+              <a
+                href="/try-on"
+                className="rounded-full bg-paper py-3 text-center text-sm font-semibold text-sage-dark transition hover:bg-white"
+              >
                 Choose Trio
               </a>
             </div>
           </Reveal>
 
           <Reveal delay={200}>
-            <div className="card flex h-full flex-col rounded-3xl p-8">
+            <div className="card flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
               <span className="text-sm text-ink-muted">Business</span>
-              <div className="mt-3 font-display text-5xl font-semibold text-ink">Credits</div>
+              <div className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">
+                Credits
+              </div>
               <p className="mt-2 text-sm text-ink-muted">
                 Prepaid packs for boutiques &amp; salons. 1 credit = 1 render.
               </p>
               <div className="mt-6 flex-1" />
-              <a href="#business" className="rounded-full border border-ink/15 py-3 text-center text-sm font-semibold text-ink transition hover:border-ink/30 hover:bg-white/50">
+              <a
+                href="#business"
+                className="rounded-full border border-ink/15 py-3 text-center text-sm font-semibold text-ink transition hover:border-ink/30 hover:bg-white/50"
+              >
                 Talk to us
               </a>
             </div>
           </Reveal>
         </div>
-        <p className="mt-6 text-center text-xs text-ink-muted">
-          Payments via M-Pesa. Final pricing configurable — shown for illustration.
-        </p>
+        <p className="mt-6 text-center text-xs text-ink-muted">{pricingNote}</p>
       </section>
 
+      {/* ============ TESTIMONIALS ============ */}
+      {testimonials.length > 0 && (
+        <section className="border-y border-ink/10 bg-white/40">
+          <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
+            <Reveal className="text-center">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sage">
+                Loved by our community
+              </p>
+              <h2 className="mx-auto mt-4 max-w-2xl font-display text-4xl font-semibold text-ink sm:text-5xl">
+                What people are saying.
+              </h2>
+            </Reveal>
+
+            <div className="mt-14 grid gap-6 md:grid-cols-3">
+              {testimonials.map((t, i) => (
+                <Reveal key={`${t.author}-${i}`} delay={i * 80}>
+                  <figure className="card flex h-full flex-col rounded-3xl p-8">
+                    <blockquote className="flex-1 text-lg leading-relaxed text-ink">
+                      “{t.quote}”
+                    </blockquote>
+                    <figcaption className="mt-6">
+                      <div className="font-display text-base font-semibold text-ink">
+                        {t.author}
+                      </div>
+                      {t.role && (
+                        <div className="text-sm text-ink-muted">{t.role}</div>
+                      )}
+                    </figcaption>
+                  </figure>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ============ CTA ============ */}
-      <section className="mx-auto max-w-6xl px-6 pb-28">
+      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 sm:pb-20 md:pb-28">
         <Reveal>
-          <div className="relative overflow-hidden rounded-[2.5rem] bg-ink px-8 py-20 text-center text-paper">
+          <div className="relative overflow-hidden rounded-[1.5rem] bg-ink px-5 py-12 text-center text-paper sm:rounded-[2.5rem] sm:px-8 sm:py-20">
             <div className="aurora animate-aurora left-[8%] top-[-30%] h-[26vw] w-[26vw] bg-sage/40" />
             <div className="aurora animate-floatSlow right-[6%] bottom-[-30%] h-[22vw] w-[22vw] bg-[#e7d8c4]/30" />
-            <h2 className="relative z-10 mx-auto max-w-2xl font-display text-4xl font-semibold sm:text-5xl">
+            <h2 className="relative z-10 mx-auto max-w-2xl font-display text-3xl font-semibold sm:text-4xl md:text-5xl">
               Your next look is one tap away.
             </h2>
-            <p className="relative z-10 mx-auto mt-4 max-w-md text-paper/70">
+            <p className="relative z-10 mx-auto mt-4 max-w-md text-sm text-paper/70 sm:text-base">
               Join the try-before-you-buy revolution reshaping fashion and beauty
               across Africa.
             </p>
             <Link
-              href="#how"
-              className="relative z-10 mt-8 inline-block rounded-full bg-sage px-9 py-4 text-base font-semibold text-paper transition hover:bg-sage-dark"
+              href="/try-on"
+              className="relative z-10 mt-7 inline-flex w-full max-w-xs items-center justify-center rounded-full bg-sage px-9 py-3.5 text-base font-semibold text-paper transition hover:bg-sage-dark sm:mt-8 sm:w-auto sm:py-4"
             >
               Try On Instantly
             </Link>
@@ -475,38 +560,52 @@ export default function Home() {
 
       {/* ============ FOOTER ============ */}
       <footer id="contact" className="border-t border-ink/10 bg-white/40">
-        <div className="mx-auto max-w-6xl px-6 py-14">
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
           <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
             <div>
               <div className="flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sage">
                   <span className="h-2.5 w-2.5 rounded-full bg-paper" />
                 </span>
-                <span className="font-display text-xl font-semibold text-ink">ZDC</span>
+                <span className="font-display text-xl font-semibold text-ink">
+                  ZDC
+                </span>
               </div>
               <p className="mt-3 max-w-xs text-sm text-ink-muted">
                 Wear the future. AI virtual try-on for apparel and hairstyles.
               </p>
+              <div className="mt-5 flex items-center gap-2.5">
+                {SOCIAL_LINKS.map((s) => (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                    title={s.label}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-ink/12 bg-white text-ink transition hover:border-sage hover:bg-sage hover:text-paper"
+                  >
+                    {s.icon}
+                  </a>
+                ))}
+              </div>
             </div>
-            <nav className="flex flex-wrap gap-x-8 gap-y-3 text-sm text-ink-muted">
-              <a href="#" className="transition hover:text-ink">About</a>
-              <a href="#" className="transition hover:text-ink">Privacy</a>
-              <a href="#" className="transition hover:text-ink">Terms</a>
-              <a href="#contact" className="transition hover:text-ink">Contact</a>
+            <nav className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-ink-muted sm:gap-x-8">
+              <a href="#" className="transition hover:text-ink">
+                About
+              </a>
+              <a href="#" className="transition hover:text-ink">
+                Privacy
+              </a>
+              <a href="#" className="transition hover:text-ink">
+                Terms
+              </a>
+              <a href="#contact" className="transition hover:text-ink">
+                Contact
+              </a>
             </nav>
-            <div className="flex gap-3">
-              {["WA", "IG", "FB"].map((s) => (
-                <a
-                  key={s}
-                  href="#"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white/60 text-xs font-semibold text-ink-muted transition hover:bg-sage hover:text-paper"
-                >
-                  {s}
-                </a>
-              ))}
-            </div>
           </div>
-          <div className="mt-10 border-t border-ink/10 pt-6 text-center text-xs text-ink-muted">
+          <div className="mt-8 border-t border-ink/10 pt-5 text-center text-xs text-ink-muted sm:mt-10 sm:pt-6">
             © {new Date().getFullYear()} ZDC — Wear the Future. Now.
           </div>
         </div>

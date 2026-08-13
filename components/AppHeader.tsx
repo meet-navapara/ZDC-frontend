@@ -1,0 +1,197 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getUser, clearAuth, type AuthUser } from "@/lib/auth";
+
+export function AppHeader() {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const sync = () => setUser(getUser());
+    sync();
+    window.addEventListener("zdc-auth", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("zdc-auth", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  const logout = () => {
+    clearAuth();
+    setOpen(false);
+    router.push("/");
+  };
+
+  const businessHref = user?.role === "b2b" ? "/business" : "/business/login";
+
+  return (
+    <header className="fixed inset-x-0 top-0 z-50 px-3 sm:px-4">
+      <div className="mx-auto mt-3 flex max-w-6xl items-center justify-between rounded-full glass px-3 py-2.5 sm:mt-4 sm:px-5 sm:py-3">
+        <Link
+          href="/"
+          className="flex min-w-0 items-center gap-2"
+          onClick={() => setOpen(false)}
+        >
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sage">
+            <span className="h-2.5 w-2.5 rounded-full bg-paper" />
+          </span>
+          <span className="font-display text-lg font-semibold tracking-tight text-ink sm:text-xl">
+            ZDC
+          </span>
+        </Link>
+
+        {/* Desktop actions */}
+        <div className="hidden items-center gap-3 text-sm md:flex">
+          <Link
+            href="/try-on"
+            className="font-medium text-ink-muted transition hover:text-ink"
+          >
+            Try On
+          </Link>
+          <Link
+            href={businessHref}
+            className="font-medium text-ink-muted transition hover:text-ink"
+          >
+            For Business
+          </Link>
+          {user ? (
+            <>
+              <span className="max-w-[160px] truncate text-ink-muted lg:max-w-none">
+                {user.email}
+              </span>
+              <button
+                onClick={logout}
+                className="rounded-full border border-ink/15 px-4 py-2 font-semibold text-ink transition hover:border-ink/30"
+              >
+                Log out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="font-medium text-ink-muted transition hover:text-ink"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-full bg-sage px-4 py-2 font-semibold text-paper transition hover:bg-sage-dark"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
+        </div>
+
+        {/* Mobile: primary CTA + menu */}
+        <div className="flex items-center gap-2 md:hidden">
+          <Link
+            href="/try-on"
+            className="rounded-full bg-sage px-3.5 py-2 text-xs font-semibold text-paper transition hover:bg-sage-dark"
+            onClick={() => setOpen(false)}
+          >
+            Try On
+          </Link>
+          <button
+            type="button"
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 bg-white/60 text-ink"
+          >
+            <span className="relative block h-3.5 w-4">
+              <span
+                className={`absolute left-0 block h-0.5 w-4 rounded-full bg-ink transition-all duration-300 ${
+                  open ? "top-1.5 rotate-45" : "top-0"
+                }`}
+              />
+              <span
+                className={`absolute left-0 top-1.5 block h-0.5 w-4 rounded-full bg-ink transition-all duration-200 ${
+                  open ? "opacity-0" : "opacity-100"
+                }`}
+              />
+              <span
+                className={`absolute left-0 block h-0.5 w-4 rounded-full bg-ink transition-all duration-300 ${
+                  open ? "top-1.5 -rotate-45" : "top-3"
+                }`}
+              />
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {open && (
+        <>
+          <button
+            aria-label="Close menu"
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-40 cursor-default bg-ink/20 backdrop-blur-sm md:hidden"
+          />
+          <div className="relative z-50 mx-auto mt-2 max-w-6xl md:hidden">
+            <div className="glass-strong rounded-3xl p-4">
+              <nav className="flex flex-col gap-1">
+                <Link
+                  href="/try-on"
+                  onClick={() => setOpen(false)}
+                  className="rounded-xl px-4 py-3 text-base font-medium text-ink hover:bg-white/60"
+                >
+                  Try On
+                </Link>
+                <Link
+                  href={businessHref}
+                  onClick={() => setOpen(false)}
+                  className="rounded-xl px-4 py-3 text-base font-medium text-ink hover:bg-white/60"
+                >
+                  For Business
+                </Link>
+                {user ? (
+                  <>
+                    <p className="truncate px-4 py-2 text-sm text-ink-muted">
+                      {user.email}
+                    </p>
+                    <button
+                      onClick={logout}
+                      className="rounded-xl px-4 py-3 text-left text-base font-medium text-ink hover:bg-white/60"
+                    >
+                      Log out
+                    </button>
+                  </>
+                ) : (
+                  <div className="mt-2 grid grid-cols-2 gap-3 border-t border-ink/10 pt-4">
+                    <Link
+                      href="/login"
+                      onClick={() => setOpen(false)}
+                      className="rounded-full border border-ink/15 py-2.5 text-center text-sm font-semibold text-ink"
+                    >
+                      Log in
+                    </Link>
+                    <Link
+                      href="/register"
+                      onClick={() => setOpen(false)}
+                      className="rounded-full bg-sage py-2.5 text-center text-sm font-semibold text-paper"
+                    >
+                      Sign up
+                    </Link>
+                  </div>
+                )}
+              </nav>
+            </div>
+          </div>
+        </>
+      )}
+    </header>
+  );
+}

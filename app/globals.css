@@ -23,6 +23,20 @@ body {
   overflow-x: hidden;
 }
 
+img,
+video,
+svg {
+  max-width: 100%;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 ::selection {
   background: #5c7a68;
   color: #f6f2ea;
