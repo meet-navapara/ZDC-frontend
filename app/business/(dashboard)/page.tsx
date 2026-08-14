@@ -10,18 +10,23 @@ import {
   type BusinessStats,
   type LedgerEntry,
 } from "@/lib/b2b";
+import { ChartPanel, useLiveRefresh } from "@/components/MiniBarChart";
 
 function StatCard({
   label,
   value,
   hint,
+  accent,
 }: {
   label: string;
   value: React.ReactNode;
   hint?: string;
+  accent?: boolean;
 }) {
   return (
-    <div className="card rounded-2xl p-5">
+    <div
+      className={`card rounded-2xl p-5 ${accent ? "border-sage/30 bg-sage/10" : ""}`}
+    >
       <div className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
         {label}
       </div>
@@ -31,6 +36,10 @@ function StatCard({
       {hint && <div className="mt-1 text-xs text-ink-muted">{hint}</div>}
     </div>
   );
+}
+
+function money(n: number, currency = "KES") {
+  return `${currency} ${new Intl.NumberFormat("en-US").format(n)}`;
 }
 
 const LEDGER_LABEL: Record<LedgerEntry["type"], string> = {
@@ -45,18 +54,29 @@ export default function OverviewPage() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { tick, updatedAt, markUpdated } = useLiveRefresh(20000);
 
   useEffect(() => {
+    let cancelled = false;
+    const first = loading;
     Promise.all([
       getStats().catch(() => null),
       getLedger(6).catch(() => ({ ledger: [] })),
     ])
       .then(([s, l]) => {
+        if (cancelled) return;
         if (s) setStats(s.stats);
         setLedger(l.ledger);
+        markUpdated();
       })
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => {
+        if (!cancelled && first) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tick]);
 
   async function onExport() {
     setExporting(true);
@@ -71,6 +91,10 @@ export default function OverviewPage() {
   }
 
   const dash = "—";
+  const cur = stats?.finance?.currency || "KES";
+  const tryonSeries = stats?.charts?.tryons || stats?.series || [];
+  const spendSeries = stats?.charts?.spend || [];
+  const creditSeries = stats?.charts?.creditsUsed || [];
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -80,7 +104,8 @@ export default function OverviewPage() {
             Overview
           </h1>
           <p className="mt-1 text-ink-muted">
-            A snapshot of your studio&apos;s activity.
+            Live studio activity — charts refresh automatically with the latest
+            numbers.
           </p>
         </div>
         <button
@@ -122,32 +147,39 @@ export default function OverviewPage() {
         />
       </div>
 
-      {/* Engagement */}
+      {/* Finance + engagement */}
       <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard
+          label="Spend (all-time)"
+          value={
+            loading ? dash : money(stats?.finance?.spentTotal ?? 0, cur)
+          }
+          hint={
+            loading
+              ? ""
+              : `${money(stats?.finance?.spentLast30 ?? 0, cur)} last 30d`
+          }
+          accent
+        />
         <StatCard
           label="Render success"
           value={loading ? dash : `${stats?.tryons.successRate ?? 0}%`}
           hint="completed / total"
         />
-        <StatCard
-          label="Categories"
-          value={
-            loading
-              ? dash
-              : `${stats?.catalog.categories ?? 0}/${
-                  stats?.catalog.maxCategories ?? 10
-                }`
-          }
-        />
-        <StatCard
-          label="Branches"
-          value={
-            loading
-              ? dash
-              : `${stats?.branches?.count ?? 0}/${stats?.branches?.max ?? 20}`
-          }
-          hint="locations"
-        />
+        <Link
+          href="/business/branches"
+          className="card block rounded-2xl p-5 transition hover:border-sage"
+        >
+          <div className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+            Branches
+          </div>
+          <div className="mt-2 font-display text-3xl font-semibold text-ink">
+            {loading ? dash : (stats?.branches?.count ?? 0)}
+          </div>
+          <div className="mt-1 text-xs text-ink-muted">
+            Manage locations · Add branch
+          </div>
+        </Link>
         <Link
           href="/business/credits"
           className="card block rounded-2xl bg-sage/10 p-5 transition hover:border-sage"
@@ -158,6 +190,44 @@ export default function OverviewPage() {
           </div>
           <div className="text-sm text-ink-muted">Top up to keep rendering.</div>
         </Link>
+      </div>
+
+      {/* Live charts — big “today/latest” numbers + day list for easy reading */}
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <ChartPanel
+          title="Credit spend"
+          subtitle={`Pack purchases in ${cur} · last ${spendSeries.length || 14} days`}
+          data={spendSeries}
+          valueKey="amount"
+          chart="line"
+          formatValue={(n) => money(n, cur)}
+          loading={loading}
+          updatedAt={updatedAt}
+          emptyHint="Buy a credit pack to see spend appear here day by day."
+        />
+        <ChartPanel
+          title="Try-on activity"
+          subtitle={`Renders per day · last ${tryonSeries.length || 14} days`}
+          data={tryonSeries}
+          valueKey="count"
+          chart="bar"
+          loading={loading}
+          updatedAt={updatedAt}
+          emptyHint="Run a try-on from the Try-On page — today’s bar updates live."
+        />
+      </div>
+
+      <div className="mt-6">
+        <ChartPanel
+          title="Credits used"
+          subtitle="Credits consumed by try-ons each day"
+          data={creditSeries}
+          valueKey="count"
+          chart="bar"
+          loading={loading}
+          updatedAt={updatedAt}
+          emptyHint="Credits used show up here after completed renders."
+        />
       </div>
 
       {/* Popular styles + recent activity */}

@@ -19,5 +19,3 @@ export const LIMITS = {
   url: 2048,
   branchName: 120,
 } as const;
-
-export const MAX_BRANCH_COUNT = 20;

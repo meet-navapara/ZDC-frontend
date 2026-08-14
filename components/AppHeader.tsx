@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getUser, clearAuth, type AuthUser } from "@/lib/auth";
+import { getUser, clearAuth, homeForRole, type AuthUser } from "@/lib/auth";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export function AppHeader() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -35,27 +36,32 @@ export function AppHeader() {
   };
 
   const businessHref = user?.role === "b2b" ? "/business" : "/business/login";
+  const tryOnHref =
+    user?.role === "b2c"
+      ? "/app/try-on"
+      : user
+        ? homeForRole(user.role)
+        : "/login?next=/app/try-on";
+  const accountHref =
+    user?.role === "b2c"
+      ? "/app"
+      : user?.role === "b2b"
+        ? "/business"
+        : user?.role === "admin"
+          ? "/admin"
+          : "/login";
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 sm:px-4">
       <div className="mx-auto mt-3 flex max-w-6xl items-center justify-between rounded-full glass px-3 py-2.5 sm:mt-4 sm:px-5 sm:py-3">
-        <Link
-          href="/"
-          className="flex min-w-0 items-center gap-2"
-          onClick={() => setOpen(false)}
-        >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sage">
-            <span className="h-2.5 w-2.5 rounded-full bg-paper" />
-          </span>
-          <span className="font-display text-lg font-semibold tracking-tight text-ink sm:text-xl">
-            ZDC
-          </span>
-        </Link>
+        <div onClick={() => setOpen(false)}>
+          <BrandLogo size="md" />
+        </div>
 
         {/* Desktop actions */}
         <div className="hidden items-center gap-3 text-sm md:flex">
           <Link
-            href="/try-on"
+            href={tryOnHref}
             className="font-medium text-ink-muted transition hover:text-ink"
           >
             Try On
@@ -68,9 +74,12 @@ export function AppHeader() {
           </Link>
           {user ? (
             <>
-              <span className="max-w-[160px] truncate text-ink-muted lg:max-w-none">
+              <Link
+                href={accountHref}
+                className="max-w-[160px] truncate font-medium text-ink transition hover:text-sage-dark lg:max-w-none"
+              >
                 {user.email}
-              </span>
+              </Link>
               <button
                 onClick={logout}
                 className="rounded-full border border-ink/15 px-4 py-2 font-semibold text-ink transition hover:border-ink/30"
@@ -99,7 +108,7 @@ export function AppHeader() {
         {/* Mobile: primary CTA + menu */}
         <div className="flex items-center gap-2 md:hidden">
           <Link
-            href="/try-on"
+            href={tryOnHref}
             className="rounded-full bg-sage px-3.5 py-2 text-xs font-semibold text-paper transition hover:bg-sage-dark"
             onClick={() => setOpen(false)}
           >
@@ -144,12 +153,21 @@ export function AppHeader() {
             <div className="glass-strong rounded-3xl p-4">
               <nav className="flex flex-col gap-1">
                 <Link
-                  href="/try-on"
+                  href={tryOnHref}
                   onClick={() => setOpen(false)}
                   className="rounded-xl px-4 py-3 text-base font-medium text-ink hover:bg-white/60"
                 >
                   Try On
                 </Link>
+                {user?.role === "b2c" && (
+                  <Link
+                    href="/app"
+                    onClick={() => setOpen(false)}
+                    className="rounded-xl px-4 py-3 text-base font-medium text-ink hover:bg-white/60"
+                  >
+                    My dashboard
+                  </Link>
+                )}
                 <Link
                   href={businessHref}
                   onClick={() => setOpen(false)}

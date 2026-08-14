@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getUser, clearAuth, type AuthUser } from "@/lib/auth";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const NAV = [
   { href: "/admin", label: "Overview", exact: true, icon: "◪" },
@@ -69,17 +70,7 @@ export default function AdminLayout({
   }
 
   const brand = (
-    <Link href="/admin" className="flex items-center gap-2">
-      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sage">
-        <span className="h-2.5 w-2.5 rounded-full bg-paper" />
-      </span>
-      <span className="font-display text-xl font-semibold tracking-tight text-paper">
-        ZDC
-      </span>
-      <span className="ml-1 rounded-full bg-sage/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sage">
-        HQ
-      </span>
-    </Link>
+    <BrandLogo href="/admin" size="sm" onDark badge="HQ" />
   );
 
   const navLinks = (

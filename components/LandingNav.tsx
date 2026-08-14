@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const LINKS = [
   { href: "#features", label: "Features" },
@@ -24,14 +25,9 @@ export function LandingNav() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 sm:px-4">
       <div className="mx-auto mt-3 flex max-w-6xl items-center justify-between rounded-full glass px-3 py-2.5 sm:mt-4 sm:px-5 sm:py-3">
-        <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sage">
-            <span className="h-2.5 w-2.5 rounded-full bg-paper" />
-          </span>
-          <span className="font-display text-lg font-semibold tracking-tight text-ink sm:text-xl">
-            ZDC
-          </span>
-        </Link>
+        <div onClick={() => setOpen(false)}>
+          <BrandLogo size="md" priority />
+        </div>
 
         {/* Desktop links */}
         <nav className="hidden items-center gap-8 text-sm text-ink-muted md:flex">
@@ -50,7 +46,7 @@ export function LandingNav() {
             Log in
           </Link>
           <Link
-            href="/try-on"
+            href="/login?next=/app/try-on"
             className="rounded-full bg-sage px-4 py-2 text-sm font-semibold text-paper transition hover:bg-sage-dark sm:px-5"
           >
             Try On
@@ -116,7 +112,7 @@ export function LandingNav() {
                   Log in
                 </Link>
                 <Link
-                  href="/try-on"
+                  href="/login?next=/app/try-on"
                   onClick={() => setOpen(false)}
                   className="rounded-full bg-sage py-2.5 text-center text-sm font-semibold text-paper transition hover:bg-sage-dark"
                 >

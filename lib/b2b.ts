@@ -73,7 +73,6 @@ export type BusinessStats = {
   };
   branches?: {
     count: number;
-    max: number;
   };
   credits: {
     balance: number;
@@ -91,7 +90,20 @@ export type BusinessStats = {
     last30: number;
     successRate: number;
   };
+  finance?: {
+    currency: string;
+    spentTotal: number;
+    spentToday: number;
+    spentLast7: number;
+    spentLast30: number;
+  };
+  /** Legacy flat try-on series */
   series: { date: string; count: number }[];
+  charts?: {
+    tryons: { date: string; count: number }[];
+    creditsUsed: { date: string; count: number }[];
+    spend: { date: string; amount: number }[];
+  };
   popular: { productId: string; name: string; count: number; imageUrl?: string }[];
 };
 
@@ -141,7 +153,7 @@ export function updateProfile(body: {
 /* -------------------------------- Branches -------------------------------- */
 
 export function listBranches() {
-  return apiGet<{ branches: Branch[]; limit: number; count: number }>(
+  return apiGet<{ branches: Branch[]; count: number }>(
     "/api/b2b/branches",
     tok()
   );
@@ -190,7 +202,7 @@ export async function downloadReport() {
   const blob = await res.blob();
   const disposition = res.headers.get("Content-Disposition") || "";
   const match = disposition.match(/filename="?([^"]+)"?/);
-  const fileName = match?.[1] || "zdc-report.xlsx";
+  const fileName = match?.[1] || "zimji-report.xlsx";
 
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -220,13 +232,54 @@ export function getLedger(limit = 50) {
 }
 
 export async function purchaseCredits(packId: string) {
-  const res = await apiPost<{ balance: number; credited: number }>(
-    "/api/b2b/credits/purchase",
-    { pack: packId, gateway: "stub" },
-    tok()
-  );
+  const res = await apiPost<{
+    balance: number;
+    credited: number;
+    payment?: {
+      id: string;
+      status: string;
+      reference: string | null;
+      amount: number;
+      currency: string;
+    };
+    invoiceUrl?: string;
+  }>("/api/b2b/credits/purchase", { pack: packId, gateway: "stub" }, tok());
   notifyCreditsChanged();
+
+  // Auto-download the invoice PDF right after a successful purchase.
+  if (res.payment?.id) {
+    try {
+      await downloadCreditInvoice(res.payment.id);
+    } catch {
+      // Purchase succeeded even if the download fails; UI can still re-download later.
+    }
+  }
+
   return res;
+}
+
+export async function downloadCreditInvoice(paymentId: string) {
+  const res = await fetch(
+    `${API_BASE}/api/b2b/credits/payments/${paymentId}/invoice.pdf`,
+    {
+      headers: tok() ? { Authorization: `Bearer ${tok()}` } : undefined,
+    }
+  );
+  if (!res.ok) throw new Error(`Invoice download failed (${res.status})`);
+
+  const blob = await res.blob();
+  const disposition = res.headers.get("Content-Disposition") || "";
+  const match = disposition.match(/filename="?([^"]+)"?/);
+  const fileName = match?.[1] || `zimji-invoice-${paymentId}.pdf`;
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 /* ------------------------------- Categories ------------------------------- */
@@ -271,6 +324,22 @@ export function createProduct(form: FormData) {
   return apiSendForm<{ product: Product }>(
     "POST",
     "/api/b2b/products",
+    form,
+    tok()
+  );
+}
+
+export type BulkCreateResult = {
+  created: Product[];
+  errors: { index: number; error: string }[];
+  summary: { total: number; success: number; failed: number };
+};
+
+/** Bulk create — FormData with `items` (JSON) + `images` (same order). */
+export function createProductsBulk(form: FormData) {
+  return apiSendForm<BulkCreateResult>(
+    "POST",
+    "/api/b2b/products/bulk",
     form,
     tok()
   );

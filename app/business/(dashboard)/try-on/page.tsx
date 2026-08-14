@@ -402,7 +402,7 @@ export default function B2BTryOnPage() {
               {job.resultImageUrls[0] && (
                 <TryOnShareActions
                   imageUrl={job.resultImageUrls[0]}
-                  filename="zdc-tryon-1.png"
+                  filename="zimji-tryon-1.png"
                   onTryAnother={reset}
                   challengePath="/try-on"
                 />

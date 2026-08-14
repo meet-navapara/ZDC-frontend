@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Reveal } from "@/components/Reveal";
 import { Spotlight } from "@/components/Spotlight";
 import { LandingNav } from "@/components/LandingNav";
+import { BrandLogo } from "@/components/BrandLogo";
 import { getSiteContent } from "@/lib/content";
 
 const categories = [
@@ -21,7 +22,7 @@ const features = [
   {
     eyebrow: "Virtual Try-On",
     title: "Try it on, instantly.",
-    desc: "Upload a selfie and any outfit — ZDC renders a photorealistic try-on in seconds, so you see the fit, drape and colour before you buy.",
+    desc: "Upload a selfie and any outfit — zimji renders a photorealistic try-on in seconds, so you see the fit, drape and colour before you buy.",
     img: "/images/model-print.png",
     cta: "Try apparel",
     reverse: false,
@@ -95,6 +96,7 @@ export default async function Home() {
       <Spotlight>
         <section className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-8 px-4 pb-16 pt-28 sm:gap-12 sm:px-6 sm:pb-24 sm:pt-36 md:grid-cols-[1fr_1fr] md:pt-44">
           <Reveal className="relative z-10">
+            <BrandLogo href={false} size="hero" priority className="mb-4" />
             <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-ink/10 bg-white/60 px-3 py-1.5 text-[11px] font-medium text-ink-muted sm:px-4 sm:text-xs">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sage" />
               <span className="truncate">{hero.badge}</span>
@@ -271,7 +273,7 @@ export default async function Home() {
               </h2>
             </div>
             <p className="max-w-xs text-sm text-ink-muted">
-              A glimpse of the photorealistic output ZDC delivers — apparel,
+              A glimpse of the photorealistic output zimji delivers — apparel,
               hairstyles and accessories.
             </p>
           </Reveal>
@@ -563,16 +565,9 @@ export default async function Home() {
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
           <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
             <div>
-              <div className="flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sage">
-                  <span className="h-2.5 w-2.5 rounded-full bg-paper" />
-                </span>
-                <span className="font-display text-xl font-semibold text-ink">
-                  ZDC
-                </span>
-              </div>
+              <BrandLogo href="/" size="lg" />
               <p className="mt-3 max-w-xs text-sm text-ink-muted">
-                Wear the future. AI virtual try-on for apparel and hairstyles.
+                Style, smarter. AI virtual try-on for apparel and hairstyles.
               </p>
               <div className="mt-5 flex items-center gap-2.5">
                 {SOCIAL_LINKS.map((s) => (
@@ -594,19 +589,22 @@ export default async function Home() {
               <a href="#" className="transition hover:text-ink">
                 About
               </a>
-              <a href="#" className="transition hover:text-ink">
+              <Link href="/privacy" className="transition hover:text-ink">
                 Privacy
-              </a>
-              <a href="#" className="transition hover:text-ink">
+              </Link>
+              <Link href="/privacy" className="transition hover:text-ink">
                 Terms
-              </a>
+              </Link>
+              <Link href="/cookies" className="transition hover:text-ink">
+                Cookies
+              </Link>
               <a href="#contact" className="transition hover:text-ink">
                 Contact
               </a>
             </nav>
           </div>
           <div className="mt-8 border-t border-ink/10 pt-5 text-center text-xs text-ink-muted sm:mt-10 sm:pt-6">
-            © {new Date().getFullYear()} ZDC — Wear the Future. Now.
+            © {new Date().getFullYear()} zimji — Style, Smarter!
           </div>
         </div>
       </footer>

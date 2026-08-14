@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
             <span className="h-4 w-4 rounded-full bg-paper" />
           </div>
           <h1 className="mt-4 font-display text-3xl font-semibold text-paper">
-            ZDC HQ
+            Zimji HQ
           </h1>
           <p className="mt-1 text-sm text-paper/60">Super Admin Console</p>
         </div>
@@ -71,7 +71,7 @@ export default function AdminLoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-xl border border-white/15 bg-ink/40 px-4 py-3 text-paper outline-none transition placeholder:text-paper/30 focus:border-sage"
-              placeholder="admin@zdc.app"
+              placeholder="admin@zimji.app"
             />
           </div>
           <div>

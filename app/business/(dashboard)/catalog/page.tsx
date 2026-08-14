@@ -15,6 +15,7 @@ import {
   type Product,
 } from "@/lib/b2b";
 import { LIMITS } from "@/lib/limits";
+import BulkUploadModal from "@/components/BulkUploadModal";
 
 const MAX_CATEGORIES = 10;
 
@@ -49,8 +50,8 @@ export default function CatalogPage() {
     null
   );
 
-  // Product modal state
   const [modalOpen, setModalOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [files, setFiles] = useState<File[]>([]);
@@ -241,6 +242,12 @@ export default function CatalogPage() {
               {categories.length}/{MAX_CATEGORIES}
             </span>
             <button
+              onClick={() => setBulkOpen(true)}
+              className="rounded-full border border-ink/15 bg-white px-4 py-2.5 text-sm font-semibold text-ink transition hover:border-sage"
+            >
+              Bulk upload
+            </button>
+            <button
               onClick={openCreate}
               className="rounded-full bg-sage px-5 py-2.5 text-sm font-semibold text-paper transition hover:bg-sage-dark"
             >
@@ -362,9 +369,10 @@ export default function CatalogPage() {
       ) : visibleProducts.length === 0 ? (
         <div className="mt-6 card rounded-2xl px-6 py-12 text-center">
           <p className="text-ink-muted">
-            No products here yet. Click{" "}
-            <span className="font-semibold text-ink">Add product</span> to create
-            your first one.
+            No products here yet. Use{" "}
+            <span className="font-semibold text-ink">Bulk upload</span> for many
+            items, or{" "}
+            <span className="font-semibold text-ink">Add product</span> for one.
           </p>
         </div>
       ) : (
@@ -608,6 +616,18 @@ export default function CatalogPage() {
           </div>
         </div>
       )}
+
+      <BulkUploadModal
+        open={bulkOpen}
+        categories={categories}
+        currency={products[0]?.currency || "KES"}
+        onClose={() => setBulkOpen(false)}
+        onCreated={(created) => {
+          if (created.length) {
+            setProducts((ps) => [...created, ...ps]);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -8,8 +8,8 @@ type Props = {
   imageUrl: string;
   filename?: string;
   /** Reset / start a new look. */
-  onTryAnother: () => void;
-  /** Link shared in challenge invites. Defaults to the public try-on page. */
+  onTryAnother?: () => void;
+  /** Link shared in challenge invites. Defaults to the consumer try-on studio. */
   challengePath?: string;
 };
 
@@ -55,7 +55,7 @@ async function shareImageToInstagram(absUrl: string, filename: string) {
     ) {
       await navigator.share({
         files: [file],
-        title: "My ZDC try-on",
+        title: "My zimji try-on",
         text: "Check out my AI try-on look!",
       });
       return;
@@ -70,9 +70,9 @@ async function shareImageToInstagram(absUrl: string, filename: string) {
 
 export function TryOnShareActions({
   imageUrl,
-  filename = "zdc-tryon.png",
+  filename = "zimji-tryon.png",
   onTryAnother,
-  challengePath = "/try-on",
+  challengePath = "/app/try-on",
 }: Props) {
   const [toast, setToast] = useState("");
 
@@ -111,7 +111,7 @@ export function TryOnShareActions({
   }
 
   function handleChallenge() {
-    const text = `I just tried on a new look with ZDC AI — can you beat mine? Challenge accepted? ${challengeUrl}`;
+    const text = `I just tried on a new look with zimji AI — can you beat mine? Challenge accepted? ${challengeUrl}`;
     window.open(
       `https://wa.me/?text=${encodeURIComponent(text)}`,
       "_blank",
@@ -129,7 +129,15 @@ export function TryOnShareActions({
     { key: "whatsapp", label: "Share to WhatsApp", onClick: handleWhatsApp },
     { key: "instagram", label: "Share to Instagram", onClick: handleInstagram },
     { key: "copy", label: "Copy link", onClick: handleCopyLink },
-    { key: "another", label: "Try another look", onClick: onTryAnother },
+    ...(onTryAnother
+      ? [
+          {
+            key: "another",
+            label: "Try another look",
+            onClick: onTryAnother,
+          },
+        ]
+      : []),
     { key: "challenge", label: "Challenge a friend", onClick: handleChallenge },
   ];
 

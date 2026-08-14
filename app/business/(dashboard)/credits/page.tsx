@@ -46,7 +46,9 @@ export default function CreditsPage() {
     setBuying(pack.id);
     try {
       const res = await purchaseCredits(pack.id);
-      setNotice(`Added ${res.credited} credits. New balance: ${res.balance}.`);
+      setNotice(
+        `Added ${res.credited} credits. New balance: ${res.balance}. Invoice downloaded.`
+      );
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Purchase failed");

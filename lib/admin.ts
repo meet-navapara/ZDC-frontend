@@ -246,6 +246,19 @@ export function listPayments(params?: {
 
 /* ---------------------------- Catalogue oversight ------------------------- */
 
+export type CatalogUploader = {
+  id: string;
+  email: string | null;
+  name: string;
+  ownerName: string | null;
+  businessName: string | null;
+  category: string | null;
+  productCount: number;
+  activeCount: number;
+  archivedCount: number;
+  lastUploadAt: string;
+};
+
 export type CatalogProduct = {
   id: string;
   name: string;
@@ -257,11 +270,20 @@ export type CatalogProduct = {
   thumbnail: string | null;
   category: string | null;
   createdAt: string;
-  business: { id: string; email: string; name: string | null } | null;
+  business: {
+    id: string;
+    email: string;
+    name: string | null;
+    ownerName?: string | null;
+    category?: string | null;
+    currency?: string | null;
+    phone?: string | null;
+  } | null;
 };
 
 export type CatalogResult = {
   products: CatalogProduct[];
+  uploaders: CatalogUploader[];
   summary: { total: number; active: number; archived: number; businesses: number };
   statuses: string[];
   page: number;

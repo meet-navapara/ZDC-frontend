@@ -117,7 +117,7 @@ export default function BusinessLoginPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/streetwear.png"
-                alt="ZDC for business"
+                alt="zimji for business"
                 className="absolute inset-0 h-full w-full object-cover"
               />
             </div>

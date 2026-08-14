@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { apiPost } from "@/lib/api";
-import { saveAuth, type AuthUser } from "@/lib/auth";
+import { saveAuth, homeForRole, type AuthUser } from "@/lib/auth";
 import { LIMITS } from "@/lib/limits";
 
 type AuthResponse = { token: string; user: AuthUser };
@@ -27,7 +27,12 @@ export default function LoginPage() {
         password,
       });
       saveAuth(res.token, res.user);
-      router.push("/try-on");
+      const next = new URLSearchParams(window.location.search).get("next");
+      if (next && next.startsWith("/") && !next.startsWith("//")) {
+        router.push(next);
+      } else {
+        router.push(homeForRole(res.user.role));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -105,7 +110,7 @@ export default function LoginPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/braids-light.png"
-                alt="ZDC try-on"
+                alt="zimji try-on"
                 className="absolute inset-0 h-full w-full object-cover"
               />
             </div>

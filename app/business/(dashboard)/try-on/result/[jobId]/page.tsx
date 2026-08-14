@@ -125,7 +125,7 @@ export default function B2BTryOnResultPage() {
           {job.resultImageUrls[activeResult] && (
             <TryOnShareActions
               imageUrl={job.resultImageUrls[activeResult]}
-              filename={`zdc-tryon-${activeResult + 1}.png`}
+              filename={`zimji-tryon-${activeResult + 1}.png`}
               onTryAnother={() => router.push("/business/try-on")}
               challengePath="/try-on"
             />

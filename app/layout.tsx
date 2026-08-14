@@ -18,15 +18,20 @@ const sans = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ZDC — Wear the Future. Now.",
+  title: "zimji — Style, Smarter!",
   description:
     "The AI virtual try-on atelier for apparel and hairstyles. See it on you before you buy — powered by AI, delivered via WhatsApp.",
-  metadataBase: new URL("https://zdc.app"),
+  metadataBase: new URL("https://zimji.app"),
+  icons: {
+    icon: [{ url: "/icon", type: "image/png" }],
+    apple: [{ url: "/icon", type: "image/png" }],
+  },
   openGraph: {
-    title: "ZDC — Wear the Future. Now.",
+    title: "zimji — Style, Smarter!",
     description:
       "AI virtual try-on for apparel and hairstyles. Try before you buy.",
     type: "website",
+    images: [{ url: "/images/zimji-logo-og.png" }],
   },
 };
 

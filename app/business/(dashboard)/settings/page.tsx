@@ -2,10 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { AddressAutocomplete, type AddressParts } from "@/components/AddressAutocomplete";
+import { BranchManager } from "@/components/BranchManager";
 import { getProfile, updateProfile } from "@/lib/b2b";
 import { getUser, saveAuth, getToken } from "@/lib/auth";
-import { LIMITS, MAX_BRANCH_COUNT } from "@/lib/limits";
-import { COUNTRIES, matchCountry } from "@/lib/countries";
+import { LIMITS } from "@/lib/limits";
+import {
+  COUNTRIES,
+  CURRENCIES,
+  CURRENCY_CODES,
+  matchCountry,
+  currencyForCountry,
+  paymentHintForCurrency,
+} from "@/lib/countries";
 
 const CATEGORIES = [
   { id: "salon", label: "Salon" },
@@ -26,6 +34,7 @@ export default function SettingsPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [email, setEmail] = useState("");
+  const [branchRefreshKey, setBranchRefreshKey] = useState(0);
   const [form, setForm] = useState({
     businessName: "",
     category: "boutique",
@@ -34,7 +43,7 @@ export default function SettingsPage() {
     line1: "",
     city: "",
     country: "",
-    branchCount: "1",
+    currency: "KES",
   });
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
     lat: null,
@@ -46,6 +55,10 @@ export default function SettingsPage() {
       .then((r) => {
         const u = r.user;
         setEmail(u.email);
+        const country =
+          matchCountry(u.business?.address?.country) ||
+          u.business?.address?.country ||
+          "";
         setForm({
           businessName: u.business?.name || "",
           category: u.business?.category || "boutique",
@@ -53,8 +66,9 @@ export default function SettingsPage() {
           whatsapp: u.business?.whatsapp || "",
           line1: u.business?.address?.line1 || "",
           city: u.business?.address?.city || "",
-          country: matchCountry(u.business?.address?.country) || u.business?.address?.country || "",
-          branchCount: String(u.business?.branchCount ?? 1),
+          country,
+          currency:
+            u.business?.currency || currencyForCountry(country) || "KES",
         });
         setCoords({
           lat: u.business?.address?.lat ?? null,
@@ -66,18 +80,33 @@ export default function SettingsPage() {
   }, []);
 
   function set<K extends keyof typeof form>(key: K, value: string) {
-    setForm((f) => ({ ...f, [key]: value }));
+    setForm((f) => {
+      if (key === "country") {
+        return {
+          ...f,
+          country: value,
+          currency: currencyForCountry(value),
+        };
+      }
+      return { ...f, [key]: value };
+    });
   }
 
   function onAddress(parts: Partial<AddressParts>) {
-    setForm((f) => ({
-      ...f,
-      ...(parts.line1 !== undefined ? { line1: parts.line1 } : {}),
-      ...(parts.city ? { city: parts.city } : {}),
-      ...(parts.country
-        ? { country: matchCountry(parts.country) || f.country }
-        : {}),
-    }));
+    setForm((f) => {
+      const nextCountry = parts.country
+        ? matchCountry(parts.country) || f.country
+        : f.country;
+      return {
+        ...f,
+        ...(parts.line1 !== undefined ? { line1: parts.line1 } : {}),
+        ...(parts.city ? { city: parts.city } : {}),
+        ...(parts.country ? { country: nextCountry } : {}),
+        ...(parts.country
+          ? { currency: currencyForCountry(nextCountry) }
+          : {}),
+      };
+    });
     if (parts.lat != null && parts.lng != null) {
       setCoords({ lat: parts.lat, lng: parts.lng });
     }
@@ -95,10 +124,7 @@ export default function SettingsPage() {
           name: form.businessName,
           category: form.category as "boutique" | "salon" | "other",
           whatsapp: form.whatsapp.trim() || null,
-          branchCount: Math.max(
-            1,
-            Math.min(MAX_BRANCH_COUNT, Number(form.branchCount) || 1)
-          ),
+          currency: form.currency,
           address: {
             line1: form.line1,
             city: form.city,
@@ -115,6 +141,7 @@ export default function SettingsPage() {
         saveAuth(token, { ...current, ...res.user });
       }
       setNotice("Profile updated.");
+      setBranchRefreshKey((k) => k + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save");
     } finally {
@@ -123,7 +150,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl space-y-6">
       {loading ? (
         <div className="space-y-3">
           <div className="h-12 animate-pulse rounded-xl bg-ink/5" />
@@ -131,6 +158,7 @@ export default function SettingsPage() {
           <div className="h-12 animate-pulse rounded-xl bg-ink/5" />
         </div>
       ) : (
+        <>
         <form onSubmit={onSubmit} className="card space-y-4 rounded-2xl p-6">
           {notice && (
             <div className="rounded-xl border border-sage/40 bg-sage/10 px-4 py-3 text-sm text-sage-dark">
@@ -181,30 +209,12 @@ export default function SettingsPage() {
                 </option>
               ))}
             </select>
-          </div>
+            </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium text-ink-700">
-              Number of branches
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={MAX_BRANCH_COUNT}
-              value={form.branchCount}
-              onChange={(e) => set("branchCount", e.target.value)}
-              className={inputClass}
-            />
-            <p className="mt-1 text-xs text-ink-muted">
-              Cap for locations you can create under Branches (1–
-              {MAX_BRANCH_COUNT}).
-            </p>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-ink-700">
-              Phone
-            </label>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-ink-700">
+                Phone
+              </label>
             <input
               maxLength={LIMITS.phone}
               value={form.phone}
@@ -292,6 +302,36 @@ export default function SettingsPage() {
             </div>
           </div>
 
+          <div>
+            <label className="mb-1 block text-sm font-medium text-ink-700">
+              Currency
+            </label>
+            <select
+              value={form.currency}
+              onChange={(e) => set("currency", e.target.value)}
+              className={selectClass}
+            >
+              {CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.label}
+                </option>
+              ))}
+              {form.currency &&
+                !(CURRENCY_CODES as readonly string[]).includes(
+                  form.currency
+                ) && (
+                  <option value={form.currency}>{form.currency}</option>
+                )}
+            </select>
+            <p className="mt-1.5 text-xs text-ink-muted">
+              Payments use{" "}
+              <span className="font-semibold text-ink">
+                {paymentHintForCurrency(form.currency)}
+              </span>{" "}
+              ({form.currency}). Follows country by default; you can override.
+            </p>
+          </div>
+
           <div className="flex justify-end pt-2">
             <button
               type="submit"
@@ -302,6 +342,11 @@ export default function SettingsPage() {
             </button>
           </div>
         </form>
+
+        <section className="card space-y-4 rounded-2xl p-6">
+          <BranchManager compact refreshKey={branchRefreshKey} />
+        </section>
+        </>
       )}
     </div>
   );

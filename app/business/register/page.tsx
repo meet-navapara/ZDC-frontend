@@ -8,8 +8,8 @@ import { AddressAutocomplete, type AddressParts } from "@/components/AddressAuto
 import { apiPost } from "@/lib/api";
 import { saveAuth, type AuthUser } from "@/lib/auth";
 import { track } from "@/lib/analytics";
-import { LIMITS, MAX_BRANCH_COUNT } from "@/lib/limits";
-import { COUNTRIES, matchCountry } from "@/lib/countries";
+import { LIMITS } from "@/lib/limits";
+import { COUNTRIES, CURRENCIES, matchCountry, currencyForCountry, paymentHintForCurrency } from "@/lib/countries";
 
 type AuthResponse = { token: string; user: AuthUser };
 
@@ -39,37 +39,81 @@ export default function BusinessRegisterPage() {
     whatsapp: "",
     city: "",
     country: "Kenya",
+    currency: "KES",
     line1: "",
-    branchCount: "1",
   });
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
     lat: null,
     lng: null,
   });
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<"form" | "otp">("form");
+  const [otp, setOtp] = useState("");
+  const [devOtp, setDevOtp] = useState("");
 
   function set<K extends keyof typeof form>(key: K, value: string) {
-    setForm((f) => ({ ...f, [key]: value }));
+    setForm((f) => {
+      if (key === "country") {
+        return {
+          ...f,
+          country: value,
+          currency: currencyForCountry(value),
+        };
+      }
+      return { ...f, [key]: value };
+    });
   }
 
   function onAddress(parts: Partial<AddressParts>) {
-    setForm((f) => ({
-      ...f,
-      ...(parts.line1 !== undefined ? { line1: parts.line1 } : {}),
-      ...(parts.city ? { city: parts.city } : {}),
-      ...(parts.country
-        ? { country: matchCountry(parts.country) || f.country }
-        : {}),
-    }));
+    setForm((f) => {
+      const nextCountry = parts.country
+        ? matchCountry(parts.country) || f.country
+        : f.country;
+      return {
+        ...f,
+        ...(parts.line1 !== undefined ? { line1: parts.line1 } : {}),
+        ...(parts.city ? { city: parts.city } : {}),
+        ...(parts.country ? { country: nextCountry } : {}),
+        ...(parts.country
+          ? { currency: currencyForCountry(nextCountry) }
+          : {}),
+      };
+    });
     if (parts.lat != null && parts.lng != null) {
       setCoords({ lat: parts.lat, lng: parts.lng });
     }
   }
 
+  function registerPayload() {
+    return {
+      email: form.email,
+      password: form.password,
+      phone: form.phone,
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      business: {
+        name: form.businessName,
+        category: form.category,
+        whatsapp: form.whatsapp.trim(),
+        currency: form.currency,
+        address: {
+          line1: form.line1,
+          city: form.city,
+          country: form.country,
+          ...(coords.lat != null && coords.lng != null
+            ? { lat: coords.lat, lng: coords.lng }
+            : {}),
+        },
+      },
+    };
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setNotice("");
     if (!form.category) {
       setError("Please select a business category.");
       return;
@@ -78,37 +122,67 @@ export default function BusinessRegisterPage() {
       setError("Please select a country.");
       return;
     }
+    if (!form.currency) {
+      setError("Please select a currency.");
+      return;
+    }
     setLoading(true);
     try {
-      const res = await apiPost<AuthResponse>("/api/b2b/register", {
+      const res = await apiPost<{
+        ok: boolean;
+        message?: string;
+        email: string;
+        devOtp?: string;
+      }>("/api/b2b/register/otp/request", registerPayload());
+      setDevOtp(res.devOtp || "");
+      setNotice(
+        res.message ||
+          `We sent a verification code to ${form.email}. Enter it below.`
+      );
+      setStep("otp");
+      setOtp("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send code");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onVerifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setNotice("");
+    setLoading(true);
+    try {
+      const res = await apiPost<AuthResponse>("/api/b2b/register/otp/verify", {
         email: form.email,
-        password: form.password,
-        phone: form.phone,
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        business: {
-          name: form.businessName,
-          category: form.category,
-          whatsapp: form.whatsapp.trim(),
-          branchCount: Math.max(
-            1,
-            Math.min(MAX_BRANCH_COUNT, Number(form.branchCount) || 1)
-          ),
-          address: {
-            line1: form.line1,
-            city: form.city,
-            country: form.country,
-            ...(coords.lat != null && coords.lng != null
-              ? { lat: coords.lat, lng: coords.lng }
-              : {}),
-          },
-        },
+        code: otp.trim(),
       });
       saveAuth(res.token, res.user);
-      track("business_registered", { category: form.category });
+      track("business_registered", {
+        category: form.category,
+        currency: form.currency,
+      });
       router.push("/business");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+      setError(err instanceof Error ? err.message : "Verification failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resendOtp() {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await apiPost<{ message?: string; devOtp?: string }>(
+        "/api/b2b/register/otp/request",
+        registerPayload()
+      );
+      setDevOtp(res.devOtp || "");
+      setNotice(res.message || "A new code was sent.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not resend code");
     } finally {
       setLoading(false);
     }
@@ -125,7 +199,7 @@ export default function BusinessRegisterPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/boutique.png"
-                alt="ZDC for business"
+                alt="zimji for business"
                 className="absolute inset-0 h-full w-full object-cover"
               />
             </div>
@@ -137,13 +211,81 @@ export default function BusinessRegisterPage() {
                 For Business
               </p>
               <h1 className="mt-2 font-display text-3xl font-semibold text-ink sm:text-4xl">
-                Create your studio
+                {step === "otp" ? "Verify your email" : "Create your studio"}
               </h1>
               <p className="mt-2 text-ink-muted">
-                Onboard your boutique or salon, buy credits, and offer virtual
-                try-ons.
+                {step === "otp"
+                  ? `Enter the 6-digit code we sent to ${form.email}. This confirms the email is yours and prevents duplicate signups.`
+                  : "Onboard your boutique or salon, buy credits, and offer virtual try-ons."}
               </p>
 
+              {step === "otp" ? (
+                <form onSubmit={onVerifyOtp} className="mt-8 space-y-4">
+                  {notice && (
+                    <div className="rounded-xl border border-sage/40 bg-sage/10 px-4 py-3 text-sm text-sage-dark">
+                      {notice}
+                      {devOtp ? (
+                        <p className="mt-2 font-mono text-xs">
+                          Dev code (SMTP not configured): {devOtp}
+                        </p>
+                      ) : null}
+                    </div>
+                  )}
+                  {error && (
+                    <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                      {error}
+                    </div>
+                  )}
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-ink-700">
+                      Verification code <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      required
+                      inputMode="numeric"
+                      pattern="\d{6}"
+                      maxLength={6}
+                      value={otp}
+                      onChange={(e) =>
+                        setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                      }
+                      className={inputClass}
+                      placeholder="6-digit code"
+                      autoFocus
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading || otp.length !== 6}
+                    className="w-full rounded-full bg-sage py-3 font-semibold text-paper transition hover:bg-sage-dark disabled:opacity-60"
+                  >
+                    {loading ? "Verifying…" : "Verify & create account"}
+                  </button>
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStep("form");
+                        setOtp("");
+                        setDevOtp("");
+                        setError("");
+                        setNotice("");
+                      }}
+                      className="font-semibold text-ink-muted hover:text-ink"
+                    >
+                      ← Edit details
+                    </button>
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={resendOtp}
+                      className="font-semibold text-sage hover:text-sage-dark disabled:opacity-60"
+                    >
+                      Resend code
+                    </button>
+                  </div>
+                </form>
+              ) : (
               <form onSubmit={onSubmit} className="mt-8 space-y-4">
                 {error && (
                   <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -280,25 +422,6 @@ export default function BusinessRegisterPage() {
 
                 <div>
                   <label className="mb-1 block text-sm font-medium text-ink-700">
-                    Number of branches <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    max={MAX_BRANCH_COUNT}
-                    value={form.branchCount}
-                    onChange={(e) => set("branchCount", e.target.value)}
-                    className={inputClass}
-                  />
-                  <p className="mt-1 text-xs text-ink-muted">
-                    How many locations does your salon or boutique operate? (1–
-                    {MAX_BRANCH_COUNT})
-                  </p>
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-ink-700">
                     Location <span className="text-red-500">*</span>
                   </label>
                   <AddressAutocomplete
@@ -360,14 +483,41 @@ export default function BusinessRegisterPage() {
                   </div>
                 </div>
 
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-ink-700">
+                    Currency <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    value={form.currency}
+                    onChange={(e) => set("currency", e.target.value)}
+                    className={selectClass}
+                  >
+                    {CURRENCIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1.5 text-xs text-ink-muted">
+                    Payments will use{" "}
+                    <span className="font-semibold text-ink">
+                      {paymentHintForCurrency(form.currency)}
+                    </span>{" "}
+                    ({form.currency}). Updates automatically when you change
+                    country — you can override if needed.
+                  </p>
+                </div>
+
                 <button
                   type="submit"
                   disabled={loading}
                   className="w-full rounded-full bg-sage py-3 font-semibold text-paper transition hover:bg-sage-dark disabled:opacity-60"
                 >
-                  {loading ? "Creating…" : "Create business account"}
+                  {loading ? "Sending code…" : "Continue — verify email"}
                 </button>
               </form>
+              )}
 
               <p className="mt-6 text-sm text-ink-muted">
                 Already registered?{" "}

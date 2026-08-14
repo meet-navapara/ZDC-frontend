@@ -10,6 +10,7 @@ export type BusinessProfile = {
   category?: "boutique" | "salon" | "other";
   logoUrl?: string | null;
   whatsapp?: string | null;
+  currency?: string;
   branchCount?: number;
   address?: {
     line1?: string | null;
@@ -26,14 +27,19 @@ export type AuthUser = {
   role: "b2c" | "b2b" | "admin";
   firstName?: string;
   lastName?: string;
+  phone?: string | null;
   status?: string;
+  emailVerified?: boolean;
+  referralCode?: string | null;
+  freeTryons?: number;
+  referredBy?: string | null;
   business?: BusinessProfile;
 };
 
 export function homeForRole(role?: string): string {
   if (role === "b2b") return "/business";
   if (role === "admin") return "/admin";
-  return "/try-on";
+  return "/app";
 }
 
 export function saveAuth(token: string, user: AuthUser) {
