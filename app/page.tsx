@@ -589,10 +589,7 @@ export default async function Home() {
               <a href="#" className="transition hover:text-ink">
                 About
               </a>
-              <Link href="/privacy" className="transition hover:text-ink">
-                Privacy
-              </Link>
-              <Link href="/privacy" className="transition hover:text-ink">
+              <Link href="/terms" className="transition hover:text-ink">
                 Terms
               </Link>
               <Link href="/cookies" className="transition hover:text-ink">

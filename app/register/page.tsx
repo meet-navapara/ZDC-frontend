@@ -37,6 +37,8 @@ export default function RegisterPage() {
       ok: boolean;
       message?: string;
       email: string;
+      mock?: boolean;
+      mockOtp?: string;
       devOtp?: string;
     }>("/api/auth/register/otp/request", {
       firstName,
@@ -45,13 +47,17 @@ export default function RegisterPage() {
       role: "b2c",
       referralCode: referralCode.trim() || undefined,
     });
-    setDevOtp(res.devOtp || "");
+    const code = res.mockOtp || res.devOtp || "";
+    setDevOtp(code);
+    if (code) setOtp(code);
     setNotice(
-      res.message ||
-        `We sent a verification code to ${email}. Enter it below.`
+      res.mock
+        ? `Mock OTP mode — use code ${code}.`
+        : res.message ||
+            `We sent a verification code to ${email}. Enter it below.`
     );
     setStep("otp");
-    setOtp("");
+    if (!code) setOtp("");
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -122,18 +128,34 @@ export default function RegisterPage() {
             </h1>
             <p className="mt-2 text-ink-muted">
               {step === "otp"
-                ? `Enter the 6-digit code sent to ${email}.`
+                ? devOtp
+                  ? "Mock OTP is enabled — the code is pre-filled below."
+                  : `Enter the 6-digit code sent to ${email}.`
                 : "Start trying on outfits and hairstyles in seconds."}
             </p>
 
             {step === "otp" ? (
               <form onSubmit={onVerifyOtp} className="mt-8 space-y-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("form");
+                    setOtp("");
+                    setDevOtp("");
+                    setError("");
+                    setNotice("");
+                  }}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-sage transition hover:text-sage-dark"
+                >
+                  <span aria-hidden>←</span>
+                  Edit details
+                </button>
                 {notice && (
                   <div className="rounded-xl border border-sage/40 bg-sage/10 px-4 py-3 text-sm text-sage-dark">
                     {notice}
                     {devOtp ? (
-                      <p className="mt-2 font-mono text-xs">
-                        Dev code (SMTP not configured): {devOtp}
+                      <p className="mt-2 font-mono text-base font-bold tracking-widest">
+                        {devOtp}
                       </p>
                     ) : null}
                   </div>
@@ -168,20 +190,7 @@ export default function RegisterPage() {
                 >
                   {loading ? "Verifying…" : "Verify & create account"}
                 </button>
-                <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStep("form");
-                      setOtp("");
-                      setDevOtp("");
-                      setError("");
-                      setNotice("");
-                    }}
-                    className="font-semibold text-ink-muted hover:text-ink"
-                  >
-                    ← Edit details
-                  </button>
+                <div className="flex justify-end text-sm">
                   <button
                     type="button"
                     disabled={loading}

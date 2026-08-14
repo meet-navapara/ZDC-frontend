@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { BrandLogo } from "@/components/BrandLogo";
+import { PageBackLink } from "@/components/PageBackLink";
 
 export const metadata = {
   title: "B2C Cookies Policy | zimji",
@@ -29,9 +30,10 @@ function Section({
 
 export default function CookiesPolicyPage() {
   return (
-    <main className="min-h-screen bg-paper">
+    <main className="flex min-h-screen flex-col bg-paper">
       <AppHeader />
-      <article className="mx-auto max-w-3xl px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
+      <article className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
+        <PageBackLink href="/" label="Back to home" />
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">
           Legal
         </p>
@@ -132,17 +134,17 @@ export default function CookiesPolicyPage() {
           </Section>
         </div>
 
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-ink/10 pt-6">
-          <BrandLogo href="/" size="sm" />
-          <div className="flex flex-wrap gap-4 text-sm font-semibold">
-            <Link href="/privacy" className="text-sage hover:text-sage-dark">
-              Privacy &amp; Terms
-            </Link>
-            <Link href="/" className="text-sage hover:text-sage-dark">
-              ← Back to home
+        <footer className="mt-12 border-t border-ink/10 pt-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+            <BrandLogo href={false} size="sm" />
+            <Link
+              href="/terms"
+              className="font-semibold text-sage transition hover:text-sage-dark"
+            >
+              Terms
             </Link>
           </div>
-        </div>
+        </footer>
       </article>
     </main>
   );

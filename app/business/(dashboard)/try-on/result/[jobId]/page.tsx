@@ -50,22 +50,30 @@ export default function B2BTryOnResultPage() {
 
   if (error || !job) {
     return (
-      <div className="mx-auto mt-16 max-w-md text-center">
-        <div className="rounded-2xl border border-red-300 bg-red-50 px-6 py-5 text-red-700">
-          {error || "Render not found."}
-        </div>
+      <div className="mx-auto max-w-md">
         <Link
           href="/business/try-on"
-          className="mt-6 inline-block rounded-full bg-sage px-8 py-3 font-semibold text-paper transition hover:bg-sage-dark"
+          className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-sage transition hover:text-sage-dark"
         >
+          <span aria-hidden>←</span>
           Back to Try-On
         </Link>
+        <div className="rounded-2xl border border-red-300 bg-red-50 px-6 py-5 text-center text-red-700">
+          {error || "Render not found."}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-5xl">
+      <Link
+        href="/business/try-on"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sage transition hover:text-sage-dark"
+      >
+        <span aria-hidden>←</span>
+        Back to Try-On
+      </Link>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-semibold text-ink">

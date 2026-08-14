@@ -132,15 +132,21 @@ export default function BusinessRegisterPage() {
         ok: boolean;
         message?: string;
         email: string;
+        mock?: boolean;
+        mockOtp?: string;
         devOtp?: string;
       }>("/api/b2b/register/otp/request", registerPayload());
-      setDevOtp(res.devOtp || "");
+      const code = res.mockOtp || res.devOtp || "";
+      setDevOtp(code);
+      if (code) setOtp(code);
       setNotice(
-        res.message ||
-          `We sent a verification code to ${form.email}. Enter it below.`
+        res.mock
+          ? `Mock OTP mode — use code ${code}.`
+          : res.message ||
+              `We sent a verification code to ${form.email}. Enter it below.`
       );
       setStep("otp");
-      setOtp("");
+      if (!code) setOtp("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send code");
     } finally {
@@ -175,12 +181,20 @@ export default function BusinessRegisterPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await apiPost<{ message?: string; devOtp?: string }>(
-        "/api/b2b/register/otp/request",
-        registerPayload()
+      const res = await apiPost<{
+        message?: string;
+        mock?: boolean;
+        mockOtp?: string;
+        devOtp?: string;
+      }>("/api/b2b/register/otp/request", registerPayload());
+      const code = res.mockOtp || res.devOtp || "";
+      setDevOtp(code);
+      if (code) setOtp(code);
+      setNotice(
+        res.mock
+          ? `Mock OTP mode — use code ${code}.`
+          : res.message || "A new code was sent."
       );
-      setDevOtp(res.devOtp || "");
-      setNotice(res.message || "A new code was sent.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not resend code");
     } finally {
@@ -215,18 +229,34 @@ export default function BusinessRegisterPage() {
               </h1>
               <p className="mt-2 text-ink-muted">
                 {step === "otp"
-                  ? `Enter the 6-digit code we sent to ${form.email}. This confirms the email is yours and prevents duplicate signups.`
+                  ? devOtp
+                    ? "Mock OTP is enabled — the code is pre-filled below."
+                    : `Enter the 6-digit code we sent to ${form.email}. This confirms the email is yours and prevents duplicate signups.`
                   : "Onboard your boutique or salon, buy credits, and offer virtual try-ons."}
               </p>
 
               {step === "otp" ? (
                 <form onSubmit={onVerifyOtp} className="mt-8 space-y-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep("form");
+                      setOtp("");
+                      setDevOtp("");
+                      setError("");
+                      setNotice("");
+                    }}
+                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-sage transition hover:text-sage-dark"
+                  >
+                    <span aria-hidden>←</span>
+                    Edit details
+                  </button>
                   {notice && (
                     <div className="rounded-xl border border-sage/40 bg-sage/10 px-4 py-3 text-sm text-sage-dark">
                       {notice}
                       {devOtp ? (
-                        <p className="mt-2 font-mono text-xs">
-                          Dev code (SMTP not configured): {devOtp}
+                        <p className="mt-2 font-mono text-base font-bold tracking-widest">
+                          {devOtp}
                         </p>
                       ) : null}
                     </div>
@@ -261,20 +291,7 @@ export default function BusinessRegisterPage() {
                   >
                     {loading ? "Verifying…" : "Verify & create account"}
                   </button>
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStep("form");
-                        setOtp("");
-                        setDevOtp("");
-                        setError("");
-                        setNotice("");
-                      }}
-                      className="font-semibold text-ink-muted hover:text-ink"
-                    >
-                      ← Edit details
-                    </button>
+                  <div className="flex justify-end text-sm">
                     <button
                       type="button"
                       disabled={loading}
