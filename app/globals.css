@@ -7,6 +7,97 @@
   --border: rgba(28, 26, 22, 0.1);
 }
 
+/* ─── DARK MODE ────────────────────────────────────────────────────────────── */
+/* Applied when <html class="dark"> via the localStorage script in <head>.     */
+
+.dark {
+  color-scheme: dark;
+}
+
+/* Base */
+.dark body {
+  background-color: #0c0b09;
+  color: #f4efe7;
+}
+
+/* Tailwind color tokens remapped for dark */
+.dark .text-ink          { color: #f4efe7 !important; }
+.dark .text-ink-muted    { color: #b1a99c !important; }
+.dark .text-ink-700      { color: #d6cec2 !important; }
+
+/* Sections that use bg-white/40 or border-y border-ink/10 */
+.dark .bg-white\/40,
+.dark [class*="bg-white/4"] {
+  background-color: #12100d !important;
+}
+.dark .border-ink\/10,
+.dark [class*="border-ink/1"] {
+  border-color: rgba(255,255,255,0.09) !important;
+}
+
+/* Component surfaces */
+.dark .glass {
+  background: rgba(16, 14, 11, 0.96);
+  border-color: rgba(255,255,255,0.08);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.75);
+}
+.dark .glass-strong {
+  background: #12100d;
+  border-color: rgba(255,255,255,0.09);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 24px 60px -30px rgba(0,0,0,0.78);
+}
+.dark .card {
+  background: #14120f;
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 18px 46px -32px rgba(0,0,0,0.72);
+}
+
+/* Aurora blobs dim so they don't clash */
+.dark .aurora {
+  opacity: 0.05;
+}
+
+/* Scrollbar */
+.dark ::-webkit-scrollbar-track  { background: #1c1912; }
+.dark ::-webkit-scrollbar-thumb  { background: #3a3528; border-color: #1c1912; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #5c7a68; }
+
+/* Inline badge in hero (white/60 pill) */
+.dark .bg-white\/60 { background-color: rgba(255,255,255,0.05) !important; }
+
+/* Footer social icon buttons */
+.dark .bg-white { background-color: #14120f !important; }
+
+/* Native <select> menus are OS-drawn with a light list — keep option text dark. */
+.dark select option {
+  color: #1c1a16 !important;
+  background-color: #ffffff !important;
+}
+
+/* Hero secondary button border */
+.dark .border-ink\/15,
+.dark [class*="border-ink/15"] {
+  border-color: rgba(255,255,255,0.14) !important;
+}
+
+/* Category strip & lookbook strip text */
+.dark section .text-ink-muted { color: #9a9387; }
+.dark .grain::after {
+  opacity: 0.01;
+  mix-blend-mode: normal;
+}
+.dark .spotlight::before {
+  background: radial-gradient(
+    700px circle at var(--mx, 50%) var(--my, 24%),
+    rgba(92, 122, 104, 0.035),
+    transparent 48%
+  );
+}
+
 * {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -21,6 +112,7 @@ body {
   color: #1c1a16;
   font-family: var(--font-sans), system-ui, sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.2s ease;
 }
 
 img,

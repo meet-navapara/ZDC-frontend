@@ -52,6 +52,24 @@ const steps = [
   { n: "03", title: "Reveal", desc: "Your try-on lands instantly in WhatsApp or email." },
 ];
 
+const b2bSteps = [
+  {
+    n: "01",
+    title: "Upload customer photo",
+    desc: "Add one customer selfie from the studio floor, WhatsApp, or your device.",
+  },
+  {
+    n: "02",
+    title: "Pick a catalog product",
+    desc: "Choose any active outfit or hairstyle from your uploaded business catalog.",
+  },
+  {
+    n: "03",
+    title: "Render with credits",
+    desc: "1 credit = 1 styled render, ready to download and share instantly.",
+  },
+];
+
 const iconClass = "h-4 w-4";
 
 const SOCIAL_LINKS = [
@@ -324,10 +342,33 @@ export default async function Home() {
           </h2>
         </Reveal>
 
-        <div className="relative mt-10 grid gap-4 sm:mt-16 sm:gap-6 md:grid-cols-3">
+        <p className="mt-10 text-center text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted sm:mt-16">
+          For customers
+        </p>
+        <div className="relative mt-4 grid gap-4 sm:gap-6 md:grid-cols-3">
           <div className="pointer-events-none absolute left-0 right-0 top-14 hidden h-px bg-ink/10 md:block" />
           {steps.map((s, i) => (
-            <Reveal key={s.n} delay={i * 120}>
+            <Reveal key={`b2c-${s.n}`} delay={i * 120}>
+              <div className="card relative flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sage font-display text-base font-semibold text-paper sm:h-12 sm:w-12 sm:text-lg">
+                  {s.n}
+                </div>
+                <h3 className="mt-5 font-display text-xl font-semibold text-ink sm:mt-6 sm:text-2xl">
+                  {s.title}
+                </h3>
+                <p className="mt-2 text-sm text-ink-muted sm:text-base">{s.desc}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <p className="mt-12 text-center text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted sm:mt-16">
+          For boutiques &amp; salons
+        </p>
+        <div className="relative mt-4 grid gap-4 sm:gap-6 md:grid-cols-3">
+          <div className="pointer-events-none absolute left-0 right-0 top-14 hidden h-px bg-ink/10 md:block" />
+          {b2bSteps.map((s, i) => (
+            <Reveal key={`b2b-${s.n}`} delay={i * 120}>
               <div className="card relative flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
                 <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sage font-display text-base font-semibold text-paper sm:h-12 sm:w-12 sm:text-lg">
                   {s.n}
@@ -597,12 +638,9 @@ export default async function Home() {
               <Link href="/cookies" className="transition hover:text-ink">
                 Cookies
               </Link>
-              <a
-                href="mailto:jirani.deal@gmail.com"
-                className="transition hover:text-ink"
-              >
+              <Link href="/contact" className="transition hover:text-ink">
                 Contact
-              </a>
+              </Link>
             </nav>
           </div>
           <div className="mt-8 border-t border-ink/10 pt-5 text-center text-xs text-ink-muted sm:mt-10 sm:pt-6">

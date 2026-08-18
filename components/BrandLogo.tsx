@@ -48,7 +48,7 @@ export function BrandLogo({
       <span className={`flex flex-col items-start ${s.gap}`}>
         <ZimjiMark className={s.mark} />
         {withTag ? (
-          <span className={`pl-0.5 font-medium uppercase text-ink/45 ${s.tag}`}>
+          <span className={`pl-0.5 font-medium uppercase text-ink/45 dark:text-white/30 ${s.tag}`}>
             Style, Smarter!
           </span>
         ) : null}
@@ -81,7 +81,7 @@ function ZimjiMark({ className = "" }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 390 100"
-      className={`w-auto overflow-visible text-ink ${className}`}
+      className={`w-auto overflow-visible text-ink dark:text-[#e8e2d8] ${className}`}
       fill="currentColor"
       role="img"
       aria-label="zimji"

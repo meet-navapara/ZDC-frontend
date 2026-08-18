@@ -7,6 +7,8 @@ import { getUser, clearAuth, saveAuth, getToken, type AuthUser } from "@/lib/aut
 import { getBalance } from "@/lib/b2b";
 import { apiGet } from "@/lib/api";
 import { BrandLogo } from "@/components/BrandLogo";
+import { DashboardSidebar } from "@/components/DashboardSidebar";
+import { DarkModeToggle } from "@/components/DarkModeToggle";
 
 const NAV = [
   { href: "/business", label: "Overview", exact: true, icon: "◪" },
@@ -188,52 +190,32 @@ export default function DashboardLayout({
     </div>
   );
 
-  return (
-    <div className="min-h-screen md:flex">
-      {/* Sidebar (desktop) */}
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-ink/10 bg-ink p-5 md:flex">
-        {brand}
-        <div className="mt-8">{navLinks}</div>
-        <div className="mt-auto">{creditCard}</div>
-      </aside>
-
-      {/* Mobile drawer */}
-      {menuOpen && (
-        <button
-          aria-label="Close menu"
-          onClick={() => setMenuOpen(false)}
-          className="fixed inset-0 z-40 cursor-default bg-ink/40 backdrop-blur-sm md:hidden"
-        />
-      )}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[82%] flex-col bg-ink p-5 shadow-2xl transition-transform duration-300 md:hidden ${
-          menuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+  const sidebarFooter = (
+    <div className="space-y-3">
+      {creditCard}
+      <button
+        onClick={logout}
+        className="w-full rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-paper/80 transition hover:border-white/30 hover:text-paper"
       >
-        <div className="flex items-center justify-between">
-          {brand}
-          <button
-            aria-label="Close menu"
-            onClick={() => setMenuOpen(false)}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-lg text-paper/80 transition hover:text-paper"
-          >
-            ✕
-          </button>
-        </div>
-        <div className="mt-8 flex-1 overflow-y-auto">{navLinks}</div>
-        <div className="mt-4">{creditCard}</div>
-        <button
-          onClick={logout}
-          className="mt-3 rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-paper/80 transition hover:border-white/30 hover:text-paper"
-        >
-          Log out
-        </button>
-      </aside>
+        Log out
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-paper text-ink dark:bg-[#0c0b09] dark:text-[#f4efe7] md:flex">
+      <DashboardSidebar
+        brand={brand}
+        navLinks={navLinks}
+        footer={sidebarFooter}
+        menuOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
+      />
 
       {/* Main */}
       <div className="flex min-h-screen flex-1 flex-col">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-ink/10 bg-paper/80 px-4 py-3 backdrop-blur md:px-5">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-ink/10 bg-paper px-4 py-3 dark:border-white/10 dark:bg-[#100e0b] md:px-5">
           <div className="flex min-w-0 items-center gap-2.5">
             {/* Hamburger (mobile only) */}
             <button
@@ -241,24 +223,25 @@ export default function DashboardLayout({
               aria-label="Open menu"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(true)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white/60 text-ink transition hover:border-ink/30 md:hidden"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white/60 text-ink transition hover:border-ink/30 dark:border-white/10 dark:bg-white/5 dark:text-[#f4efe7] dark:hover:border-white/20 md:hidden"
             >
               <span className="relative block h-3.5 w-4">
-                <span className="absolute left-0 top-0 block h-0.5 w-4 rounded-full bg-ink" />
-                <span className="absolute left-0 top-1.5 block h-0.5 w-4 rounded-full bg-ink" />
-                <span className="absolute left-0 top-3 block h-0.5 w-4 rounded-full bg-ink" />
+                <span className="absolute left-0 top-0 block h-0.5 w-4 rounded-full bg-current" />
+                <span className="absolute left-0 top-1.5 block h-0.5 w-4 rounded-full bg-current" />
+                <span className="absolute left-0 top-3 block h-0.5 w-4 rounded-full bg-current" />
               </span>
             </button>
           </div>
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-sage/10 px-3 py-1.5 text-sm font-semibold text-sage-dark">
+            <DarkModeToggle />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-sage/10 px-3 py-1.5 text-sm font-semibold text-sage-dark dark:border dark:border-white/8 dark:bg-white/5 dark:text-[#d8d0c2]">
               <span className="text-xs">◈</span>
               <span className="hidden sm:inline">{credits ?? "—"} credits</span>
               <span className="sm:hidden">{credits ?? "—"}</span>
             </span>
             <button
               onClick={logout}
-              className="hidden rounded-full border border-ink/15 px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink/30 sm:block"
+              className="hidden rounded-full border border-ink/15 px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink/30 dark:border-white/10 dark:text-[#f4efe7] dark:hover:border-white/25 sm:block"
             >
               Log out
             </button>

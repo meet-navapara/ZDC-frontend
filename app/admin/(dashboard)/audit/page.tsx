@@ -103,7 +103,7 @@ export default function AdminAuditPage() {
             maxLength={100}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Actor or target…"
-            className="w-56 rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage"
+            className="w-56 rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage dark:border-white/12 dark:bg-[#181511] dark:text-[#f4efe7]"
           />
         </label>
         <label className="block">
@@ -116,7 +116,7 @@ export default function AdminAuditPage() {
               setAction(e.target.value);
               setPage(1);
             }}
-            className="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage"
+            className="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage dark:border-white/12 dark:bg-[#181511] dark:text-[#f4efe7]"
           >
             <option value="">All actions</option>
             {actions.map((a) => (
@@ -135,7 +135,7 @@ export default function AdminAuditPage() {
       </form>
 
       {/* Table */}
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
+      <div className="mt-6 overflow-x-auto rounded-2xl border border-ink/10 bg-white dark:border-white/10 dark:bg-[#14120f]">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs uppercase tracking-wider text-ink-muted">
@@ -161,7 +161,7 @@ export default function AdminAuditPage() {
               </tr>
             ) : (
               logs.map((l) => (
-                <tr key={l.id} className="border-t border-ink/10 align-top">
+                <tr key={l.id} className="border-t border-ink/10 align-top dark:border-white/10">
                   <td className="whitespace-nowrap px-4 py-3 text-ink-muted">
                     {fmtTime(l.createdAt)}
                   </td>
@@ -187,7 +187,7 @@ export default function AdminAuditPage() {
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="rounded-lg border border-ink/15 px-3 py-1.5 disabled:opacity-40"
+            className="rounded-lg border border-ink/15 px-3 py-1.5 disabled:opacity-40 dark:border-white/12"
           >
             Prev
           </button>
@@ -197,7 +197,7 @@ export default function AdminAuditPage() {
           <button
             disabled={page >= pages}
             onClick={() => setPage((p) => Math.min(pages, p + 1))}
-            className="rounded-lg border border-ink/15 px-3 py-1.5 disabled:opacity-40"
+            className="rounded-lg border border-ink/15 px-3 py-1.5 disabled:opacity-40 dark:border-white/12"
           >
             Next
           </button>

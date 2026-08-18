@@ -149,7 +149,7 @@ function UsersInner() {
             maxLength={100}
             onChange={(e) => setQ(e.target.value)}
             placeholder="email, name, business…"
-            className="w-56 rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage"
+            className="w-56 rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage dark:border-white/12 dark:bg-[#181511] dark:text-[#f4efe7]"
           />
         </div>
         <div>
@@ -162,7 +162,7 @@ function UsersInner() {
               setRole(e.target.value);
               setPage(1);
             }}
-            className="rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage"
+            className="rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage dark:border-white/12 dark:bg-[#181511] dark:text-[#f4efe7]"
           >
             <option value="">All roles</option>
             <option value="b2c">Consumer</option>
@@ -180,7 +180,7 @@ function UsersInner() {
               setStatus(e.target.value);
               setPage(1);
             }}
-            className="rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage"
+            className="rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage dark:border-white/12 dark:bg-[#181511] dark:text-[#f4efe7]"
           >
             <option value="">All statuses</option>
             <option value="active">Active</option>
@@ -197,9 +197,9 @@ function UsersInner() {
       </form>
 
       {/* Table (desktop) */}
-      <div className="mt-6 hidden overflow-x-auto rounded-2xl border border-ink/10 bg-white md:block">
+      <div className="mt-6 hidden overflow-x-auto rounded-2xl border border-ink/10 bg-white dark:border-white/10 dark:bg-[#14120f] md:block">
         <table className="w-full min-w-[640px] text-sm">
-          <thead className="bg-paper-100 text-left text-xs uppercase tracking-wider text-ink-muted">
+          <thead className="bg-paper-100 text-left text-xs uppercase tracking-wider text-ink-muted dark:bg-[#1a1712]">
             <tr>
               <th className="px-4 py-3">User</th>
               <th className="px-4 py-3">Role</th>
@@ -233,7 +233,7 @@ function UsersInner() {
                     <td className="px-4 py-3">
                       <button
                         onClick={() => openDetail(u)}
-                        className="text-left font-medium text-ink hover:text-sage-dark"
+                        className="text-left font-medium text-ink hover:text-sage-dark dark:hover:text-sage"
                       >
                         {name}
                       </button>
@@ -265,7 +265,7 @@ function UsersInner() {
                           <button
                             disabled={busy}
                             onClick={() => changeStatus(u, "suspended")}
-                            className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+                            className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-50 dark:border-red-400/40 dark:hover:bg-red-500/10"
                           >
                             Suspend
                           </button>
@@ -282,7 +282,7 @@ function UsersInner() {
                         <button
                           disabled={busy}
                           onClick={() => onReset(u)}
-                          className="rounded-lg border border-ink/15 px-2.5 py-1 text-xs font-semibold text-ink transition hover:border-ink/30 disabled:opacity-50"
+                          className="rounded-lg border border-ink/15 px-2.5 py-1 text-xs font-semibold text-ink transition hover:border-ink/30 disabled:opacity-50 dark:border-white/12 dark:text-[#f4efe7] dark:hover:border-white/25"
                         >
                           Reset PW
                         </button>
@@ -290,7 +290,7 @@ function UsersInner() {
                           <button
                             disabled={busy}
                             onClick={() => onDelete(u)}
-                            className="rounded-lg border border-ink/15 px-2.5 py-1 text-xs font-semibold text-ink-muted transition hover:border-red-300 hover:text-red-600 disabled:opacity-50"
+                            className="rounded-lg border border-ink/15 px-2.5 py-1 text-xs font-semibold text-ink-muted transition hover:border-red-300 hover:text-red-600 disabled:opacity-50 dark:border-white/12 dark:hover:bg-red-500/10"
                           >
                             Delete
                           </button>
@@ -308,11 +308,11 @@ function UsersInner() {
       {/* Cards (mobile) */}
       <div className="mt-6 space-y-3 md:hidden">
         {loading ? (
-          <div className="rounded-2xl border border-ink/10 bg-white px-4 py-10 text-center text-ink-muted">
+          <div className="rounded-2xl border border-ink/10 bg-white px-4 py-10 text-center text-ink-muted dark:border-white/10 dark:bg-[#14120f]">
             Loading…
           </div>
         ) : rows.length === 0 ? (
-          <div className="rounded-2xl border border-ink/10 bg-white px-4 py-10 text-center text-ink-muted">
+          <div className="rounded-2xl border border-ink/10 bg-white px-4 py-10 text-center text-ink-muted dark:border-white/10 dark:bg-[#14120f]">
             No users match these filters.
           </div>
         ) : (
@@ -325,7 +325,7 @@ function UsersInner() {
             return (
               <div
                 key={u.id}
-                className="rounded-2xl border border-ink/10 bg-white p-4"
+                className="rounded-2xl border border-ink/10 bg-white p-4 dark:border-white/10 dark:bg-[#14120f]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <button
@@ -362,7 +362,7 @@ function UsersInner() {
                     <button
                       disabled={busy}
                       onClick={() => changeStatus(u, "suspended")}
-                      className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+                      className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-50 dark:border-red-400/40 dark:hover:bg-red-500/10"
                     >
                       Suspend
                     </button>
@@ -379,7 +379,7 @@ function UsersInner() {
                   <button
                     disabled={busy}
                     onClick={() => onReset(u)}
-                    className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-ink/30 disabled:opacity-50"
+                    className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-ink/30 disabled:opacity-50 dark:border-white/12 dark:text-[#f4efe7] dark:hover:border-white/25"
                   >
                     Reset PW
                   </button>
@@ -387,7 +387,7 @@ function UsersInner() {
                     <button
                       disabled={busy}
                       onClick={() => onDelete(u)}
-                      className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold text-ink-muted transition hover:border-red-300 hover:text-red-600 disabled:opacity-50"
+                      className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold text-ink-muted transition hover:border-red-300 hover:text-red-600 disabled:opacity-50 dark:border-white/12 dark:hover:bg-red-500/10"
                     >
                       Delete
                     </button>
@@ -405,7 +405,7 @@ function UsersInner() {
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="rounded-lg border border-ink/15 px-3 py-1.5 disabled:opacity-40"
+            className="rounded-lg border border-ink/15 px-3 py-1.5 disabled:opacity-40 dark:border-white/12"
           >
             ← Prev
           </button>
@@ -415,7 +415,7 @@ function UsersInner() {
           <button
             disabled={page >= pages}
             onClick={() => setPage((p) => p + 1)}
-            className="rounded-lg border border-ink/15 px-3 py-1.5 disabled:opacity-40"
+            className="rounded-lg border border-ink/15 px-3 py-1.5 disabled:opacity-40 dark:border-white/12"
           >
             Next →
           </button>
@@ -429,7 +429,7 @@ function UsersInner() {
           onClick={() => setDetail(null)}
         >
           <div
-            className="h-full w-full max-w-md overflow-y-auto bg-paper-100 p-6 shadow-2xl"
+            className="h-full w-full max-w-md overflow-y-auto bg-paper-100 p-6 shadow-2xl dark:bg-[#14120f]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between">
@@ -445,7 +445,7 @@ function UsersInner() {
               </div>
               <button
                 onClick={() => setDetail(null)}
-                className="text-ink-muted transition hover:text-ink"
+                className="text-ink-muted transition hover:text-ink dark:hover:text-[#f4efe7]"
                 aria-label="Close"
               >
                 ✕
@@ -501,25 +501,25 @@ function UsersInner() {
                   Business usage
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-ink/10 bg-white p-3">
+                  <div className="rounded-xl border border-ink/10 bg-white p-3 dark:border-white/10 dark:bg-[#1a1712]">
                     <div className="text-xs text-ink-muted">Credits</div>
                     <div className="font-display text-2xl font-semibold text-ink">
                       {detail.stats.credits}
                     </div>
                   </div>
-                  <div className="rounded-xl border border-ink/10 bg-white p-3">
+                  <div className="rounded-xl border border-ink/10 bg-white p-3 dark:border-white/10 dark:bg-[#1a1712]">
                     <div className="text-xs text-ink-muted">Try-ons</div>
                     <div className="font-display text-2xl font-semibold text-ink">
                       {detail.stats.tryons}
                     </div>
                   </div>
-                  <div className="rounded-xl border border-ink/10 bg-white p-3">
+                  <div className="rounded-xl border border-ink/10 bg-white p-3 dark:border-white/10 dark:bg-[#1a1712]">
                     <div className="text-xs text-ink-muted">Products</div>
                     <div className="font-display text-2xl font-semibold text-ink">
                       {detail.stats.products}
                     </div>
                   </div>
-                  <div className="rounded-xl border border-ink/10 bg-white p-3">
+                  <div className="rounded-xl border border-ink/10 bg-white p-3 dark:border-white/10 dark:bg-[#1a1712]">
                     <div className="text-xs text-ink-muted">Categories</div>
                     <div className="font-display text-2xl font-semibold text-ink">
                       {detail.stats.categories}

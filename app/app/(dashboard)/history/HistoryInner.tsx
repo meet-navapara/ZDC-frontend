@@ -6,6 +6,18 @@ import { apiUrl } from "@/lib/api";
 import { listMyJobs, type B2cJob } from "@/lib/b2c";
 import { TryOnShareActions } from "@/components/TryOnShareActions";
 
+const HOURS_72 = 72 * 60 * 60 * 1000;
+
+function expiresInLabel(createdAt: string | Date): string | null {
+  const created = new Date(createdAt).getTime();
+  const remaining = created + HOURS_72 - Date.now();
+  if (remaining <= 0) return "Expired";
+  const h = Math.floor(remaining / (60 * 60 * 1000));
+  if (h >= 2) return `Expires in ${h}h`;
+  const m = Math.floor(remaining / 60000);
+  return `Expires in ${m}m`;
+}
+
 const STATUS_TONE: Record<string, string> = {
   completed: "bg-sage/10 text-sage-dark border-sage/30",
   processing: "bg-amber-50 text-amber-800 border-amber-200",
@@ -82,6 +94,16 @@ export default function HistoryInner() {
           <option value="processing">Processing</option>
           <option value="failed">Failed</option>
         </select>
+      </div>
+
+      {/* 72-hour retention warning */}
+      <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <span className="mt-0.5 text-base">⏳</span>
+        <p>
+          <span className="font-semibold">72-hour history limit —</span> Try-on
+          records and photos are automatically deleted 72 hours after creation
+          to keep your storage healthy. Download any results you want to keep.
+        </p>
       </div>
 
       {error && (
@@ -161,6 +183,11 @@ export default function HistoryInner() {
                         }`
                       : ""}
                   </div>
+                  {job.createdAt && (
+                    <div className="mt-1 text-[11px] font-medium text-amber-600">
+                      {expiresInLabel(job.createdAt)}
+                    </div>
+                  )}
                 </div>
               </button>
             );

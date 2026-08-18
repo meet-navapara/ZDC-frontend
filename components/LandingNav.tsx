@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { DarkModeToggle } from "@/components/DarkModeToggle";
 
 const LINKS = [
   { href: "#features", label: "Features" },
@@ -30,9 +31,9 @@ export function LandingNav() {
         </div>
 
         {/* Desktop links */}
-        <nav className="hidden items-center gap-8 text-sm text-ink-muted md:flex">
+        <nav className="hidden items-center gap-8 text-sm text-ink-muted dark:text-[#9a9387] md:flex">
           {LINKS.map((l) => (
-            <a key={l.href} href={l.href} className="transition hover:text-ink">
+            <a key={l.href} href={l.href} className="transition hover:text-ink dark:hover:text-[#e8e2d8]">
               {l.label}
             </a>
           ))}
@@ -41,7 +42,7 @@ export function LandingNav() {
         <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/login"
-            className="hidden text-sm font-medium text-ink-muted transition hover:text-ink sm:block"
+            className="hidden text-sm font-medium text-ink-muted transition hover:text-ink dark:text-[#9a9387] dark:hover:text-[#e8e2d8] sm:block"
           >
             Log in
           </Link>
@@ -51,6 +52,7 @@ export function LandingNav() {
           >
             Sign up
           </Link>
+          <DarkModeToggle />
 
           {/* Hamburger (mobile only) */}
           <button
@@ -58,21 +60,21 @@ export function LandingNav() {
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 bg-white/60 text-ink transition hover:border-ink/25 md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 bg-white/60 text-ink transition hover:border-ink/25 dark:border-white/10 dark:bg-white/5 dark:text-[#f4efe7] md:hidden"
           >
             <span className="relative block h-3.5 w-4">
               <span
-                className={`absolute left-0 block h-0.5 w-4 rounded-full bg-ink transition-all duration-300 ${
+                className={`absolute left-0 block h-0.5 w-4 rounded-full bg-current transition-all duration-300 ${
                   open ? "top-1.5 rotate-45" : "top-0"
                 }`}
               />
               <span
-                className={`absolute left-0 top-1.5 block h-0.5 w-4 rounded-full bg-ink transition-all duration-200 ${
+                className={`absolute left-0 top-1.5 block h-0.5 w-4 rounded-full bg-current transition-all duration-200 ${
                   open ? "opacity-0" : "opacity-100"
                 }`}
               />
               <span
-                className={`absolute left-0 block h-0.5 w-4 rounded-full bg-ink transition-all duration-300 ${
+                className={`absolute left-0 block h-0.5 w-4 rounded-full bg-current transition-all duration-300 ${
                   open ? "top-1.5 -rotate-45" : "top-3"
                 }`}
               />
@@ -97,17 +99,17 @@ export function LandingNav() {
                     key={l.href}
                     href={l.href}
                     onClick={() => setOpen(false)}
-                    className="rounded-xl px-4 py-3 text-base font-medium text-ink transition hover:bg-white/60"
+                    className="rounded-xl px-4 py-3 text-base font-medium text-ink transition hover:bg-white/60 dark:text-[#e8e2d8] dark:hover:bg-white/5"
                   >
                     {l.label}
                   </a>
                 ))}
               </nav>
-              <div className="mt-3 grid grid-cols-2 gap-3 border-t border-ink/10 pt-4">
+              <div className="mt-3 grid grid-cols-2 gap-3 border-t border-ink/10 pt-4 dark:border-white/8">
                 <Link
                   href="/login"
                   onClick={() => setOpen(false)}
-                  className="rounded-full border border-ink/15 py-2.5 text-center text-sm font-semibold text-ink transition hover:border-ink/30"
+                  className="rounded-full border border-ink/15 py-2.5 text-center text-sm font-semibold text-ink transition hover:border-ink/30 dark:border-white/12 dark:text-[#e8e2d8]"
                 >
                   Log in
                 </Link>

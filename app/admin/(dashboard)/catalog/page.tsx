@@ -55,7 +55,7 @@ function Avatar({
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-2xl border border-ink/10 bg-white/80 p-5 backdrop-blur">
+    <div className="rounded-2xl border border-ink/10 bg-white/80 p-5 backdrop-blur dark:border-white/10 dark:bg-[#14120f]">
       <div className="text-xs font-medium uppercase tracking-wider text-ink-muted">
         {label}
       </div>
@@ -92,8 +92,8 @@ function uploaderTitle(b: CatalogProduct["business"] | CatalogUploader | null) {
 function ProductCard({ p }: { p: CatalogProduct }) {
   const uploader = uploaderTitle(p.business);
   return (
-    <article className="group relative overflow-hidden rounded-2xl border border-ink/10 bg-white transition hover:border-sage/40 hover:shadow-[0_12px_40px_-20px_rgba(47,93,80,0.45)]">
-      <div className="relative aspect-[4/3] overflow-hidden bg-paper-100">
+    <article className="group relative overflow-hidden rounded-2xl border border-ink/10 bg-white transition hover:border-sage/40 hover:shadow-[0_12px_40px_-20px_rgba(47,93,80,0.45)] dark:border-white/10 dark:bg-[#14120f]">
+      <div className="relative aspect-[4/3] overflow-hidden bg-paper-100 dark:bg-[#1a1712]">
         <div className="absolute inset-0 flex items-center justify-center text-ink-muted">
           ▤
         </div>
@@ -134,7 +134,7 @@ function ProductCard({ p }: { p: CatalogProduct }) {
             {money(p.price, p.currency)}
           </span>
           {p.category && (
-            <span className="rounded-full bg-ink/5 px-2 py-0.5 capitalize">
+            <span className="rounded-full bg-ink/5 px-2 py-0.5 capitalize dark:bg-white/5">
               {p.category}
             </span>
           )}
@@ -240,7 +240,7 @@ export default function AdminCatalogPage() {
             Track every upload by business — see who added what, instantly.
           </p>
         </div>
-        <div className="inline-flex rounded-full border border-ink/15 bg-white p-1">
+        <div className="inline-flex rounded-full border border-ink/15 bg-white p-1 dark:border-white/10 dark:bg-[#14120f]">
           <button
             type="button"
             onClick={() => {
@@ -321,8 +321,8 @@ export default function AdminCatalogPage() {
                   }}
                   className={`flex min-w-[200px] max-w-[240px] shrink-0 items-center gap-3 rounded-2xl border px-3 py-3 text-left transition ${
                     active
-                      ? "border-sage bg-sage/10 shadow-sm"
-                      : "border-ink/10 bg-white hover:border-sage/40"
+                      ? "border-sage bg-sage/10 shadow-sm dark:bg-sage/10"
+                      : "border-ink/10 bg-white hover:border-sage/40 dark:border-white/10 dark:bg-[#14120f]"
                   }`}
                 >
                   <Avatar name={label} />
@@ -363,7 +363,7 @@ export default function AdminCatalogPage() {
             maxLength={100}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Product, SKU, business, or owner…"
-            className="w-full rounded-xl border border-ink/15 bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-sage"
+            className="w-full rounded-xl border border-ink/15 bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-sage dark:border-white/12 dark:bg-[#14120f] dark:text-[#f4efe7]"
           />
         </label>
         <label className="block">
@@ -376,7 +376,7 @@ export default function AdminCatalogPage() {
               setStatus(e.target.value);
               setPage(1);
             }}
-            className="rounded-xl border border-ink/15 bg-white px-3 py-2.5 text-sm capitalize text-ink outline-none focus:border-sage"
+            className="rounded-xl border border-ink/15 bg-white px-3 py-2.5 text-sm capitalize text-ink outline-none focus:border-sage dark:border-white/12 dark:bg-[#14120f] dark:text-[#f4efe7]"
           >
             <option value="">All</option>
             {statuses.map((s) => (
@@ -395,7 +395,7 @@ export default function AdminCatalogPage() {
       </form>
 
       {selectedUploader && (
-        <div className="mt-5 flex flex-wrap items-center gap-4 rounded-2xl border border-sage/25 bg-sage/5 px-4 py-3">
+        <div className="mt-5 flex flex-wrap items-center gap-4 rounded-2xl border border-sage/25 bg-sage/5 px-4 py-3 dark:bg-sage/10">
           <Avatar name={selectedUploader.name} size="lg" />
           <div className="min-w-0 flex-1">
             <div className="font-display text-lg font-semibold text-ink">
@@ -429,12 +429,12 @@ export default function AdminCatalogPage() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-64 animate-pulse rounded-2xl bg-ink/5"
+              className="h-64 animate-pulse rounded-2xl bg-ink/5 dark:bg-white/5"
             />
           ))}
         </div>
       ) : products.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-ink/15 bg-white py-16 text-center text-ink-muted">
+        <div className="mt-10 rounded-2xl border border-dashed border-ink/15 bg-white py-16 text-center text-ink-muted dark:border-white/12 dark:bg-[#14120f]">
           No products match these filters.
         </div>
       ) : view === "grouped" && !businessId ? (
@@ -463,7 +463,7 @@ export default function AdminCatalogPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-ink/5 px-3 py-1 text-xs font-semibold text-ink">
+                    <span className="rounded-full bg-ink/5 px-3 py-1 text-xs font-semibold text-ink dark:bg-white/5">
                       {items.length} on this page
                     </span>
                     <button
@@ -472,7 +472,7 @@ export default function AdminCatalogPage() {
                         setBusinessId(id);
                         setPage(1);
                       }}
-                      className="rounded-full border border-ink/15 px-3 py-1 text-xs font-semibold text-ink transition hover:border-sage"
+                      className="rounded-full border border-ink/15 px-3 py-1 text-xs font-semibold text-ink transition hover:border-sage dark:border-white/12 dark:hover:border-sage"
                     >
                       Focus uploader
                     </button>
@@ -507,7 +507,7 @@ export default function AdminCatalogPage() {
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="rounded-lg border border-ink/15 px-3 py-1.5 disabled:opacity-40"
+            className="rounded-lg border border-ink/15 px-3 py-1.5 disabled:opacity-40 dark:border-white/12"
           >
             Prev
           </button>
@@ -517,7 +517,7 @@ export default function AdminCatalogPage() {
           <button
             disabled={page >= pages}
             onClick={() => setPage((p) => Math.min(pages, p + 1))}
-            className="rounded-lg border border-ink/15 px-3 py-1.5 disabled:opacity-40"
+            className="rounded-lg border border-ink/15 px-3 py-1.5 disabled:opacity-40 dark:border-white/12"
           >
             Next
           </button>

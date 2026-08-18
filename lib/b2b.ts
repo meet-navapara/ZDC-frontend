@@ -372,5 +372,5 @@ export async function createB2BTryon(form: FormData) {
 }
 
 export function getJob(id: string) {
-  return apiGet<{ job: B2BJob }>(`/api/tryon/${id}`);
+  return apiGet<{ job: B2BJob }>(`/api/tryon/${id}`, tok());
 }

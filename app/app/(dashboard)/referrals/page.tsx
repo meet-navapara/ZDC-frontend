@@ -128,13 +128,13 @@ export default function ReferralsPage() {
             </p>
 
             <div className="mt-5 flex flex-wrap items-center gap-3">
-              <div className="rounded-2xl border border-ink/10 bg-paper-100 px-5 py-4 font-mono text-2xl font-semibold tracking-[0.2em] text-ink">
+              <div className="rounded-2xl border border-ink/10 bg-paper-100 px-5 py-4 font-mono text-2xl font-semibold tracking-[0.2em] text-ink dark:border-white/10 dark:bg-[#181511] dark:text-[#f4efe7]">
                 {stats?.referralCode || "—"}
               </div>
               <button
                 type="button"
                 onClick={copyCode}
-                className="rounded-full border border-ink/15 px-4 py-2.5 text-sm font-semibold text-ink transition hover:border-sage"
+                className="rounded-full border border-ink/15 px-4 py-2.5 text-sm font-semibold text-ink transition hover:border-sage dark:border-white/15 dark:text-[#f4efe7]"
               >
                 {copied ? "Copied!" : "Copy code"}
               </button>
@@ -148,7 +148,7 @@ export default function ReferralsPage() {
                 <input
                   readOnly
                   value={shareUrl}
-                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm text-ink-muted outline-none"
+                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm text-ink-muted outline-none dark:border-white/12 dark:bg-[#181511] dark:text-[#b1a99c]"
                 />
                 <button
                   type="button"
@@ -163,7 +163,7 @@ export default function ReferralsPage() {
             <button
               type="button"
               onClick={shareWhatsApp}
-              className="mt-4 rounded-full border border-ink/15 px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-sage"
+              className="mt-4 rounded-full border border-ink/15 px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-sage dark:border-white/15 dark:text-[#f4efe7]"
             >
               Share on WhatsApp
             </button>

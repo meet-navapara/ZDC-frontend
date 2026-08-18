@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getUser, clearAuth, type AuthUser } from "@/lib/auth";
 import { BrandLogo } from "@/components/BrandLogo";
+import { DarkModeToggle } from "@/components/DarkModeToggle";
 
 export function AppHeader() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -53,10 +54,11 @@ export function AppHeader() {
 
         {/* Desktop actions */}
         <div className="hidden items-center gap-3 text-sm md:flex">
+          <DarkModeToggle />
           {user?.role === "b2c" && (
             <Link
               href="/app/try-on"
-              className="font-medium text-ink-muted transition hover:text-ink"
+              className="font-medium text-ink-muted transition hover:text-ink dark:text-[#b1a99c] dark:hover:text-[#f4efe7]"
             >
               Try On
             </Link>
@@ -65,13 +67,13 @@ export function AppHeader() {
             <>
               <Link
                 href={accountHref}
-                className="max-w-[160px] truncate font-medium text-ink transition hover:text-sage-dark lg:max-w-none"
+                className="max-w-[160px] truncate font-medium text-ink transition hover:text-sage-dark dark:text-[#e8e2d8] dark:hover:text-sage lg:max-w-none"
               >
                 {user.email}
               </Link>
               <button
                 onClick={logout}
-                className="rounded-full border border-ink/15 px-4 py-2 font-semibold text-ink transition hover:border-ink/30"
+                className="rounded-full border border-ink/15 px-4 py-2 font-semibold text-ink transition hover:border-ink/30 dark:border-white/15 dark:text-[#e8e2d8] dark:hover:border-white/30"
               >
                 Log out
               </button>
@@ -80,7 +82,7 @@ export function AppHeader() {
             <>
               <Link
                 href="/login"
-                className="font-medium text-ink-muted transition hover:text-ink"
+                className="font-medium text-ink-muted transition hover:text-ink dark:text-[#9a9387] dark:hover:text-[#e8e2d8]"
               >
                 Log in
               </Link>
@@ -118,21 +120,21 @@ export function AppHeader() {
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 bg-white/60 text-ink"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 bg-white/60 text-ink transition hover:border-ink/25 dark:border-white/10 dark:bg-white/5 dark:text-[#f4efe7]"
           >
             <span className="relative block h-3.5 w-4">
               <span
-                className={`absolute left-0 block h-0.5 w-4 rounded-full bg-ink transition-all duration-300 ${
+                className={`absolute left-0 block h-0.5 w-4 rounded-full bg-current transition-all duration-300 ${
                   open ? "top-1.5 rotate-45" : "top-0"
                 }`}
               />
               <span
-                className={`absolute left-0 top-1.5 block h-0.5 w-4 rounded-full bg-ink transition-all duration-200 ${
+                className={`absolute left-0 top-1.5 block h-0.5 w-4 rounded-full bg-current transition-all duration-200 ${
                   open ? "opacity-0" : "opacity-100"
                 }`}
               />
               <span
-                className={`absolute left-0 block h-0.5 w-4 rounded-full bg-ink transition-all duration-300 ${
+                className={`absolute left-0 block h-0.5 w-4 rounded-full bg-current transition-all duration-300 ${
                   open ? "top-1.5 -rotate-45" : "top-3"
                 }`}
               />
@@ -155,7 +157,7 @@ export function AppHeader() {
                   <Link
                     href="/app"
                     onClick={() => setOpen(false)}
-                    className="rounded-xl px-4 py-3 text-base font-medium text-ink hover:bg-white/60"
+                    className="rounded-xl px-4 py-3 text-base font-medium text-ink hover:bg-white/60 dark:text-[#f4efe7] dark:hover:bg-white/5"
                   >
                     My dashboard
                   </Link>
@@ -164,19 +166,19 @@ export function AppHeader() {
                   <Link
                     href="/business"
                     onClick={() => setOpen(false)}
-                    className="rounded-xl px-4 py-3 text-base font-medium text-ink hover:bg-white/60"
+                    className="rounded-xl px-4 py-3 text-base font-medium text-ink hover:bg-white/60 dark:text-[#f4efe7] dark:hover:bg-white/5"
                   >
                     My dashboard
                   </Link>
                 )}
                 {user ? (
                   <>
-                    <p className="truncate px-4 py-2 text-sm text-ink-muted">
+                    <p className="truncate px-4 py-2 text-sm text-ink-muted dark:text-[#b1a99c]">
                       {user.email}
                     </p>
                     <button
                       onClick={logout}
-                      className="rounded-xl px-4 py-3 text-left text-base font-medium text-ink hover:bg-white/60"
+                      className="rounded-xl px-4 py-3 text-left text-base font-medium text-ink hover:bg-white/60 dark:text-[#f4efe7] dark:hover:bg-white/5"
                     >
                       Log out
                     </button>
@@ -186,7 +188,7 @@ export function AppHeader() {
                     <Link
                       href="/login"
                       onClick={() => setOpen(false)}
-                      className="rounded-full border border-ink/15 py-2.5 text-center text-sm font-semibold text-ink"
+                    className="rounded-full border border-ink/15 py-2.5 text-center text-sm font-semibold text-ink dark:border-white/15 dark:text-[#f4efe7]"
                     >
                       Log in
                     </Link>

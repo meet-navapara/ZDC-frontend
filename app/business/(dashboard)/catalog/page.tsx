@@ -445,7 +445,7 @@ export default function CatalogPage() {
           onClick={() => !saving && setModalOpen(false)}
         >
           <div
-            className="my-auto max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-ink/10 bg-paper-100 p-6 shadow-2xl"
+            className="my-auto max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-ink/10 bg-paper-100 p-6 shadow-2xl dark:border-white/10 dark:bg-[#14120f]"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-display text-xl font-semibold text-ink">
@@ -465,21 +465,21 @@ export default function CatalogPage() {
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   placeholder="Product name"
-                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage"
+                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage dark:border-white/12 dark:bg-[#1b1713] dark:text-[#f4efe7]"
                 />
                 <input
                   maxLength={LIMITS.sku}
                   value={form.sku}
                   onChange={(e) => setForm({ ...form, sku: e.target.value })}
                   placeholder="SKU (optional)"
-                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage"
+                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage dark:border-white/12 dark:bg-[#1b1713] dark:text-[#f4efe7]"
                 />
               </div>
 
               {/* Images (up to 5) */}
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
-                  <label className="text-sm font-medium text-ink-700">
+                  <label className="text-sm font-medium text-ink-700 dark:text-[#d6cec2]">
                     Image
                   </label>
                   <span className="text-xs text-ink-muted">
@@ -490,7 +490,7 @@ export default function CatalogPage() {
                   {keptImages.map((url) => (
                     <div
                       key={url}
-                      className="relative h-20 w-16 overflow-hidden rounded-lg border border-ink/10"
+                      className="relative h-20 w-16 overflow-hidden rounded-lg border border-ink/10 dark:border-white/10"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -513,7 +513,7 @@ export default function CatalogPage() {
                   {previews.map((p, i) => (
                     <div
                       key={p.url}
-                      className="relative h-20 w-16 overflow-hidden rounded-lg border border-sage"
+                      className="relative h-20 w-16 overflow-hidden rounded-lg border border-sage dark:bg-[#1b1713]"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -537,7 +537,7 @@ export default function CatalogPage() {
                     <button
                       type="button"
                       onClick={() => fileRef.current?.click()}
-                      className="flex h-20 w-16 flex-col items-center justify-center rounded-lg border-2 border-dashed border-ink/15 text-xs text-ink-muted transition hover:border-sage"
+                      className="flex h-20 w-16 flex-col items-center justify-center rounded-lg border-2 border-dashed border-ink/15 text-xs text-ink-muted transition hover:border-sage dark:border-white/12 dark:text-[#b1a99c]"
                     >
                       + Add
                     </button>
@@ -561,14 +561,14 @@ export default function CatalogPage() {
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
                   placeholder="Price"
-                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage"
+                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage dark:border-white/12 dark:bg-[#1b1713] dark:text-[#f4efe7]"
                 />
                 <select
                   value={form.categoryId}
                   onChange={(e) =>
                     setForm({ ...form, categoryId: e.target.value })
                   }
-                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage"
+                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage dark:border-white/12 dark:bg-[#1b1713] dark:text-[#f4efe7]"
                 >
                   <option value="">Uncategorized</option>
                   {categories.map((c) => (
@@ -580,7 +580,7 @@ export default function CatalogPage() {
               </div>
 
               {editing && (
-                <label className="flex items-center gap-2 text-sm text-ink-muted">
+                <label className="flex items-center gap-2 text-sm text-ink-muted dark:text-[#b1a99c]">
                   <input
                     type="checkbox"
                     checked={form.status === "archived"}
@@ -600,7 +600,7 @@ export default function CatalogPage() {
                   type="button"
                   onClick={() => setModalOpen(false)}
                   disabled={saving}
-                  className="rounded-full border border-ink/15 px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-ink/30"
+                  className="rounded-full border border-ink/15 px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-ink/30 dark:border-white/15 dark:text-[#f4efe7] dark:hover:border-white/25"
                 >
                   Cancel
                 </button>

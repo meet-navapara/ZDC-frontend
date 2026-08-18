@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -68,6 +69,18 @@ const config: Config = {
         spinSlow: {
           to: { transform: "rotate(360deg)" },
         },
+        lookReveal: {
+          "0%": { opacity: "0", transform: "scale(1.06)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        fadeUp: {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        glowPulse: {
+          "0%,100%": { opacity: "0.35" },
+          "50%": { opacity: "0.7" },
+        },
       },
       animation: {
         float: "float 6s ease-in-out infinite",
@@ -78,6 +91,9 @@ const config: Config = {
         scan: "scan 3.4s ease-in-out infinite",
         gradient: "gradientMove 8s ease infinite",
         spinSlow: "spinSlow 22s linear infinite",
+        lookReveal: "lookReveal 1.1s cubic-bezier(0.22,1,0.36,1) both",
+        fadeUp: "fadeUp 0.7s ease both",
+        glowPulse: "glowPulse 2.4s ease-in-out infinite",
       },
     },
   },

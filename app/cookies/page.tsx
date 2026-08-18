@@ -1,7 +1,4 @@
-import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
-import { BrandLogo } from "@/components/BrandLogo";
-import { PageBackLink } from "@/components/PageBackLink";
 
 export const metadata = {
   title: "B2C Cookies Policy | zimji",
@@ -30,10 +27,9 @@ function Section({
 
 export default function CookiesPolicyPage() {
   return (
-    <main className="flex min-h-screen flex-col bg-paper">
+    <main className="flex min-h-screen flex-col bg-paper dark:bg-[#0c0b09]">
       <AppHeader />
       <article className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
-        <PageBackLink href="/" label="Back to home" />
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">
           Legal
         </p>
@@ -55,9 +51,9 @@ export default function CookiesPolicyPage() {
           </Section>
 
           <Section title="2. Cookies We Use">
-            <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-white">
+            <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-white dark:border-white/10 dark:bg-[#14120f]">
               <table className="w-full min-w-[520px] text-left text-sm">
-                <thead className="border-b border-ink/10 bg-ink/[0.03] text-xs uppercase tracking-wider text-ink-muted">
+                <thead className="border-b border-ink/10 bg-ink/[0.03] text-xs uppercase tracking-wider text-ink-muted dark:border-white/10 dark:bg-white/5">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Type</th>
                     <th className="px-4 py-3 font-semibold">Purpose</th>
@@ -133,18 +129,6 @@ export default function CookiesPolicyPage() {
             </p>
           </Section>
         </div>
-
-        <footer className="mt-12 border-t border-ink/10 pt-6">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-            <BrandLogo href={false} size="sm" />
-            <Link
-              href="/terms"
-              className="font-semibold text-sage transition hover:text-sage-dark"
-            >
-              Terms
-            </Link>
-          </div>
-        </footer>
       </article>
     </main>
   );

@@ -1,7 +1,5 @@
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
-import { BrandLogo } from "@/components/BrandLogo";
-import { PageBackLink } from "@/components/PageBackLink";
 
 export const metadata = {
   title: "Terms of Service | zimji",
@@ -30,10 +28,9 @@ function Section({
 
 export default function TermsPage() {
   return (
-    <main className="flex min-h-screen flex-col bg-paper">
+    <main className="flex min-h-screen flex-col bg-paper dark:bg-[#0c0b09]">
       <AppHeader />
       <article className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
-        <PageBackLink href="/" label="Back to home" />
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">
           Legal
         </p>
@@ -74,9 +71,9 @@ export default function TermsPage() {
               When you use the zimji B2C Service, we collect the following
               minimal personal data:
             </p>
-            <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-white">
+            <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-white dark:border-white/10 dark:bg-[#14120f]">
               <table className="w-full min-w-[520px] text-left text-sm">
-                <thead className="border-b border-ink/10 bg-ink/[0.03] text-xs uppercase tracking-wider text-ink-muted">
+                <thead className="border-b border-ink/10 bg-ink/[0.03] text-xs uppercase tracking-wider text-ink-muted dark:border-white/10 dark:bg-white/5">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Category</th>
                     <th className="px-4 py-3 font-semibold">Data Collected</th>
@@ -183,9 +180,9 @@ export default function TermsPage() {
               Under the Kenya DPA and India DPDP Act, you have the following
               rights:
             </p>
-            <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-white">
+            <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-white dark:border-white/10 dark:bg-[#14120f]">
               <table className="w-full min-w-[480px] text-left text-sm">
-                <thead className="border-b border-ink/10 bg-ink/[0.03] text-xs uppercase tracking-wider text-ink-muted">
+                <thead className="border-b border-ink/10 bg-ink/[0.03] text-xs uppercase tracking-wider text-ink-muted dark:border-white/10 dark:bg-white/5">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Right</th>
                     <th className="px-4 py-3 font-semibold">What It Means</th>
@@ -319,7 +316,7 @@ export default function TermsPage() {
               We may update these Terms periodically. We will notify you of
               material changes via email or website notice.
             </p>
-            <p className="rounded-2xl border border-ink/10 bg-white p-4 text-ink sm:p-5">
+            <p className="rounded-2xl border border-ink/10 bg-white p-4 text-ink dark:border-white/10 dark:bg-[#14120f] sm:p-5">
               By using the Zimji.com platform, you confirm that you have fully
               read, understood, and agreed to all the terms and conditions
               outlined above, and you commit to comply with them strictly and
@@ -332,18 +329,6 @@ export default function TermsPage() {
             </p>
           </Section>
         </div>
-
-        <footer className="mt-12 border-t border-ink/10 pt-6">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-            <BrandLogo href={false} size="sm" />
-            <Link
-              href="/cookies"
-              className="font-semibold text-sage transition hover:text-sage-dark"
-            >
-              Cookies policy
-            </Link>
-          </div>
-        </footer>
       </article>
     </main>
   );

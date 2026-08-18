@@ -11,6 +11,8 @@ type Props = {
   onTryAnother?: () => void;
   /** Link shared in challenge invites. Defaults to the consumer try-on studio. */
   challengePath?: string;
+  /** Compact studio layout — does not change the default share grid. */
+  variant?: "default" | "studio";
 };
 
 async function copyText(text: string): Promise<boolean> {
@@ -73,6 +75,7 @@ export function TryOnShareActions({
   filename = "zimji-tryon.png",
   onTryAnother,
   challengePath = "/app/try-on",
+  variant = "default",
 }: Props) {
   const [toast, setToast] = useState("");
 
@@ -141,24 +144,45 @@ export function TryOnShareActions({
     { key: "challenge", label: "Challenge a friend", onClick: handleChallenge },
   ];
 
+  const studio = variant === "studio";
+
   return (
-    <div className="relative mt-8">
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-        {actions.map((a) => (
-          <button
-            key={a.key}
-            type="button"
-            onClick={() => void a.onClick()}
-            className={
-              a.primary
-                ? "rounded-full bg-sage px-5 py-3 text-sm font-semibold uppercase tracking-wide text-paper transition hover:bg-sage-dark"
-                : "rounded-full border border-ink/15 bg-white/60 px-5 py-3 text-sm font-semibold uppercase tracking-wide text-ink transition hover:border-ink/30 hover:bg-white"
-            }
-          >
-            {a.label}
-          </button>
-        ))}
-      </div>
+    <div className={`relative ${studio ? "mt-0 w-full" : "mt-8"}`}>
+      {studio ? (
+        <div className="flex w-full flex-col gap-2">
+          {actions.map((a) => (
+            <button
+              key={a.key}
+              type="button"
+              onClick={() => void a.onClick()}
+              className={
+                a.primary
+                  ? "w-full rounded-full bg-sage px-3 py-2 text-xs font-semibold text-paper transition hover:bg-sage-dark sm:px-4 sm:py-2.5 sm:text-sm"
+                  : "w-full rounded-full border border-ink/12 px-3 py-2 text-xs font-semibold text-ink transition hover:border-sage hover:text-sage dark:border-white/12 dark:text-[#f4efe7] dark:hover:border-sage sm:px-4 sm:py-2.5 sm:text-sm"
+              }
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+          {actions.map((a) => (
+            <button
+              key={a.key}
+              type="button"
+              onClick={() => void a.onClick()}
+              className={
+                a.primary
+                  ? "rounded-full bg-sage px-5 py-3 text-sm font-semibold uppercase tracking-wide text-paper transition hover:bg-sage-dark"
+                  : "rounded-full border border-ink/15 bg-white/60 px-5 py-3 text-sm font-semibold uppercase tracking-wide text-ink transition hover:border-ink/30 hover:bg-white"
+              }
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {toast && (
         <p

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getUser, clearAuth, type AuthUser, homeForRole } from "@/lib/auth";
 import { BrandLogo } from "@/components/BrandLogo";
+import { DarkModeToggle } from "@/components/DarkModeToggle";
 
 const NAV = [
   { href: "/app", label: "Overview", exact: true, icon: "◪" },
@@ -29,44 +30,28 @@ export default function ConsumerDashboardLayout({
   useEffect(() => {
     const u = getUser();
     if (!u) {
-      const next = pathname?.startsWith("/app")
-        ? pathname
-        : "/app";
+      const next = pathname?.startsWith("/app") ? pathname : "/app";
       router.replace(`/login?next=${encodeURIComponent(next)}`);
       return;
     }
-    if (u.role === "b2b") {
-      router.replace("/business");
-      return;
-    }
-    if (u.role === "admin") {
-      router.replace("/admin");
-      return;
-    }
-    if (u.role !== "b2c") {
-      router.replace(homeForRole(u.role));
-      return;
-    }
+    if (u.role === "b2b") { router.replace("/business"); return; }
+    if (u.role === "admin") { router.replace("/admin"); return; }
+    if (u.role !== "b2c") { router.replace(homeForRole(u.role)); return; }
     setUser(u);
     setReady(true);
-    // Only gate once on mount; navigation within /app stays in-layout.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
+    return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
   if (!ready || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-ink">
+      <div className="flex min-h-screen items-center justify-center bg-[#f6f2ea] dark:bg-[#0f0e0c]">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-sage/20 border-t-sage" />
       </div>
     );
@@ -124,22 +109,36 @@ export default function ConsumerDashboardLayout({
   );
 
   return (
-    <div className="min-h-screen md:flex">
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-ink/10 bg-ink p-5 md:flex">
+    <div className="min-h-screen bg-[#f6f2ea] text-[#1c1a16] dark:bg-[#0f0e0c] dark:text-[#e8e2d8] md:flex">
+      {/* Desktop sidebar */}
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-white/10 bg-[#1c1a16] p-5 md:flex">
         {brand}
-        <div className="mt-8">{navLinks}</div>
-        <div className="mt-auto">{ctaCard}</div>
+        <div className="mt-8 flex-1">{navLinks}</div>
+        <div className="mt-auto space-y-3">
+          {ctaCard}
+          {/* Dark mode toggle in sidebar */}
+          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
+            <span className="text-sm text-paper/60">
+              {/* shows current mode label */}
+              Appearance
+            </span>
+            <DarkModeToggle className="dark:border-white/15 dark:bg-white/10" />
+          </div>
+        </div>
       </aside>
 
+      {/* Mobile drawer backdrop */}
       {menuOpen && (
         <button
           aria-label="Close menu"
           onClick={() => setMenuOpen(false)}
-          className="fixed inset-0 z-40 cursor-default bg-ink/40 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 cursor-default bg-black/40 backdrop-blur-sm md:hidden"
         />
       )}
+
+      {/* Mobile drawer */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[82%] flex-col bg-ink p-5 shadow-2xl transition-transform duration-300 md:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[82%] flex-col bg-[#1c1a16] p-5 shadow-2xl transition-transform duration-300 md:hidden ${
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -154,37 +153,45 @@ export default function ConsumerDashboardLayout({
           </button>
         </div>
         <div className="mt-8 flex-1 overflow-y-auto">{navLinks}</div>
-        <div className="mt-4">{ctaCard}</div>
-        <button
-          onClick={logout}
-          className="mt-3 rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-paper/80 transition hover:border-white/30 hover:text-paper"
-        >
-          Log out
-        </button>
+        <div className="mt-4 space-y-3">
+          {ctaCard}
+          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
+            <span className="text-sm text-paper/60">Appearance</span>
+            <DarkModeToggle />
+          </div>
+          <button
+            onClick={logout}
+            className="w-full rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-paper/80 transition hover:border-white/30 hover:text-paper"
+          >
+            Log out
+          </button>
+        </div>
       </aside>
 
+      {/* Main content */}
       <div className="flex min-h-screen flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-ink/10 bg-paper/80 px-4 py-3 backdrop-blur md:px-5">
+        {/* Top bar */}
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-black/10 bg-[#f6f2ea]/80 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#0f0e0c]/80 md:px-5">
           <div className="flex min-w-0 items-center gap-2.5">
             <button
               type="button"
               aria-label="Open menu"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(true)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white/60 text-ink transition hover:border-ink/30 md:hidden"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/15 bg-white/60 text-[#1c1a16] transition hover:border-black/30 dark:border-white/15 dark:bg-white/5 dark:text-[#e8e2d8] md:hidden"
             >
               <span className="relative block h-3.5 w-4">
-                <span className="absolute left-0 top-0 block h-0.5 w-4 rounded-full bg-ink" />
-                <span className="absolute left-0 top-1.5 block h-0.5 w-4 rounded-full bg-ink" />
-                <span className="absolute left-0 top-3 block h-0.5 w-4 rounded-full bg-ink" />
+                <span className="absolute left-0 top-0 block h-0.5 w-4 rounded-full bg-current" />
+                <span className="absolute left-0 top-1.5 block h-0.5 w-4 rounded-full bg-current" />
+                <span className="absolute left-0 top-3 block h-0.5 w-4 rounded-full bg-current" />
               </span>
             </button>
-            <span className="truncate text-sm font-medium text-ink-muted md:hidden">
+            <span className="truncate text-sm font-medium text-[#6f695d] dark:text-[#a89f94] md:hidden">
               {displayName}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden max-w-[220px] truncate text-sm text-ink-muted sm:inline">
+            <span className="hidden max-w-[220px] truncate text-sm text-[#6f695d] dark:text-[#a89f94] sm:inline">
               {user.email}
             </span>
             <Link
@@ -195,7 +202,7 @@ export default function ConsumerDashboardLayout({
             </Link>
             <button
               onClick={logout}
-              className="hidden rounded-full border border-ink/15 px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink/30 sm:block"
+              className="hidden rounded-full border border-black/15 px-4 py-2 text-sm font-semibold text-[#1c1a16] transition hover:border-black/30 dark:border-white/15 dark:text-[#e8e2d8] dark:hover:border-white/30 sm:block"
             >
               Log out
             </button>

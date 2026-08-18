@@ -218,10 +218,10 @@ export function MiniBarChart({
       role="img"
       aria-label={ariaLabel}
     >
-      {ticks.map((t) => {
+      {ticks.map((t, i) => {
         const y = top + chartH - (t / max) * chartH;
         return (
-          <g key={t}>
+          <g key={`${t}-${i}`}>
             <line
               x1={left}
               x2={width - right}
@@ -349,10 +349,10 @@ export function MiniLineChart({
       role="img"
       aria-label={ariaLabel}
     >
-      {ticks.map((t) => {
+      {ticks.map((t, i) => {
         const y = top + chartH - (t / max) * chartH;
         return (
-          <g key={t}>
+          <g key={`${t}-${i}`}>
             <line
               x1={left}
               x2={width - right}

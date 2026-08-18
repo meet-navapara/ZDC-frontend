@@ -41,8 +41,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable}`}>
-      <body className="grain relative min-h-screen bg-paper text-ink">
+    <html lang="en" className={`${display.variable} ${sans.variable}`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var s=localStorage.getItem('zimji_theme');var d=window.matchMedia('(prefers-color-scheme: dark)').matches;if(s==='dark'||(s!=='light'&&d)){document.documentElement.classList.add('dark');}})();`,
+          }}
+        />
+      </head>
+      <body className="grain relative min-h-screen bg-paper text-ink transition-colors duration-300 dark:bg-[#0f0e0c] dark:text-[#e8e2d8]">
         <PostHogProvider>
           {/* Global soft backdrop */}
           <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">

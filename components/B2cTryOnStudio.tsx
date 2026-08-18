@@ -97,10 +97,10 @@ function UploadBox({
         }}
         className={`group relative flex w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl text-center transition ${sizeClass} ${
           dragOver
-            ? "border-2 border-dashed border-sage bg-sage/10"
+            ? "border-2 border-dashed border-sage bg-sage/10 dark:bg-sage/15"
             : preview
-              ? "border border-ink/10 shadow-sm"
-              : "border-2 border-dashed border-ink/15 bg-white/50 hover:border-sage hover:bg-white"
+              ? "border border-ink/10 shadow-sm dark:border-white/10 dark:shadow-black/20"
+              : "border-2 border-dashed border-ink/15 bg-white/50 hover:border-sage hover:bg-white dark:border-white/12 dark:bg-[#181511] dark:hover:border-sage/70 dark:hover:bg-[#1d1914]"
         }`}
       >
         {preview ? (
@@ -132,7 +132,7 @@ function UploadBox({
         ) : (
           <div className="px-3">
             <div
-              className={`mx-auto flex items-center justify-center rounded-full bg-sage/10 text-sage transition group-hover:bg-sage/20 ${
+              className={`mx-auto flex items-center justify-center rounded-full bg-sage/10 text-sage transition group-hover:bg-sage/20 dark:bg-sage/15 dark:group-hover:bg-sage/25 ${
                 compact ? "h-9 w-9 text-lg" : "h-12 w-12 text-xl"
               }`}
             >
@@ -147,8 +147,8 @@ function UploadBox({
             </div>
             {!compact && (
               <>
-                <div className="mt-1 text-xs text-ink-muted">{hint}</div>
-                <div className="mt-2 text-[11px] text-ink-muted/70">
+                <div className="mt-1 text-xs text-ink-muted dark:text-[#b1a99c]">{hint}</div>
+                <div className="mt-2 text-[11px] text-ink-muted/70 dark:text-[#8f877b]">
                   Drag &amp; drop · PNG/JPG/WEBP · 10 MB
                 </div>
               </>
@@ -354,8 +354,8 @@ export default function B2cTryOnStudio() {
                 }`}
               >
                 <UploadBox
-                  label="Your selfie"
-                  hint="Clear, front-facing"
+                  label="Selfie / Gallery"
+                  hint="Clear, front-facing photo"
                   file={source}
                   onPick={setSource}
                   compact={targetCount > 1}
@@ -387,8 +387,8 @@ export default function B2cTryOnStudio() {
               <div className="mt-5 grid gap-3 sm:mt-6 sm:gap-4 sm:grid-cols-2">
                 {packs.length === 0 && (
                   <>
-                    <div className="h-[132px] animate-pulse rounded-2xl bg-ink/5" />
-                    <div className="h-[132px] animate-pulse rounded-2xl bg-ink/5" />
+                    <div className="h-[132px] animate-pulse rounded-2xl bg-ink/5 dark:bg-white/5" />
+                    <div className="h-[132px] animate-pulse rounded-2xl bg-ink/5 dark:bg-white/5" />
                   </>
                 )}
                 {packs.map((p) => {
@@ -400,8 +400,8 @@ export default function B2cTryOnStudio() {
                       onClick={() => setPackId(p.id)}
                       className={`relative flex flex-col rounded-2xl border p-5 text-left transition ${
                         selected
-                          ? "border-sage bg-sage/5 shadow-sm ring-2 ring-sage/25"
-                          : "border-ink/10 bg-white/70 hover:border-sage/40 hover:shadow-md"
+                          ? "border-sage bg-sage/5 shadow-sm ring-2 ring-sage/25 dark:bg-sage/10 dark:ring-sage/35"
+                          : "border-ink/10 bg-white/70 hover:border-sage/40 hover:shadow-md dark:border-white/10 dark:bg-[#181511] dark:hover:border-sage/55 dark:hover:bg-[#1d1914]"
                       }`}
                     >
                       {selected && (
@@ -497,7 +497,7 @@ export default function B2cTryOnStudio() {
                   type="button"
                   onClick={() => handleSubmit(true)}
                   disabled={!canSubmit}
-                  className="mt-2 flex w-full items-center justify-center rounded-full border border-sage/40 bg-white py-3 text-sm font-semibold text-sage-dark transition hover:bg-sage/10 disabled:opacity-50"
+                  className="mt-2 flex w-full items-center justify-center rounded-full border border-sage/40 bg-white py-3 text-sm font-semibold text-sage-dark transition hover:bg-sage/10 disabled:opacity-50 dark:bg-[#181511] dark:text-[#d7cfbf] dark:hover:bg-sage/15"
                 >
                   Redeem 1 free try-on
                 </button>
