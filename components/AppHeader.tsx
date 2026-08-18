@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getUser, clearAuth, homeForRole, type AuthUser } from "@/lib/auth";
+import { getUser, clearAuth, type AuthUser } from "@/lib/auth";
 import { BrandLogo } from "@/components/BrandLogo";
 
 export function AppHeader() {
@@ -35,13 +35,6 @@ export function AppHeader() {
     router.push("/");
   };
 
-  const businessHref = user?.role === "b2b" ? "/business" : "/business/login";
-  const tryOnHref =
-    user?.role === "b2c"
-      ? "/app/try-on"
-      : user
-        ? homeForRole(user.role)
-        : "/login?next=/app/try-on";
   const accountHref =
     user?.role === "b2c"
       ? "/app"
@@ -60,18 +53,14 @@ export function AppHeader() {
 
         {/* Desktop actions */}
         <div className="hidden items-center gap-3 text-sm md:flex">
-          <Link
-            href={tryOnHref}
-            className="font-medium text-ink-muted transition hover:text-ink"
-          >
-            Try On
-          </Link>
-          <Link
-            href={businessHref}
-            className="font-medium text-ink-muted transition hover:text-ink"
-          >
-            For Business
-          </Link>
+          {user?.role === "b2c" && (
+            <Link
+              href="/app/try-on"
+              className="font-medium text-ink-muted transition hover:text-ink"
+            >
+              Try On
+            </Link>
+          )}
           {user ? (
             <>
               <Link
@@ -107,13 +96,23 @@ export function AppHeader() {
 
         {/* Mobile: primary CTA + menu */}
         <div className="flex items-center gap-2 md:hidden">
-          <Link
-            href={tryOnHref}
-            className="rounded-full bg-sage px-3.5 py-2 text-xs font-semibold text-paper transition hover:bg-sage-dark"
-            onClick={() => setOpen(false)}
-          >
-            Try On
-          </Link>
+          {user ? (
+            <Link
+              href={accountHref}
+              className="rounded-full bg-sage px-3.5 py-2 text-xs font-semibold text-paper transition hover:bg-sage-dark"
+              onClick={() => setOpen(false)}
+            >
+              Account
+            </Link>
+          ) : (
+            <Link
+              href="/register"
+              className="rounded-full bg-sage px-3.5 py-2 text-xs font-semibold text-paper transition hover:bg-sage-dark"
+              onClick={() => setOpen(false)}
+            >
+              Sign up
+            </Link>
+          )}
           <button
             type="button"
             aria-label={open ? "Close menu" : "Open menu"}
@@ -152,13 +151,6 @@ export function AppHeader() {
           <div className="relative z-50 mx-auto mt-2 max-w-6xl md:hidden">
             <div className="glass-strong rounded-3xl p-4">
               <nav className="flex flex-col gap-1">
-                <Link
-                  href={tryOnHref}
-                  onClick={() => setOpen(false)}
-                  className="rounded-xl px-4 py-3 text-base font-medium text-ink hover:bg-white/60"
-                >
-                  Try On
-                </Link>
                 {user?.role === "b2c" && (
                   <Link
                     href="/app"
@@ -168,13 +160,15 @@ export function AppHeader() {
                     My dashboard
                   </Link>
                 )}
-                <Link
-                  href={businessHref}
-                  onClick={() => setOpen(false)}
-                  className="rounded-xl px-4 py-3 text-base font-medium text-ink hover:bg-white/60"
-                >
-                  For Business
-                </Link>
+                {user?.role === "b2b" && (
+                  <Link
+                    href="/business"
+                    onClick={() => setOpen(false)}
+                    className="rounded-xl px-4 py-3 text-base font-medium text-ink hover:bg-white/60"
+                  >
+                    My dashboard
+                  </Link>
+                )}
                 {user ? (
                   <>
                     <p className="truncate px-4 py-2 text-sm text-ink-muted">

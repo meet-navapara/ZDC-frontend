@@ -423,7 +423,7 @@ export default async function Home() {
               ))}
             </ul>
             <Link
-              href="/business/register"
+              href="/register?as=business"
               className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-sage px-7 py-3 text-sm font-semibold text-paper transition hover:bg-sage-dark sm:mt-10 sm:w-auto"
             >
               Create a business account

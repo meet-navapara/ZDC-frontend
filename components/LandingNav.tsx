@@ -46,10 +46,10 @@ export function LandingNav() {
             Log in
           </Link>
           <Link
-            href="/login?next=/app/try-on"
+            href="/register"
             className="rounded-full bg-sage px-4 py-2 text-sm font-semibold text-paper transition hover:bg-sage-dark sm:px-5"
           >
-            Try On
+            Sign up
           </Link>
 
           {/* Hamburger (mobile only) */}
@@ -112,11 +112,11 @@ export function LandingNav() {
                   Log in
                 </Link>
                 <Link
-                  href="/login?next=/app/try-on"
+                  href="/register"
                   onClick={() => setOpen(false)}
                   className="rounded-full bg-sage py-2.5 text-center text-sm font-semibold text-paper transition hover:bg-sage-dark"
                 >
-                  Try On Instantly
+                  Sign up
                 </Link>
               </div>
             </div>

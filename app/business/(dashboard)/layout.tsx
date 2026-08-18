@@ -34,7 +34,7 @@ export default function DashboardLayout({
   useEffect(() => {
     const u = getUser();
     if (!u || u.role !== "b2b") {
-      router.replace("/business/login");
+      router.replace("/login");
       return;
     }
     setUser(u);

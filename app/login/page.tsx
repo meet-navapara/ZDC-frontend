@@ -25,6 +25,7 @@ export default function LoginPage() {
       const res = await apiPost<AuthResponse>("/api/auth/login", {
         email,
         password,
+        portal: "app",
       });
       saveAuth(res.token, res.user);
       const next = new URLSearchParams(window.location.search).get("next");
@@ -49,7 +50,9 @@ export default function LoginPage() {
             <h1 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
               Welcome back
             </h1>
-            <p className="mt-2 text-ink-muted">Log in to continue your try-ons.</p>
+            <p className="mt-2 text-ink-muted">
+              One login for personal and business accounts.
+            </p>
 
             <form onSubmit={onSubmit} className="mt-8 space-y-4">
               {error && (

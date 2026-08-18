@@ -23,6 +23,7 @@ export default function AdminLoginPage() {
       const res = await apiPost<AuthResponse>("/api/auth/login", {
         email,
         password,
+        portal: "admin",
       });
       if (res.user.role !== "admin") {
         setError("This login is for platform administrators only.");
