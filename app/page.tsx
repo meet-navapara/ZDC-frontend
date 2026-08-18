@@ -4,6 +4,7 @@ import { Reveal } from "@/components/Reveal";
 import { Spotlight } from "@/components/Spotlight";
 import { LandingNav } from "@/components/LandingNav";
 import { BrandLogo } from "@/components/BrandLogo";
+import { LandingPhotoGuide } from "@/components/LandingPhotoGuide";
 import { getSiteContent } from "@/lib/content";
 
 const categories = [
@@ -89,6 +90,7 @@ export default async function Home() {
 
   return (
     <main className="relative">
+      <LandingPhotoGuide />
       {/* ============ NAV ============ */}
       <LandingNav />
 
@@ -595,7 +597,10 @@ export default async function Home() {
               <Link href="/cookies" className="transition hover:text-ink">
                 Cookies
               </Link>
-              <a href="#contact" className="transition hover:text-ink">
+              <a
+                href="mailto:jirani.deal@gmail.com"
+                className="transition hover:text-ink"
+              >
                 Contact
               </a>
             </nav>

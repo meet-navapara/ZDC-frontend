@@ -192,7 +192,14 @@ export default function ConsumerSettingsPage() {
             className={`${inputClass} cursor-not-allowed bg-ink/[0.03] text-ink-muted`}
           />
           <span className="mt-1 block text-[11px] text-ink-muted">
-            Email can’t be changed here. Contact support if you need a new one.
+            Email can’t be changed here. Contact{" "}
+            <a
+              href="mailto:jirani.deal@gmail.com"
+              className="font-semibold text-sage hover:text-sage-dark"
+            >
+              jirani.deal@gmail.com
+            </a>{" "}
+            if you need a new one.
           </span>
         </label>
 

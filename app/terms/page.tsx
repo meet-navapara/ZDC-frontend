@@ -61,10 +61,10 @@ export default function TermsPage() {
               <br />
               <span className="font-semibold text-ink">Contact:</span>{" "}
               <a
-                href="mailto:care@zimji.com"
+                href="mailto:jirani.deal@gmail.com"
                 className="font-semibold text-sage hover:text-sage-dark"
               >
-                care@zimji.com
+                jirani.deal@gmail.com
               </a>
             </p>
           </Section>
@@ -242,10 +242,10 @@ export default function TermsPage() {
             <p>
               To exercise these rights, contact us at:{" "}
               <a
-                href="mailto:care@zimji.com"
+                href="mailto:jirani.deal@gmail.com"
                 className="font-semibold text-sage hover:text-sage-dark"
               >
-                care@zimji.com
+                jirani.deal@gmail.com
               </a>
             </p>
           </Section>
