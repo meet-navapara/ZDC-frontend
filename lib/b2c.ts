@@ -119,8 +119,11 @@ export function listPaymentMethods() {
   }>("/api/payments/methods", tok());
 }
 
-export function getPayment(id: string, invoiceId?: string) {
-  const qs = invoiceId ? `?invoice_id=${encodeURIComponent(invoiceId)}` : "";
+export function getPayment(id: string, invoiceId?: string, checkoutId?: string) {
+  const p = new URLSearchParams();
+  if (invoiceId) p.set("invoice_id", invoiceId);
+  if (checkoutId) p.set("checkout_id", checkoutId);
+  const qs = p.toString() ? `?${p.toString()}` : "";
   return apiGet<{
     payment: {
       id: string;

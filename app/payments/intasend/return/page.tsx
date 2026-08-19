@@ -13,7 +13,8 @@ function ReturnBody() {
   const params = useSearchParams();
   const router = useRouter();
   const paymentId = params.get("p") || "";
-  const invoiceId = params.get("invoice_id") || undefined;
+  const invoiceId = params.get("invoice_id") || params.get("invoice") || undefined;
+  const checkoutId = params.get("checkout_id") || undefined;
   const [message, setMessage] = useState("Checking payment…");
   const [state, setState] = useState<"wait" | "ok" | "fail">("wait");
   const [failReason, setFailReason] = useState<FailReason>(null);
@@ -48,7 +49,7 @@ function ReturnBody() {
     async function tick() {
       attempts += 1;
       try {
-        const { payment } = await getPayment(paymentId, invoiceId);
+        const { payment } = await getPayment(paymentId, invoiceId, checkoutId);
         if (stopped) return;
         if (payment.status === "paid") {
           setState("ok");
@@ -67,15 +68,15 @@ function ReturnBody() {
           setMessage("Payment was cancelled.");
           return;
         }
-        if (attempts < 20) {
-          setMessage(`Confirming payment with IntaSend… (attempt ${attempts}/20)`);
-          setTimeout(tick, 1500);
+        if (attempts < 40) {
+          setMessage(`Confirming payment with IntaSend… (attempt ${attempts}/40)`);
+          setTimeout(tick, 2000);
           return;
         }
         setState("fail");
         setFailReason("timeout");
         setMessage(
-          "IntaSend did not confirm payment after 30 seconds."
+          "IntaSend did not confirm payment after 80 seconds."
         );
       } catch (err) {
         if (stopped) return;
