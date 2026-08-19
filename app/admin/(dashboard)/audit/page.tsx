@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { listAudit, type AuditEntry } from "@/lib/admin";
+import { CustomSelect } from "@/components/CustomSelect";
 
 const ACTION_LABEL: Record<string, string> = {
   "user.status_changed": "Status changed",
@@ -110,21 +111,15 @@ export default function AdminAuditPage() {
           <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-muted">
             Action
           </span>
-          <select
+          <CustomSelect
+            size="sm"
             value={action}
-            onChange={(e) => {
-              setAction(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage dark:border-white/12 dark:bg-[#181511] dark:text-[#f4efe7]"
-          >
-            <option value="">All actions</option>
-            {actions.map((a) => (
-              <option key={a} value={a}>
-                {ACTION_LABEL[a] || a}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => { setAction(v); setPage(1); }}
+            options={[
+              { value: "", label: "All actions" },
+              ...actions.map((a) => ({ value: a, label: ACTION_LABEL[a] || a })),
+            ]}
+          />
         </label>
         <button
           type="submit"

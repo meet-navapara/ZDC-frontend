@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { CustomSelect } from "@/components/CustomSelect";
 import {
   listPayments,
   type PaymentRow,
@@ -163,79 +164,50 @@ export default function AdminPaymentsPage() {
           <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-muted">
             Status
           </span>
-          <select
+          <CustomSelect
+            size="sm"
             value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage"
-          >
-            <option value="">All</option>
-            {statuses.map((s) => (
-              <option key={s} value={s} className="capitalize">
-                {s}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => { setStatus(v); setPage(1); }}
+            options={[{ value: "", label: "All" }, ...statuses.map((s) => ({ value: s, label: s }))]}
+          />
         </label>
         <label className="block">
           <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-muted">
             Purpose
           </span>
-          <select
+          <CustomSelect
+            size="sm"
             value={purpose}
-            onChange={(e) => {
-              setPurpose(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage"
-          >
-            <option value="">All</option>
-            {purposes.map((p) => (
-              <option key={p} value={p}>
-                {PURPOSE_LABEL[p] || p}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => { setPurpose(v); setPage(1); }}
+            options={[{ value: "", label: "All" }, ...purposes.map((p) => ({ value: p, label: PURPOSE_LABEL[p] || p }))]}
+          />
         </label>
         <label className="block">
           <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-muted">
             Gateway
           </span>
-          <select
+          <CustomSelect
+            size="sm"
             value={gateway}
-            onChange={(e) => {
-              setGateway(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm capitalize text-ink outline-none focus:border-sage"
-          >
-            <option value="">All</option>
-            {gateways.map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => { setGateway(v); setPage(1); }}
+            options={[{ value: "", label: "All" }, ...gateways.map((g) => ({ value: g, label: g }))]}
+          />
         </label>
         <label className="block">
           <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-muted">
             Period
           </span>
-          <select
+          <CustomSelect
+            size="sm"
             value={days}
-            onChange={(e) => {
-              setDays(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage"
-          >
-            <option value="">All time</option>
-            <option value="7">Last 7 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-          </select>
+            onChange={(v) => { setDays(v); setPage(1); }}
+            options={[
+              { value: "", label: "All time" },
+              { value: "7", label: "Last 7 days" },
+              { value: "30", label: "Last 30 days" },
+              { value: "90", label: "Last 90 days" },
+            ]}
+          />
         </label>
         <button
           type="submit"

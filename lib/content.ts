@@ -21,16 +21,16 @@ export type SiteContent = {
 // API is unreachable at request time.
 export const DEFAULT_CONTENT: SiteContent = {
   hero: {
-    badge: "AI Virtual Try-On • Built for Africa",
-    titleLine1: "Wear the",
-    titleHighlight: "Future.",
-    titleLine2: "Now.",
+    badge: "Hair & Apparel Virtual Try-On • Built for You",
+    titleLine1: "Hair & Apparel,",
+    titleHighlight: "Try-On",
+    titleLine2: "in Seconds.",
     subtitle:
-      "Visualize any outfit or hairstyle on yourself before you spend a shilling. Photorealistic try-ons, delivered in seconds.",
+      "No guesswork, no regrets — just instant results. See exactly how any outfit or hairstyle looks on you before you buy or book.",
     primaryCta: "Try On Instantly",
     stats: [
       { value: "~8s", label: "Render time" },
-      { value: "WhatsApp", label: "Instant delivery" },
+      { value: "Hair & Apparel", label: "Categories" },
       { value: "M-Pesa", label: "Easy payments" },
     ],
   },
@@ -43,7 +43,7 @@ export const DEFAULT_CONTENT: SiteContent = {
 // defaults so the homepage always renders.
 export async function getSiteContent(): Promise<SiteContent> {
   try {
-    const res = await fetch(`${API_BASE}/api/content`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/api/content`, { next: { revalidate: 30 } });
     if (!res.ok) return DEFAULT_CONTENT;
     const data = (await res.json()) as { content?: SiteContent };
     return data.content || DEFAULT_CONTENT;

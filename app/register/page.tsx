@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { CustomSelect } from "@/components/CustomSelect";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { AddressAutocomplete, type AddressParts } from "@/components/AddressAutocomplete";
@@ -437,21 +438,13 @@ export default function RegisterPage() {
                         <label className="mb-1 block text-sm font-medium text-ink-700">
                           Business category <span className="text-red-500">*</span>
                         </label>
-                        <select
+                        <CustomSelect
                           required
                           value={category}
-                          onChange={(e) => setCategory(e.target.value)}
-                          className={inputClass}
-                        >
-                          <option value="" disabled>
-                            Select category
-                          </option>
-                          {CATEGORIES.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.label}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={setCategory}
+                          placeholder="Select category"
+                          options={CATEGORIES.map((c) => ({ value: c.id, label: c.label }))}
+                        />
                       </div>
                     </>
                   )}
@@ -558,42 +551,28 @@ export default function RegisterPage() {
                           <label className="mb-1 block text-sm font-medium text-ink-700">
                             Country <span className="text-red-500">*</span>
                           </label>
-                          <select
+                          <CustomSelect
                             required
                             value={country}
-                            onChange={(e) => {
-                              setCountry(e.target.value);
-                              setCurrency(currencyForCountry(e.target.value));
+                            onChange={(v) => {
+                              setCountry(v);
+                              setCurrency(currencyForCountry(v));
                             }}
-                            className={inputClass}
-                          >
-                            <option value="" disabled>
-                              Select country
-                            </option>
-                            {COUNTRIES.map((c) => (
-                              <option key={c} value={c}>
-                                {c}
-                              </option>
-                            ))}
-                          </select>
+                            placeholder="Select country"
+                            options={COUNTRIES.map((c) => ({ value: c, label: c }))}
+                          />
                         </div>
                       </div>
                       <div>
                         <label className="mb-1 block text-sm font-medium text-ink-700">
                           Currency <span className="text-red-500">*</span>
                         </label>
-                        <select
+                        <CustomSelect
                           required
                           value={currency}
-                          onChange={(e) => setCurrency(e.target.value)}
-                          className={inputClass}
-                        >
-                          {CURRENCIES.map((c) => (
-                            <option key={c.code} value={c.code}>
-                              {c.label}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={setCurrency}
+                          options={CURRENCIES.map((c) => ({ value: c.code, label: c.label }))}
+                        />
                         <p className="mt-1.5 text-xs text-ink-muted">
                           Payments will use{" "}
                           <span className="font-semibold text-ink">

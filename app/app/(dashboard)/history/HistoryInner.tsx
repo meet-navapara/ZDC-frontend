@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { CustomSelect } from "@/components/CustomSelect";
 import { useSearchParams } from "next/navigation";
 import { apiUrl } from "@/lib/api";
 import { listMyJobs, type B2cJob } from "@/lib/b2c";
@@ -84,16 +85,17 @@ export default function HistoryInner() {
             Browse past try-ons and reopen your photos anytime.
           </p>
         </div>
-        <select
+        <CustomSelect
+          size="sm"
           value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="rounded-xl border border-ink/15 bg-white px-3 py-2.5 text-sm capitalize text-ink outline-none focus:border-sage"
-        >
-          <option value="">All statuses</option>
-          <option value="completed">Completed</option>
-          <option value="processing">Processing</option>
-          <option value="failed">Failed</option>
-        </select>
+          onChange={setFilter}
+          options={[
+            { value: "", label: "All statuses" },
+            { value: "completed", label: "Completed" },
+            { value: "processing", label: "Processing" },
+            { value: "failed", label: "Failed" },
+          ]}
+        />
       </div>
 
       {/* 72-hour retention warning */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CustomSelect } from "@/components/CustomSelect";
 import { AddressAutocomplete, type AddressParts } from "@/components/AddressAutocomplete";
 import { BranchManager } from "@/components/BranchManager";
 import { getProfile, updateProfile } from "@/lib/b2b";
@@ -198,17 +199,11 @@ export default function SettingsPage() {
             <label className="mb-1 block text-sm font-medium text-ink-700">
               Business category
             </label>
-            <select
+            <CustomSelect
               value={form.category}
-              onChange={(e) => set("category", e.target.value)}
-              className={selectClass}
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => set("category", v)}
+              options={CATEGORIES.map((c) => ({ value: c.id, label: c.label }))}
+            />
             </div>
 
             <div>
@@ -280,25 +275,17 @@ export default function SettingsPage() {
               <label className="mb-1 block text-sm font-medium text-ink-700">
                 Country
               </label>
-              <select
+              <CustomSelect
                 value={form.country}
-                onChange={(e) => set("country", e.target.value)}
-                className={selectClass}
-              >
-                <option value="" disabled>
-                  Select country
-                </option>
-                {COUNTRIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-                {/* Preserve legacy free-text countries not in the list */}
-                {form.country &&
-                  !(COUNTRIES as readonly string[]).includes(form.country) && (
-                    <option value={form.country}>{form.country}</option>
-                  )}
-              </select>
+                onChange={(v) => set("country", v)}
+                placeholder="Select country"
+                options={[
+                  ...COUNTRIES.map((c) => ({ value: c, label: c })),
+                  ...(form.country && !(COUNTRIES as readonly string[]).includes(form.country)
+                    ? [{ value: form.country, label: form.country }]
+                    : []),
+                ]}
+              />
             </div>
           </div>
 
@@ -306,23 +293,16 @@ export default function SettingsPage() {
             <label className="mb-1 block text-sm font-medium text-ink-700">
               Currency
             </label>
-            <select
+            <CustomSelect
               value={form.currency}
-              onChange={(e) => set("currency", e.target.value)}
-              className={selectClass}
-            >
-              {CURRENCIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.label}
-                </option>
-              ))}
-              {form.currency &&
-                !(CURRENCY_CODES as readonly string[]).includes(
-                  form.currency
-                ) && (
-                  <option value={form.currency}>{form.currency}</option>
-                )}
-            </select>
+              onChange={(v) => set("currency", v)}
+              options={[
+                ...CURRENCIES.map((c) => ({ value: c.code, label: c.label })),
+                ...(form.currency && !(CURRENCY_CODES as readonly string[]).includes(form.currency)
+                  ? [{ value: form.currency, label: form.currency }]
+                  : []),
+              ]}
+            />
             <p className="mt-1.5 text-xs text-ink-muted">
               Payments use{" "}
               <span className="font-semibold text-ink">

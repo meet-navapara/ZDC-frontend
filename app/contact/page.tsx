@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { apiPost } from "@/lib/api";
 
@@ -14,16 +14,121 @@ const INQUIRY_TYPES = [
 ];
 
 const COUNTRY_CODES = [
-  { code: "+254", label: "KE" },
-  { code: "+91", label: "IN" },
-  { code: "+1", label: "US" },
-  { code: "+44", label: "UK" },
-  { code: "+971", label: "AE" },
+  { code: "+254", label: "KE +254" },
+  { code: "+91", label: "IN +91" },
+  { code: "+1", label: "US +1" },
+  { code: "+44", label: "UK +44" },
+  { code: "+971", label: "AE +971" },
 ];
 
 const fieldClass =
   "w-full rounded-xl border border-ink/10 bg-white/70 px-4 py-3 text-sm text-ink outline-none transition placeholder:text-ink-muted focus:border-sage dark:border-white/10 dark:bg-white/[0.04] dark:text-[#f4efe7]";
 
+// ── Reusable custom dropdown ──────────────────────────────────────────────────
+function CustomSelect({
+  value,
+  onChange,
+  options,
+  placeholder,
+  required,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  placeholder?: string;
+  required?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Close on Escape
+  useEffect(() => {
+    function handler(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div ref={ref} className="relative">
+      {/* Hidden native input for required validation */}
+      {required && (
+        <input
+          tabIndex={-1}
+          required
+          value={value}
+          onChange={() => {}}
+          className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
+          aria-hidden
+        />
+      )}
+
+      {/* Trigger button */}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={`${fieldClass} flex items-center justify-between text-left ${
+          !selected ? "text-ink-muted" : ""
+        }`}
+      >
+        <span>{selected ? selected.label : (placeholder ?? "Select…")}</span>
+        <svg
+          className={`ml-2 h-4 w-4 shrink-0 text-ink-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          viewBox="0 0 12 8"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        >
+          <path d="M1 1l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      {/* Dropdown list */}
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute z-50 mt-1.5 w-full overflow-hidden rounded-xl border border-ink/10 bg-white shadow-lg dark:border-white/10 dark:bg-[#1e1c18]"
+        >
+          {options.map((opt) => (
+            <li
+              key={opt.value}
+              role="option"
+              aria-selected={opt.value === value}
+              onClick={() => {
+                onChange(opt.value);
+                setOpen(false);
+              }}
+              className={`cursor-pointer px-4 py-2.5 text-sm transition-colors
+                ${
+                  opt.value === value
+                    ? "bg-sage/10 font-semibold text-sage-dark dark:text-sage"
+                    : "text-ink hover:bg-ink/5 dark:text-[#f4efe7] dark:hover:bg-white/5"
+                }`}
+            >
+              {opt.label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
 export default function ContactPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -111,59 +216,44 @@ export default function ContactPage() {
                 </label>
               </div>
 
-              <label className="block">
+              {/* Phone with custom country code picker */}
+              <div>
                 <span className="mb-1.5 block text-xs font-semibold text-ink-muted">
                   Mobile number <span className="text-ink">*</span>
                 </span>
-                <div className="flex overflow-hidden rounded-xl border border-ink/10 bg-white/70 focus-within:border-sage dark:border-white/10 dark:bg-white/[0.04]">
-                  <select
-                    value={countryCode}
-                    onChange={(e) => setCountryCode(e.target.value)}
-                    className="border-r border-ink/10 bg-transparent px-3 py-3 text-sm text-ink outline-none dark:border-white/10 dark:text-[#f4efe7]"
-                    aria-label="Country code"
-                  >
-                    {COUNTRY_CODES.map((c) => (
-                      <option key={c.code} value={c.code} className="bg-white text-[#1c1a16]">
-                        {c.code}
-                      </option>
-                    ))}
-                  </select>
+                <div className="flex gap-2">
+                  <div className="w-36 shrink-0">
+                    <CustomSelect
+                      value={countryCode}
+                      onChange={setCountryCode}
+                      options={COUNTRY_CODES.map((c) => ({ value: c.code, label: c.label }))}
+                    />
+                  </div>
                   <input
                     required
                     inputMode="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-muted dark:text-[#f4efe7]"
+                    className={`${fieldClass} flex-1`}
                     placeholder="712 000 000"
                     autoComplete="tel"
                   />
                 </div>
-              </label>
+              </div>
 
-              <label className="block">
+              {/* Custom inquiry type picker */}
+              <div>
                 <span className="mb-1.5 block text-xs font-semibold text-ink-muted">
                   Inquiry type <span className="text-ink">*</span>
                 </span>
-                <select
+                <CustomSelect
                   required
                   value={inquiryType}
-                  onChange={(e) => setInquiryType(e.target.value)}
-                  className={`${fieldClass} appearance-none bg-[length:12px] bg-[right_1rem_center] bg-no-repeat`}
-                  style={{
-                    backgroundImage:
-                      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236f695d' d='M1 1l5 5 5-5'/%3E%3C/svg%3E\")",
-                  }}
-                >
-                  <option value="" disabled className="bg-white text-[#1c1a16]">
-                    Select Inquiry Type
-                  </option>
-                  {INQUIRY_TYPES.map((t) => (
-                    <option key={t} value={t} className="bg-white text-[#1c1a16]">
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  onChange={setInquiryType}
+                  placeholder="Select Inquiry Type"
+                  options={INQUIRY_TYPES.map((t) => ({ value: t, label: t }))}
+                />
+              </div>
 
               <label className="block">
                 <span className="mb-1.5 block text-xs font-semibold text-ink-muted">

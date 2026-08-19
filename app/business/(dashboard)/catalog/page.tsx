@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { CustomSelect } from "@/components/CustomSelect";
 import { apiUrl } from "@/lib/api";
 import {
   listCategories,
@@ -563,20 +564,14 @@ export default function CatalogPage() {
                   placeholder="Price"
                   className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage dark:border-white/12 dark:bg-[#1b1713] dark:text-[#f4efe7]"
                 />
-                <select
+                <CustomSelect
                   value={form.categoryId}
-                  onChange={(e) =>
-                    setForm({ ...form, categoryId: e.target.value })
-                  }
-                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage dark:border-white/12 dark:bg-[#1b1713] dark:text-[#f4efe7]"
-                >
-                  <option value="">Uncategorized</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => setForm({ ...form, categoryId: v })}
+                  options={[
+                    { value: "", label: "Uncategorized" },
+                    ...categories.map((c) => ({ value: c.id, label: c.name })),
+                  ]}
+                />
               </div>
 
               {editing && (

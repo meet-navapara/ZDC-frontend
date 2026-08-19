@@ -24,7 +24,10 @@ const features = [
     eyebrow: "Virtual Try-On",
     title: "Try it on, instantly.",
     desc: "Upload a selfie and any outfit — zimji renders a photorealistic try-on in seconds, so you see the fit, drape and colour before you buy.",
-    img: "/images/model-print.png",
+    // Indian woman in lehenga — full ethnic outfit clearly visible
+    img: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=800&q=80",
+    alt: "Indian woman in lehenga ethnic outfit",
+    pos: "object-center",
     cta: "Try apparel",
     reverse: false,
   },
@@ -32,7 +35,10 @@ const features = [
     eyebrow: "Hair Studio",
     title: "Every hairstyle, previewed.",
     desc: "Braids, cornrows, locs, pleats and wigs — visualize any style on yourself before your appointment. No more guesswork at the salon.",
-    img: "/images/braids-light.png",
+    // African man with locs — hairstyle clearly the focus
+    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80",
+    alt: "African man with locs hairstyle",
+    pos: "object-top",
     cta: "Try hairstyles",
     reverse: true,
   },
@@ -40,7 +46,10 @@ const features = [
     eyebrow: "For Business",
     title: "A fitting room for your catalog.",
     desc: "Boutiques and salons upload their catalog, and customers try everything on. Cut returns, lift conversion, and see which styles win.",
-    img: "/images/flatlay.png",
+    // Fashion clothing store interior — boutique/salon context
+    img: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
+    alt: "Fashion boutique store interior",
+    pos: "object-center",
     cta: "Explore B2B",
     reverse: false,
   },
@@ -122,15 +131,18 @@ export default async function Home() {
               <span className="truncate">{hero.badge}</span>
             </div>
 
-            <h1 className="mt-5 font-display text-[2.5rem] font-semibold leading-[0.95] tracking-tight text-ink sm:mt-6 sm:text-6xl md:text-7xl">
-              {hero.titleLine1}{" "}
-              <span className="italic text-sage">{hero.titleHighlight}</span>
+            <h1 className="mt-5 font-display text-[2.6rem] font-semibold leading-[1.05] tracking-tight text-ink sm:mt-6 sm:text-5xl md:text-[3.75rem]">
+              Hair &amp; Apparel
               <br />
-              {hero.titleLine2}
+              <span className="italic text-sage">Try-On</span>
+              {" "}that fits{" "}
+              <span className="italic text-sage">you.</span>
             </h1>
 
             <p className="mt-5 max-w-md text-base text-ink-muted sm:mt-6 sm:text-lg">
-              {hero.subtitle}
+              Try it in seconds — no guesswork, no regrets, just instant
+              results. See any outfit or hairstyle on yourself before you buy
+              or book.
             </p>
 
             <div className="mt-7 flex w-full flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-4">
@@ -163,37 +175,40 @@ export default async function Home() {
           {/* Hero collage */}
           <Reveal delay={140} className="relative z-10">
             <div className="grid grid-cols-2 grid-rows-[auto_auto] gap-3 sm:gap-4">
+              {/* African woman — portrait with braids & colourful outfit */}
               <div className="card row-span-2 overflow-hidden rounded-[1.25rem] sm:rounded-[1.6rem]">
                 <div className="relative aspect-[3/4.4]">
                   <Image
-                    src="/images/model-print.png"
-                    alt="On-model Ankara try-on"
+                    src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=600&q=80"
+                    alt="African woman with braids"
                     fill
                     priority
                     sizes="(max-width: 768px) 45vw, 300px"
-                    className="object-cover"
+                    className="object-cover object-top"
                   />
                 </div>
               </div>
+              {/* Indian woman — saree ethnic outfit */}
               <div className="card overflow-hidden rounded-[1.25rem] sm:rounded-[1.6rem]">
                 <div className="relative aspect-square">
                   <Image
-                    src="/images/braids-light.png"
-                    alt="Braids hairstyle try-on"
+                    src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&q=80"
+                    alt="Indian woman in saree"
                     fill
                     sizes="(max-width: 768px) 45vw, 260px"
-                    className="object-cover"
+                    className="object-cover object-top"
                   />
                 </div>
               </div>
+              {/* African man — portrait smart wear */}
               <div className="card overflow-hidden rounded-[1.25rem] sm:rounded-[1.6rem]">
                 <div className="relative aspect-square">
                   <Image
-                    src="/images/bag.png"
-                    alt="Accessory"
+                    src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=600&q=80"
+                    alt="African man in smart wear"
                     fill
                     sizes="(max-width: 768px) 45vw, 260px"
-                    className="object-cover"
+                    className="object-cover object-top"
                   />
                 </div>
               </div>
@@ -268,10 +283,10 @@ export default async function Home() {
                 <div className="relative aspect-[4/3]">
                   <Image
                     src={f.img}
-                    alt={f.title}
+                    alt={f.alt ?? f.title}
                     fill
                     sizes="(max-width: 768px) 90vw, 520px"
-                    className="object-cover"
+                    className={`object-cover ${f.pos ?? "object-center"}`}
                   />
                 </div>
               </div>
@@ -300,11 +315,16 @@ export default async function Home() {
 
           <div className="mt-10 grid auto-rows-[160px] grid-cols-2 gap-3 sm:mt-14 sm:auto-rows-[240px] sm:gap-4 md:grid-cols-4">
             {[
-              { src: "/images/model-print.png", tag: "Ankara Couture", kind: "Apparel", cls: "row-span-2" },
-              { src: "/images/cornrows-light.png", tag: "Cornrows", kind: "Hairstyle", cls: "" },
-              { src: "/images/bag.png", tag: "Accessories", kind: "Product", cls: "" },
-              { src: "/images/braids-light.png", tag: "Box Braids", kind: "Hairstyle", cls: "row-span-2" },
-              { src: "/images/flatlay.png", tag: "Full Look", kind: "Styling", cls: "" },
+              // African woman — natural afro portrait (tall card)
+              { src: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=600&q=80", tag: "Natural Afro", kind: "Hairstyle", cls: "row-span-2" },
+              // Indian woman — long hair portrait
+              { src: "https://images.unsplash.com/photo-1559599101-f09722fb4948?w=600&q=80", tag: "Indian Style", kind: "Hairstyle", cls: "" },
+              // Indian man — portrait styled hair
+              { src: "https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=600&q=80", tag: "Men's Look", kind: "Apparel", cls: "" },
+              // African woman — colourful outfit portrait (tall card)
+              { src: "https://images.unsplash.com/photo-1523824921871-d6f1a15151f1?w=600&q=80", tag: "Kenyan Outfit", kind: "Apparel", cls: "row-span-2" },
+              // African man — locs hairstyle portrait
+              { src: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80", tag: "Locs Style", kind: "Hairstyle", cls: "" },
             ].map((item, i) => (
               <Reveal key={item.src} delay={i * 80} className={item.cls}>
                 <div className="card group relative h-full w-full overflow-hidden rounded-2xl sm:rounded-3xl">
@@ -390,8 +410,8 @@ export default async function Home() {
             <div className="card overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
               <div className="relative aspect-[4/3]">
                 <Image
-                  src="/images/boutique.png"
-                  alt="Boutique and salon dashboard"
+                  src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&q=80"
+                    alt="Women shopping in fashion boutique"
                   fill
                   sizes="(max-width: 768px) 90vw, 520px"
                   className="object-cover"

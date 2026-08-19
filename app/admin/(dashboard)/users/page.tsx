@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useState } from "react";
+import { CustomSelect } from "@/components/CustomSelect";
 import { useSearchParams } from "next/navigation";
 import {
   listUsers,
@@ -162,31 +163,35 @@ function UsersInner() {
               setRole(e.target.value);
               setPage(1);
             }}
-            className="rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage dark:border-white/12 dark:bg-[#181511] dark:text-[#f4efe7]"
           >
-            <option value="">All roles</option>
-            <option value="b2c">Consumer</option>
-            <option value="b2b">Business</option>
-            <option value="admin">Admin</option>
-          </select>
+            <CustomSelect
+              size="sm"
+              value={role}
+              onChange={(v) => { setRole(v); setPage(1); }}
+              options={[
+                { value: "", label: "All roles" },
+                { value: "b2c", label: "Consumer" },
+                { value: "b2b", label: "Business" },
+                { value: "admin", label: "Admin" },
+              ]}
+            />
+          </div>
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-ink-muted">
             Status
           </label>
-          <select
+          <CustomSelect
+            size="sm"
             value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage dark:border-white/12 dark:bg-[#181511] dark:text-[#f4efe7]"
-          >
-            <option value="">All statuses</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending</option>
-            <option value="suspended">Suspended</option>
-          </select>
+            onChange={(v) => { setStatus(v); setPage(1); }}
+            options={[
+              { value: "", label: "All statuses" },
+              { value: "active", label: "Active" },
+              { value: "pending", label: "Pending" },
+              { value: "suspended", label: "Suspended" },
+            ]}
+          />
         </div>
         <button
           type="submit"

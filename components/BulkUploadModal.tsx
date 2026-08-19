@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { CustomSelect } from "@/components/CustomSelect";
 import {
   createProductsBulk,
   type Category,
@@ -300,21 +301,15 @@ export default function BulkUploadModal({
                 <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-muted">
                   Category
                 </span>
-                <select
+                <CustomSelect
                   value={defaults.categoryId}
                   disabled={saving}
-                  onChange={(e) =>
-                    setDefaults((d) => ({ ...d, categoryId: e.target.value }))
-                  }
-                  className="w-full rounded-xl border border-ink/15 bg-paper-100 px-3 py-2.5 text-sm text-ink outline-none focus:border-sage"
-                >
-                  <option value="">Uncategorized</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => setDefaults((d) => ({ ...d, categoryId: v }))}
+                  options={[
+                    { value: "", label: "Uncategorized" },
+                    ...categories.map((c) => ({ value: c.id, label: c.name })),
+                  ]}
+                />
               </label>
               <label className="block">
                 <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-muted">
@@ -404,21 +399,17 @@ export default function BulkUploadModal({
                           placeholder={`Price (${currency})`}
                           className="rounded-lg border border-ink/15 bg-paper-100 px-3 py-2 text-xs text-ink outline-none focus:border-sage"
                         />
-                        <select
+                        <CustomSelect
+                          size="sm"
                           disabled={saving}
                           value={r.categoryId}
-                          onChange={(e) =>
-                            updateRow(r.key, { categoryId: e.target.value })
-                          }
-                          className="col-span-2 rounded-lg border border-ink/15 bg-paper-100 px-3 py-2 text-xs text-ink outline-none focus:border-sage sm:col-span-1"
-                        >
-                          <option value="">Uncategorized</option>
-                          {categories.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(v) => updateRow(r.key, { categoryId: v })}
+                          className="col-span-2 sm:col-span-1"
+                          options={[
+                            { value: "", label: "Uncategorized" },
+                            ...categories.map((c) => ({ value: c.id, label: c.name })),
+                          ]}
+                        />
                       </div>
                     </div>
                     <button

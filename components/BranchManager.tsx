@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { CustomSelect } from "@/components/CustomSelect";
 import { AddressAutocomplete, type AddressParts } from "@/components/AddressAutocomplete";
 import {
   listBranches,
@@ -310,24 +311,17 @@ export function BranchManager({ compact = false, refreshKey = 0 }: Props) {
               <label className="mb-1 block text-sm font-medium text-ink-700">
                 Country
               </label>
-              <select
+              <CustomSelect
                 value={form.country}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, country: e.target.value }))
-                }
-                className={selectClass}
-              >
-                <option value="">Select country</option>
-                {COUNTRIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-                {form.country &&
-                  !(COUNTRIES as readonly string[]).includes(form.country) && (
-                    <option value={form.country}>{form.country}</option>
-                  )}
-              </select>
+                onChange={(v) => setForm((f) => ({ ...f, country: v }))}
+                placeholder="Select country"
+                options={[
+                  ...COUNTRIES.map((c) => ({ value: c, label: c })),
+                  ...(form.country && !(COUNTRIES as readonly string[]).includes(form.country)
+                    ? [{ value: form.country, label: form.country }]
+                    : []),
+                ]}
+              />
             </div>
           </div>
 
@@ -345,19 +339,15 @@ export function BranchManager({ compact = false, refreshKey = 0 }: Props) {
             </label>
             <label className="flex items-center gap-2 text-sm text-ink">
               <span className="text-ink-muted">Status</span>
-              <select
+              <CustomSelect
+                size="sm"
                 value={form.status}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    status: e.target.value as "active" | "inactive",
-                  }))
-                }
-                className="rounded-lg border border-ink/15 bg-white px-3 py-1.5 text-sm outline-none focus:border-sage"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
+                onChange={(v) => setForm((f) => ({ ...f, status: v as "active" | "inactive" }))}
+                options={[
+                  { value: "active", label: "Active" },
+                  { value: "inactive", label: "Inactive" },
+                ]}
+              />
             </label>
           </div>
 

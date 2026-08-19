@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { CustomSelect } from "@/components/CustomSelect";
 import {
   listCatalog,
   type CatalogProduct,
@@ -370,21 +371,15 @@ export default function AdminCatalogPage() {
           <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-muted">
             Status
           </span>
-          <select
+          <CustomSelect
+            size="sm"
             value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-xl border border-ink/15 bg-white px-3 py-2.5 text-sm capitalize text-ink outline-none focus:border-sage dark:border-white/12 dark:bg-[#14120f] dark:text-[#f4efe7]"
-          >
-            <option value="">All</option>
-            {statuses.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => { setStatus(v); setPage(1); }}
+            options={[
+              { value: "", label: "All" },
+              ...statuses.map((s) => ({ value: s, label: s })),
+            ]}
+          />
         </label>
         <button
           type="submit"
