@@ -272,7 +272,11 @@ export default function B2cTryOnStudio() {
         } else if (r.job.status === "awaiting_payment") {
           // Avoid "infinite processing" UI when payment never gets confirmed.
           if (Date.now() - startedAt > 60_000) {
-            setError("Payment is still not confirmed. Please check Payments and try again.");
+            setError(
+              payGateway === "intasend"
+                ? "IntaSend payment timed out. Possible reasons: card 3DS OTP was not completed, M-Pesa STK was not accepted, or the IntaSend tab was closed before payment finished. Go back and try again — use M-Pesa (254708374149) or sandbox card 4456 5300 0000 1096 with country Kenya."
+                : "Payment confirmation timed out. Please check your Payments page and try again."
+            );
             setStage("error");
             clearInterval(interval);
           }
@@ -599,17 +603,47 @@ export default function B2cTryOnStudio() {
 
       {stage === "processing" && (
         <div className="mt-10 flex flex-col items-center text-center">
-          <div className="h-14 w-14 animate-spin rounded-full border-4 border-sage/20 border-t-sage" />
-          <h3 className="mt-6 font-display text-2xl font-semibold text-ink">
-            {job?.status === "awaiting_payment"
-              ? "Waiting for payment confirmation…"
-              : "Rendering your look…"}
-          </h3>
-          <p className="mt-2 text-ink-muted">
-            {job?.status === "awaiting_payment"
-              ? "Your try-on will start rendering once payment is confirmed."
-              : "Our AI is styling your try-on. This takes a few seconds."}
-          </p>
+          {job?.status === "awaiting_payment" ? (
+            <>
+              <div className="h-14 w-14 animate-spin rounded-full border-4 border-amber-300/40 border-t-amber-500" />
+              <h3 className="mt-6 font-display text-2xl font-semibold text-ink">
+                Waiting for payment confirmation…
+              </h3>
+              <p className="mt-2 text-ink-muted">
+                IntaSend has not confirmed your payment yet.
+              </p>
+              <div className="mt-6 w-full max-w-sm rounded-2xl border border-amber-300/60 bg-amber-50 px-5 py-4 text-left text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-100">
+                <p className="font-semibold">Why is this happening?</p>
+                <ul className="mt-2 list-disc space-y-1 pl-4 text-amber-800 dark:text-amber-200">
+                  <li>Card 3DS authentication is pending on IntaSend&apos;s page — check if an OTP popup appeared.</li>
+                  <li>M-Pesa STK push was not accepted on the phone — check the phone for an M-Pesa prompt.</li>
+                  <li>The IntaSend tab was closed before payment completed.</li>
+                </ul>
+                <p className="mt-3 font-semibold">What to do:</p>
+                <ul className="mt-2 list-disc space-y-1 pl-4 text-amber-800 dark:text-amber-200">
+                  <li>Go back and try again with <strong>M-Pesa</strong> using number <code className="rounded bg-amber-100 px-1 dark:bg-amber-900">254708374149</code>.</li>
+                  <li>For card, use sandbox card <code className="rounded bg-amber-100 px-1 dark:bg-amber-900">4456 5300 0000 1096</code> and set country to <strong>Kenya</strong>.</li>
+                  <li>If you already paid, wait — the webhook will confirm it automatically.</li>
+                </ul>
+              </div>
+              <button
+                onClick={() => setStage("form")}
+                className="mt-6 rounded-full border border-ink/15 px-6 py-2.5 text-sm font-semibold text-ink transition hover:border-ink/30 dark:border-white/15 dark:text-[#f4efe7]"
+              >
+                Go back and retry
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="h-14 w-14 animate-spin rounded-full border-4 border-sage/20 border-t-sage" />
+              <h3 className="mt-6 font-display text-2xl font-semibold text-ink">
+                Rendering your look…
+              </h3>
+              <p className="mt-2 text-ink-muted">
+                Our AI is styling your try-on. This takes a few seconds.
+              </p>
+            </>
+          )}
         </div>
       )}
 
@@ -687,14 +721,15 @@ export default function B2cTryOnStudio() {
 
       {stage === "error" && (
         <div className="mt-10 text-center">
-          <div className="mx-auto max-w-md rounded-2xl border border-red-300 bg-red-50 px-6 py-5 text-red-700">
-            {error || "Something went wrong."}
+          <div className="mx-auto max-w-md rounded-2xl border border-red-300/60 bg-red-50 px-6 py-5 text-left text-sm text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200">
+            <p className="font-semibold text-base">Payment or render error</p>
+            <p className="mt-2 leading-relaxed">{error || "Something went wrong."}</p>
           </div>
           <button
             onClick={() => setStage("form")}
             className="mt-6 rounded-full bg-sage px-8 py-3 font-semibold text-paper transition hover:bg-sage-dark"
           >
-            Back
+            Try again
           </button>
         </div>
       )}
