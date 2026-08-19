@@ -157,25 +157,18 @@ function UsersInner() {
           <label className="mb-1 block text-xs font-medium text-ink-muted">
             Role
           </label>
-          <select
+          <CustomSelect
+            size="sm"
             value={role}
-            onChange={(e) => {
-              setRole(e.target.value);
-              setPage(1);
-            }}
-          >
-            <CustomSelect
-              size="sm"
-              value={role}
-              onChange={(v) => { setRole(v); setPage(1); }}
-              options={[
-                { value: "", label: "All roles" },
-                { value: "b2c", label: "Consumer" },
-                { value: "b2b", label: "Business" },
-                { value: "admin", label: "Admin" },
-              ]}
-            />
-          </div>
+            onChange={(v) => { setRole(v); setPage(1); }}
+            options={[
+              { value: "", label: "All roles" },
+              { value: "b2c", label: "Consumer" },
+              { value: "b2b", label: "Business" },
+              { value: "admin", label: "Admin" },
+            ]}
+          />
+        </div>
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-ink-muted">
