@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { apiGet, apiUrl } from "@/lib/api";
 import { getToken, getUser, saveAuth, type AuthUser } from "@/lib/auth";
 import { track } from "@/lib/analytics";
@@ -9,6 +10,7 @@ import {
   createTryon,
   getJob,
   getMyReferral,
+  listPaymentMethods,
   listPricing,
   payForTryon,
   type B2cJob,
@@ -205,6 +207,10 @@ export default function B2cTryOnStudio() {
   const [error, setError] = useState("");
   const [activeResult, setActiveResult] = useState(0);
   const [freeTryons, setFreeTryons] = useState(0);
+  const [payGateway, setPayGateway] = useState<"intasend" | "stub">("stub");
+  const [intasendSandbox, setIntasendSandbox] = useState(false);
+  const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     listPricing()
@@ -219,11 +225,38 @@ export default function B2cTryOnStudio() {
     getMyReferral()
       .then((r) => setFreeTryons(r.referral.freeTryons))
       .catch(() => setFreeTryons(getUser()?.freeTryons || 0));
+
+    listPaymentMethods()
+      .then((r) => {
+        if (r.defaultGateway === "intasend") setPayGateway("intasend");
+        else setPayGateway("stub");
+        setIntasendSandbox(Boolean(r.sandbox));
+        setPaymentNotice(r.paymentNotice || null);
+      })
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
+    const jobId = searchParams.get("job");
+    if (!jobId) return;
+    getJob(jobId)
+      .then((r) => {
+        setJob(r.job);
+        if (r.job.status === "completed") setStage("done");
+        else if (r.job.status === "failed") {
+          setError("Rendering failed. Please try again.");
+          setStage("error");
+        } else {
+          setStage("processing");
+        }
+      })
+      .catch(() => {});
+  }, [searchParams]);
+
+  useEffect(() => {
     if (stage !== "processing" || !job) return;
+    const startedAt = Date.now();
     const interval = setInterval(async () => {
       try {
         const r = await getJob(job.id);
@@ -236,6 +269,13 @@ export default function B2cTryOnStudio() {
             results: r.job.resultImageUrls.length,
           });
           clearInterval(interval);
+        } else if (r.job.status === "awaiting_payment") {
+          // Avoid "infinite processing" UI when payment never gets confirmed.
+          if (Date.now() - startedAt > 60_000) {
+            setError("Payment is still not confirmed. Please check Payments and try again.");
+            setStage("error");
+            clearInterval(interval);
+          }
         } else if (r.job.status === "failed") {
           setError("Rendering failed. Please try again.");
           setStage("error");
@@ -295,7 +335,15 @@ export default function B2cTryOnStudio() {
       });
 
       const created = await createTryon(form);
-      const paid = await payForTryon(created.job.id, { useFreeTryon });
+      const paid = await payForTryon(created.job.id, {
+        useFreeTryon,
+        gateway: useFreeTryon ? "referral" : payGateway,
+      });
+
+      if (paid.checkoutUrl) {
+        window.location.assign(paid.checkoutUrl);
+        return;
+      }
 
       track("b2c_payment_succeeded", {
         pack: packId,
@@ -477,6 +525,12 @@ export default function B2cTryOnStudio() {
                 </div>
               )}
 
+              {paymentNotice && payGateway === "stub" && (
+                <div className="mt-4 rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-100">
+                  {paymentNotice}
+                </div>
+              )}
+
               <button
                 onClick={() => handleSubmit(false)}
                 disabled={!canSubmit}
@@ -486,9 +540,13 @@ export default function B2cTryOnStudio() {
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-paper/40 border-t-paper" />
                 )}
                 {stage === "working"
-                  ? "Processing…"
+                  ? payGateway === "intasend"
+                    ? "Redirecting to IntaSend…"
+                    : "Processing…"
                   : selectedPack
-                    ? `Pay ${selectedPack.currency} ${selectedPack.amount}`
+                    ? payGateway === "intasend"
+                      ? `Pay ${selectedPack.currency} ${selectedPack.amount} with IntaSend`
+                      : `Pay ${selectedPack.currency} ${selectedPack.amount} (demo)`
                     : "Pay & Render"}
               </button>
 
@@ -508,7 +566,11 @@ export default function B2cTryOnStudio() {
                 </p>
               )}
               <p className="mt-3 text-center text-[11px] text-ink-muted/80">
-                Secure checkout · Photos used only for this render.
+                {payGateway === "intasend"
+                  ? intasendSandbox
+                    ? "IntaSend sandbox needs Kenya Safaricom M-Pesa or card 4456 5300 0000 1096. From India, M-Pesa STK usually fails."
+                    : "M-Pesa and card via IntaSend · Photos used only for this render."
+                  : "Demo payment — completes instantly on this device (no IntaSend redirect)."}
               </p>
             </div>
 
@@ -539,10 +601,14 @@ export default function B2cTryOnStudio() {
         <div className="mt-10 flex flex-col items-center text-center">
           <div className="h-14 w-14 animate-spin rounded-full border-4 border-sage/20 border-t-sage" />
           <h3 className="mt-6 font-display text-2xl font-semibold text-ink">
-            Rendering your look…
+            {job?.status === "awaiting_payment"
+              ? "Waiting for payment confirmation…"
+              : "Rendering your look…"}
           </h3>
           <p className="mt-2 text-ink-muted">
-            Our AI is styling your try-on. This takes a few seconds.
+            {job?.status === "awaiting_payment"
+              ? "Your try-on will start rendering once payment is confirmed."
+              : "Our AI is styling your try-on. This takes a few seconds."}
           </p>
         </div>
       )}

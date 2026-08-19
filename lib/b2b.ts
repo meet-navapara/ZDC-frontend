@@ -231,27 +231,37 @@ export function getLedger(limit = 50) {
   );
 }
 
-export async function purchaseCredits(packId: string) {
+export async function purchaseCredits(packId: string, gateway?: string) {
   const res = await apiPost<{
     balance: number;
     credited: number;
+    checkoutUrl?: string;
     payment?: {
       id: string;
       status: string;
       reference: string | null;
       amount: number;
       currency: string;
+      checkoutUrl?: string | null;
     };
     invoiceUrl?: string;
-  }>("/api/b2b/credits/purchase", { pack: packId, gateway: "stub" }, tok());
+  }>(
+    "/api/b2b/credits/purchase",
+    { pack: packId, gateway: gateway || "stub" },
+    tok()
+  );
   notifyCreditsChanged();
 
-  // Auto-download the invoice PDF right after a successful purchase.
-  if (res.payment?.id) {
+  if (res.checkoutUrl) {
+    window.location.assign(res.checkoutUrl);
+    return res;
+  }
+
+  if (res.payment?.id && res.payment.status === "paid") {
     try {
       await downloadCreditInvoice(res.payment.id);
     } catch {
-      // Purchase succeeded even if the download fails; UI can still re-download later.
+      // Purchase succeeded even if the download fails.
     }
   }
 

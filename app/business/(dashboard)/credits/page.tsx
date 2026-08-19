@@ -9,6 +9,7 @@ import {
   type CreditPack,
   type LedgerEntry,
 } from "@/lib/b2b";
+import { listPaymentMethods } from "@/lib/b2c";
 
 const LEDGER_LABEL: Record<LedgerEntry["type"], string> = {
   purchase: "Purchase",
@@ -23,6 +24,8 @@ export default function CreditsPage() {
   const [buying, setBuying] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [payGateway, setPayGateway] = useState<"intasend" | "stub">("stub");
+  const [intasendSandbox, setIntasendSandbox] = useState(false);
 
   async function refresh() {
     const [b, l] = await Promise.all([
@@ -37,7 +40,19 @@ export default function CreditsPage() {
     getCreditPacks()
       .then((r) => setPacks(r.packs))
       .catch(() => setPacks([]));
+    listPaymentMethods()
+      .then((r) => {
+        if (r.defaultGateway === "intasend") setPayGateway("intasend");
+        setIntasendSandbox(Boolean(r.sandbox));
+      })
+      .catch(() => {});
     refresh();
+    if (
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("paid") === "1"
+    ) {
+      setNotice("Payment confirmed. Credits have been added.");
+    }
   }, []);
 
   async function buy(pack: CreditPack) {
@@ -45,7 +60,8 @@ export default function CreditsPage() {
     setNotice("");
     setBuying(pack.id);
     try {
-      const res = await purchaseCredits(pack.id);
+      const res = await purchaseCredits(pack.id, payGateway);
+      if (res.checkoutUrl) return;
       setNotice(
         `Added ${res.credited} credits. New balance: ${res.balance}. Invoice downloaded.`
       );
@@ -125,15 +141,24 @@ export default function CreditsPage() {
                 disabled={!!buying}
                 className="mt-5 w-full rounded-full bg-sage py-3 font-semibold text-paper transition hover:bg-sage-dark disabled:opacity-60"
               >
-                {buying === p.id ? "Processing…" : "Buy"}
+                {buying === p.id
+                  ? payGateway === "intasend"
+                    ? "Redirecting…"
+                    : "Processing…"
+                  : payGateway === "intasend"
+                    ? "Buy with IntaSend"
+                    : "Buy"}
               </button>
             </div>
           );
         })}
       </div>
       <p className="mt-3 text-xs leading-relaxed text-ink-muted">
-        Demo mode: payment is simulated (stub gateway). Real M-Pesa / Intasend
-        checkout will replace this later.
+        {payGateway === "intasend"
+          ? intasendSandbox
+            ? "Sandbox opens M-Pesa only. Use 254708374149. Card checkout often hangs on Processing in sandbox."
+            : "IntaSend opens a secure page for M-Pesa or card. Credits are added after payment is verified."
+          : "Demo mode: payment completes instantly (no IntaSend redirect on localhost)."}
       </p>
 
       <h2 className="mt-10 font-display text-xl font-semibold text-ink sm:text-2xl">

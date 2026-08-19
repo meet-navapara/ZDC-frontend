@@ -3,6 +3,16 @@ import { withSentryConfig } from "@sentry/nextjs";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "ngrok-skip-browser-warning", value: "true" },
+        ],
+      },
+    ];
+  },
 };
 
 // Warn early on Vercel if the API base URL was forgotten — otherwise the

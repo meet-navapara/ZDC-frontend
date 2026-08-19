@@ -37,8 +37,8 @@ export function DarkModeToggle({ className = "" }: { className?: string }) {
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       title={dark ? "Light mode" : "Dark mode"}
       className={`group relative flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-300
-        border-black/10 bg-white/60 text-[#1c1a16] hover:border-black/20 hover:bg-white/90
-        dark:border-white/10 dark:bg-white/5 dark:text-[#e8e2d8] dark:hover:border-white/20 dark:hover:bg-white/10
+        border-ink/10 bg-white/60 text-ink hover:border-ink/20 hover:bg-white/90
+        dark:border-white/10 dark:bg-white/5 dark:text-[#f4efe7] dark:hover:border-white/20 dark:hover:bg-white/10
         ${className}`}
     >
       {/* Sun icon — shown in dark mode */}

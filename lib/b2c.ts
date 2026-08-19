@@ -88,16 +88,62 @@ export function createTryon(form: FormData) {
   return apiPostForm<{ job: B2cJob }>("/api/tryon", form, tok());
 }
 
-export function payForTryon(jobId: string, opts?: { useFreeTryon?: boolean }) {
-  return apiPost<{ job: B2cJob; payment: { id: string; status: string } }>(
+export function payForTryon(
+  jobId: string,
+  opts?: { useFreeTryon?: boolean; gateway?: string }
+) {
+  return apiPost<{
+    job: B2cJob;
+    payment: { id: string; status: string; checkoutUrl?: string | null };
+    checkoutUrl?: string;
+  }>(
     "/api/payments",
     {
       jobId,
-      gateway: opts?.useFreeTryon ? "referral" : "stub",
+      gateway: opts?.useFreeTryon ? "referral" : opts?.gateway || "stub",
       useFreeTryon: Boolean(opts?.useFreeTryon),
     },
     tok()
   );
+}
+
+export function listPaymentMethods() {
+  return apiGet<{
+    defaultGateway: string;
+    intasendConfigured: boolean;
+    intasendEnabled?: boolean;
+    sandbox?: boolean;
+    intasendCheckoutMethod?: string | null;
+    paymentNotice?: string | null;
+    methods: { id: string; label: string; available: boolean }[];
+  }>("/api/payments/methods", tok());
+}
+
+export function getPayment(id: string, invoiceId?: string) {
+  const qs = invoiceId ? `?invoice_id=${encodeURIComponent(invoiceId)}` : "";
+  return apiGet<{
+    payment: {
+      id: string;
+      status: string;
+      amount: number;
+      currency: string;
+      purpose: string;
+      job: string | null;
+      checkoutUrl: string | null;
+      failureReason: string | null;
+    };
+  }>(`/api/payments/${id}${qs}`, tok());
+}
+
+export function cancelPayment(id: string) {
+  return apiPost<{
+    payment: {
+      id: string;
+      status: string;
+      purpose: string;
+      job: string | null;
+    };
+  }>(`/api/payments/${id}/cancel`, {}, tok());
 }
 
 export type ReferralStats = {
