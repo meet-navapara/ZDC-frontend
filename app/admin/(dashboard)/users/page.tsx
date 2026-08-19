@@ -169,7 +169,6 @@ function UsersInner() {
             ]}
           />
         </div>
-        </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-ink-muted">
             Status
