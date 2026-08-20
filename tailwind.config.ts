@@ -86,7 +86,7 @@ const config: Config = {
         float: "float 6s ease-in-out infinite",
         floatSlow: "floatSlow 9s ease-in-out infinite",
         aurora: "auroraMove 18s ease-in-out infinite",
-        marquee: "marquee 32s linear infinite",
+        marquee: "marquee 45s linear infinite",
         shimmer: "shimmer 2.5s ease-in-out infinite",
         scan: "scan 3.4s ease-in-out infinite",
         gradient: "gradientMove 8s ease infinite",

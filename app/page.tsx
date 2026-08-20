@@ -17,6 +17,18 @@ const categories = [
   "Suits",
   "Streetwear",
   "Bridal",
+  "Saree",
+  "Lehenga",
+  "Kurta",
+  "Sherwani",
+  "Kitenge",
+  "Dashiki",
+  "Pleats",
+  "Box Braids",
+  "Afro",
+  "Updo",
+  "Menswear",
+  "Salon Looks",
 ];
 
 const features = [
@@ -24,9 +36,9 @@ const features = [
     eyebrow: "Virtual Try-On",
     title: "Try it on, instantly.",
     desc: "Upload a selfie and any outfit — zimji renders a photorealistic try-on in seconds, so you see the fit, drape and colour before you buy.",
-    // Indian woman in lehenga — full ethnic outfit clearly visible
-    img: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=800&q=80",
-    alt: "Indian woman in lehenga ethnic outfit",
+    // Woman in outfit with shopping bags — apparel try-on
+    img: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80",
+    alt: "Woman in outfit trying on apparel",
     pos: "object-center",
     cta: "Try apparel",
     reverse: false,
@@ -132,8 +144,6 @@ export default async function Home() {
             </div>
 
             <h1 className="mt-5 font-display text-[2.6rem] font-semibold leading-[1.05] tracking-tight text-ink sm:mt-6 sm:text-5xl md:text-[3.75rem]">
-              Hair &amp; Apparel
-              <br />
               <span className="italic text-sage">Try-On</span>
               {" "}that fits{" "}
               <span className="italic text-sage">you.</span>
@@ -231,12 +241,13 @@ export default async function Home() {
       </Spotlight>
 
       {/* ============ CATEGORY STRIP ============ */}
-      <section className="border-y border-ink/10 bg-white/40">
-        <div className="mx-auto flex max-w-6xl gap-x-5 gap-y-2 overflow-x-auto px-4 py-5 text-sm text-ink-muted scrollbar-none sm:flex-wrap sm:justify-center sm:gap-x-8 sm:gap-y-3 sm:overflow-visible sm:px-6 sm:py-6">
-          {categories.map((c) => (
+      <section className="overflow-hidden border-y border-ink/10 bg-white/40">
+        <div className="flex w-max animate-marquee gap-x-10 py-5 hover:[animation-play-state:paused] sm:gap-x-14 sm:py-6">
+          {[...categories, ...categories].map((c, i) => (
             <span
-              key={c}
-              className="shrink-0 font-display text-base italic sm:text-lg"
+              key={`${c}-${i}`}
+              aria-hidden={i >= categories.length}
+              className="shrink-0 font-display text-base italic text-ink-muted sm:text-lg"
             >
               {c}
             </span>
