@@ -161,7 +161,7 @@ export default function CreditsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                      e.delta > 0
+                      e.amount > 0
                         ? "bg-sage/15 text-sage-dark"
                         : "bg-ink/5 text-ink-muted"
                     }`}
@@ -170,11 +170,11 @@ export default function CreditsPage() {
                   </span>
                   <span
                     className={`font-semibold ${
-                      e.delta > 0 ? "text-sage-dark" : "text-ink"
+                      e.amount > 0 ? "text-sage-dark" : "text-ink"
                     }`}
                   >
-                    {e.delta > 0 ? "+" : ""}
-                    {e.delta}
+                    {e.amount > 0 ? "+" : ""}
+                    {e.amount}
                   </span>
                 </div>
                 <p className="mt-2 text-sm text-ink-muted">
@@ -203,8 +203,8 @@ export default function CreditsPage() {
                   <tr key={e.id} className="border-b border-ink/5 last:border-0">
                     <td className="px-4 py-3">{LEDGER_LABEL[e.type] || e.type}</td>
                     <td className="px-4 py-3 font-medium">
-                      {e.delta > 0 ? "+" : ""}
-                      {e.delta}
+                      {e.amount > 0 ? "+" : ""}
+                      {e.amount}
                     </td>
                     <td className="px-4 py-3">{e.balanceAfter}</td>
                     <td className="px-4 py-3 text-ink-muted">{e.note || "—"}</td>
