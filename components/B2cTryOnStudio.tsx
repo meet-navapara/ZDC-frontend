@@ -207,8 +207,6 @@ export default function B2cTryOnStudio() {
   const [error, setError] = useState("");
   const [activeResult, setActiveResult] = useState(0);
   const [freeTryons, setFreeTryons] = useState(0);
-  const [payGateway, setPayGateway] = useState<"intasend" | "stub">("stub");
-  const [intasendSandbox, setIntasendSandbox] = useState(false);
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
   const searchParams = useSearchParams();
 
@@ -227,12 +225,7 @@ export default function B2cTryOnStudio() {
       .catch(() => setFreeTryons(getUser()?.freeTryons || 0));
 
     listPaymentMethods()
-      .then((r) => {
-        if (r.defaultGateway === "intasend") setPayGateway("intasend");
-        else setPayGateway("stub");
-        setIntasendSandbox(Boolean(r.sandbox));
-        setPaymentNotice(r.paymentNotice || null);
-      })
+      .then((r) => setPaymentNotice(r.paymentNotice || null))
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -273,9 +266,7 @@ export default function B2cTryOnStudio() {
           // Avoid "infinite processing" UI when payment never gets confirmed.
           if (Date.now() - startedAt > 60_000) {
             setError(
-              payGateway === "intasend"
-                ? "IntaSend payment timed out. Possible reasons: card 3DS OTP was not completed, M-Pesa STK was not accepted, or the IntaSend tab was closed before payment finished. Go back and try again — use M-Pesa (254708374149) or sandbox card 4456 5300 0000 1096 with country Kenya."
-                : "Payment confirmation timed out. Please check your Payments page and try again."
+              "Payment confirmation timed out. Please check your Payments page and try again."
             );
             setStage("error");
             clearInterval(interval);
@@ -341,13 +332,8 @@ export default function B2cTryOnStudio() {
       const created = await createTryon(form);
       const paid = await payForTryon(created.job.id, {
         useFreeTryon,
-        gateway: useFreeTryon ? "referral" : payGateway,
+        gateway: useFreeTryon ? "referral" : "stub",
       });
-
-      if (paid.checkoutUrl) {
-        window.location.assign(paid.checkoutUrl);
-        return;
-      }
 
       track("b2c_payment_succeeded", {
         pack: packId,
@@ -529,7 +515,7 @@ export default function B2cTryOnStudio() {
                 </div>
               )}
 
-              {paymentNotice && payGateway === "stub" && (
+              {paymentNotice && (
                 <div className="mt-4 rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-100">
                   {paymentNotice}
                 </div>
@@ -544,13 +530,9 @@ export default function B2cTryOnStudio() {
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-paper/40 border-t-paper" />
                 )}
                 {stage === "working"
-                  ? payGateway === "intasend"
-                    ? "Redirecting to IntaSend…"
-                    : "Processing…"
+                  ? "Processing…"
                   : selectedPack
-                    ? payGateway === "intasend"
-                      ? `Pay ${selectedPack.currency} ${selectedPack.amount} with IntaSend`
-                      : `Pay ${selectedPack.currency} ${selectedPack.amount} (demo)`
+                    ? `Pay ${selectedPack.currency} ${selectedPack.amount}`
                     : "Pay & Render"}
               </button>
 
@@ -570,11 +552,7 @@ export default function B2cTryOnStudio() {
                 </p>
               )}
               <p className="mt-3 text-center text-[11px] text-ink-muted/80">
-                {payGateway === "intasend"
-                  ? intasendSandbox
-                    ? "IntaSend sandbox needs Kenya Safaricom M-Pesa or card 4456 5300 0000 1096. From India, M-Pesa STK usually fails."
-                    : "M-Pesa and card via IntaSend · Photos used only for this render."
-                  : "Demo payment — completes instantly on this device (no IntaSend redirect)."}
+                Demo payment completes instantly on this device. Photos used only for this render.
               </p>
             </div>
 
@@ -603,47 +581,13 @@ export default function B2cTryOnStudio() {
 
       {stage === "processing" && (
         <div className="mt-10 flex flex-col items-center text-center">
-          {job?.status === "awaiting_payment" ? (
-            <>
-              <div className="h-14 w-14 animate-spin rounded-full border-4 border-amber-300/40 border-t-amber-500" />
-              <h3 className="mt-6 font-display text-2xl font-semibold text-ink">
-                Waiting for payment confirmation…
-              </h3>
-              <p className="mt-2 text-ink-muted">
-                IntaSend has not confirmed your payment yet.
-              </p>
-              <div className="mt-6 w-full max-w-sm rounded-2xl border border-amber-300/60 bg-amber-50 px-5 py-4 text-left text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-100">
-                <p className="font-semibold">Why is this happening?</p>
-                <ul className="mt-2 list-disc space-y-1 pl-4 text-amber-800 dark:text-amber-200">
-                  <li>Card 3DS authentication is pending on IntaSend&apos;s page — check if an OTP popup appeared.</li>
-                  <li>M-Pesa STK push was not accepted on the phone — check the phone for an M-Pesa prompt.</li>
-                  <li>The IntaSend tab was closed before payment completed.</li>
-                </ul>
-                <p className="mt-3 font-semibold">What to do:</p>
-                <ul className="mt-2 list-disc space-y-1 pl-4 text-amber-800 dark:text-amber-200">
-                  <li>Go back and try again with <strong>M-Pesa</strong> using number <code className="rounded bg-amber-100 px-1 dark:bg-amber-900">254708374149</code>.</li>
-                  <li>For card, use sandbox card <code className="rounded bg-amber-100 px-1 dark:bg-amber-900">4456 5300 0000 1096</code> and set country to <strong>Kenya</strong>.</li>
-                  <li>If you already paid, wait — the webhook will confirm it automatically.</li>
-                </ul>
-              </div>
-              <button
-                onClick={() => setStage("form")}
-                className="mt-6 rounded-full border border-ink/15 px-6 py-2.5 text-sm font-semibold text-ink transition hover:border-ink/30 dark:border-white/15 dark:text-[#f4efe7]"
-              >
-                Go back and retry
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="h-14 w-14 animate-spin rounded-full border-4 border-sage/20 border-t-sage" />
-              <h3 className="mt-6 font-display text-2xl font-semibold text-ink">
-                Rendering your look…
-              </h3>
-              <p className="mt-2 text-ink-muted">
-                Our AI is styling your try-on. This takes a few seconds.
-              </p>
-            </>
-          )}
+          <div className="h-14 w-14 animate-spin rounded-full border-4 border-sage/20 border-t-sage" />
+          <h3 className="mt-6 font-display text-2xl font-semibold text-ink">
+            Rendering your look…
+          </h3>
+          <p className="mt-2 text-ink-muted">
+            Our AI is styling your try-on. This takes a few seconds.
+          </p>
         </div>
       )}
 

@@ -235,14 +235,12 @@ export async function purchaseCredits(packId: string, gateway?: string) {
   const res = await apiPost<{
     balance: number;
     credited: number;
-    checkoutUrl?: string;
     payment?: {
       id: string;
       status: string;
       reference: string | null;
       amount: number;
       currency: string;
-      checkoutUrl?: string | null;
     };
     invoiceUrl?: string;
   }>(
@@ -251,11 +249,6 @@ export async function purchaseCredits(packId: string, gateway?: string) {
     tok()
   );
   notifyCreditsChanged();
-
-  if (res.checkoutUrl) {
-    window.location.assign(res.checkoutUrl);
-    return res;
-  }
 
   if (res.payment?.id && res.payment.status === "paid") {
     try {

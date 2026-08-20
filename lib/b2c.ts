@@ -94,8 +94,7 @@ export function payForTryon(
 ) {
   return apiPost<{
     job: B2cJob;
-    payment: { id: string; status: string; checkoutUrl?: string | null };
-    checkoutUrl?: string;
+    payment: { id: string; status: string };
   }>(
     "/api/payments",
     {
@@ -110,20 +109,12 @@ export function payForTryon(
 export function listPaymentMethods() {
   return apiGet<{
     defaultGateway: string;
-    intasendConfigured: boolean;
-    intasendEnabled?: boolean;
-    sandbox?: boolean;
-    intasendCheckoutMethod?: string | null;
     paymentNotice?: string | null;
     methods: { id: string; label: string; available: boolean }[];
   }>("/api/payments/methods", tok());
 }
 
-export function getPayment(id: string, invoiceId?: string, checkoutId?: string) {
-  const p = new URLSearchParams();
-  if (invoiceId) p.set("invoice_id", invoiceId);
-  if (checkoutId) p.set("checkout_id", checkoutId);
-  const qs = p.toString() ? `?${p.toString()}` : "";
+export function getPayment(id: string) {
   return apiGet<{
     payment: {
       id: string;
@@ -132,10 +123,9 @@ export function getPayment(id: string, invoiceId?: string, checkoutId?: string) 
       currency: string;
       purpose: string;
       job: string | null;
-      checkoutUrl: string | null;
       failureReason: string | null;
     };
-  }>(`/api/payments/${id}${qs}`, tok());
+  }>(`/api/payments/${id}`, tok());
 }
 
 export function cancelPayment(id: string) {
