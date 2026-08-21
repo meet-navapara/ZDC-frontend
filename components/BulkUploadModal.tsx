@@ -8,6 +8,7 @@ import {
   type Product,
 } from "@/lib/b2b";
 import { LIMITS } from "@/lib/limits";
+import { toast } from "@/lib/toast";
 
 export const MAX_BULK_PRODUCTS = 30;
 
@@ -164,9 +165,9 @@ export default function BulkUploadModal({
       onCreated(res.created);
 
       if (res.summary.failed > 0) {
-        setResultNote(
-          `Created ${res.summary.success} of ${res.summary.total}. ${res.summary.failed} failed.`
-        );
+        const note = `Created ${res.summary.success} of ${res.summary.total}. ${res.summary.failed} failed.`;
+        setResultNote(note);
+        toast.error(note);
         // Keep failed rows for retry
         const failedIdx = new Set(res.errors.map((e) => e.index));
         setRows((rs) => rs.filter((_, i) => failedIdx.has(i)));
@@ -177,10 +178,17 @@ export default function BulkUploadModal({
             .join(" · ")
         );
       } else {
+        toast.success(
+          `Uploaded ${res.summary.success} product${
+            res.summary.success === 1 ? "" : "s"
+          }`
+        );
         onClose();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Bulk upload failed");
+      const msg = err instanceof Error ? err.message : "Bulk upload failed";
+      setError(msg);
+      toast.error(msg);
     } finally {
       window.clearInterval(tick);
       setSaving(false);

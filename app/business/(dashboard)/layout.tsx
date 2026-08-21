@@ -9,6 +9,7 @@ import { apiGet } from "@/lib/api";
 import { BrandLogo } from "@/components/BrandLogo";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
+import { toast } from "@/lib/toast";
 
 const NAV = [
   { href: "/business", label: "Overview", exact: true, icon: "◪" },
@@ -79,6 +80,7 @@ export default function DashboardLayout({
 
   function logout() {
     clearAuth();
+    toast.success("Signed out");
     router.push("/");
   }
 

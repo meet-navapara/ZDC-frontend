@@ -17,14 +17,24 @@ import {
   listPaymentMethods,
   listPricing,
   payForTryon,
+  verifyRazorpayPayment,
   waitForPayment,
   type B2cJob,
   type B2cPack,
 } from "@/lib/b2c";
+import { openRazorpayCheckout } from "@/lib/razorpay";
+import { toast } from "@/lib/toast";
 
 type Pack = B2cPack;
 type Job = B2cJob;
-type Stage = "form" | "working" | "awaiting_mpesa" | "processing" | "done" | "error";
+type Stage =
+  | "form"
+  | "working"
+  | "awaiting_mpesa"
+  | "awaiting_razorpay"
+  | "processing"
+  | "done"
+  | "error";
 
 /** Map Safaricom ResultDesc into actionable copy for the try-on UI. */
 function friendlyMpesaFailure(raw: string): string {
@@ -314,6 +324,7 @@ export default function B2cTryOnStudio() {
         if (r.job.status === "completed") {
           setJob(r.job);
           setStage("done");
+          toast.success("Try-on complete");
           track("b2c_render_completed", {
             pack: r.job.pack,
             results: r.job.resultImageUrls.length,
@@ -322,14 +333,17 @@ export default function B2cTryOnStudio() {
         } else if (r.job.status === "awaiting_payment") {
           // Avoid "infinite processing" UI when payment never gets confirmed.
           if (Date.now() - startedAt > 60_000) {
-            setError(
-              "Payment confirmation timed out. Please check your Payments page and try again."
-            );
+            const msg =
+              "Payment confirmation timed out. Please check your Payments page and try again.";
+            setError(msg);
+            toast.error(msg);
             setStage("error");
             clearInterval(interval);
           }
         } else if (r.job.status === "failed") {
-          setError("Rendering failed. Please try again.");
+          const msg = "Rendering failed. Please try again.";
+          setError(msg);
+          toast.error(msg);
           setStage("error");
           clearInterval(interval);
         }
@@ -355,11 +369,13 @@ export default function B2cTryOnStudio() {
   const targetsFilled =
     targets.length === targetCount && targets.every(Boolean);
   const needsMpesaPhone = defaultGateway === "mpesa";
+  const payWithRazorpay = defaultGateway === "razorpay";
   const canSubmit =
     !!source &&
     targetsFilled &&
     stage !== "working" &&
     stage !== "awaiting_mpesa" &&
+    stage !== "awaiting_razorpay" &&
     (!needsMpesaPhone || mpesaPhone.trim().length >= 9);
 
   async function handleSubmit(useFreeTryon = false) {
@@ -406,12 +422,62 @@ export default function B2cTryOnStudio() {
 
       if (paid.pending && paid.payment?.id) {
         setJob(created.job);
+
+        // India / Razorpay Checkout
+        const rz = paid.payment.razorpay;
+        if (
+          (paid.payment.gateway === "razorpay" || payWithRazorpay) &&
+          rz?.keyId &&
+          rz?.orderId &&
+          rz?.amountPaise
+        ) {
+          setMpesaHint(
+            paid.instructions || "Complete payment in the Razorpay window…"
+          );
+          setStage("awaiting_razorpay");
+          await new Promise((r) => setTimeout(r, 150));
+          const user = getUser();
+          const checkout = await openRazorpayCheckout({
+            key: rz.keyId,
+            orderId: rz.orderId,
+            amountPaise: rz.amountPaise,
+            currency: "INR",
+            description: `zimji try-on (${packId})`,
+            prefill: {
+              email: user?.email || undefined,
+              contact: user?.phone || undefined,
+              name: [user?.firstName, user?.lastName].filter(Boolean).join(" "),
+            },
+          });
+          await verifyRazorpayPayment({
+            paymentId: paid.payment.id,
+            razorpay_order_id: checkout.razorpay_order_id,
+            razorpay_payment_id: checkout.razorpay_payment_id,
+            razorpay_signature: checkout.razorpay_signature,
+          });
+          const refreshed = await getJob(created.job.id);
+          if (refreshed.job.status === "awaiting_payment") {
+            throw new Error("Payment was not confirmed. Please try again.");
+          }
+          track("b2c_payment_succeeded", {
+            pack: packId,
+            amount: refreshed.job.amount,
+            currency: refreshed.job.currency,
+            free: false,
+            gateway: "razorpay",
+          });
+          toast.success("Payment received");
+          setJob(refreshed.job);
+          setStage("processing");
+          return;
+        }
+
+        // Kenya / M-Pesa STK
         setMpesaHint(
           paid.instructions ||
             "Approve the M-Pesa prompt on your phone, then wait here."
         );
         setStage("awaiting_mpesa");
-        // Let React paint the waiting screen before we start polling.
         await new Promise((r) => setTimeout(r, 150));
         try {
           await waitForPayment(paid.payment.id, {
@@ -438,6 +504,7 @@ export default function B2cTryOnStudio() {
           free: false,
           gateway: "mpesa",
         });
+        toast.success("Payment received");
         setJob(refreshed.job);
         setStage("processing");
         return;
@@ -453,6 +520,7 @@ export default function B2cTryOnStudio() {
         currency: paid.job.currency,
         free: useFreeTryon,
       });
+      if (!useFreeTryon) toast.success("Payment received");
       setJob(paid.job);
       setStage("processing");
       if (useFreeTryon) {
@@ -465,7 +533,9 @@ export default function B2cTryOnStudio() {
         if (me?.user && token) saveAuth(token, me.user);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      setError(msg);
+      toast.error(msg);
       setStage("error");
     }
   }
@@ -502,6 +572,19 @@ export default function B2cTryOnStudio() {
             </li>
             <li>4. Approve within ~30 seconds or Safaricom returns “DS timeout”.</li>
           </ul>
+        </div>
+      )}
+
+      {stage === "awaiting_razorpay" && (
+        <div className="card mx-auto max-w-lg rounded-2xl p-8 text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-sage/30 border-t-sage" />
+          <h2 className="mt-5 font-display text-2xl font-semibold text-ink">
+            Complete Razorpay payment
+          </h2>
+          <p className="mt-3 text-sm text-ink-muted">
+            {mpesaHint ||
+              "Finish UPI / card payment in the Razorpay window. This page continues when it succeeds."}
+          </p>
         </div>
       )}
 
@@ -685,7 +768,9 @@ export default function B2cTryOnStudio() {
                   : selectedPack
                     ? needsMpesaPhone
                       ? `Pay with M-Pesa · ${selectedPack.currency} ${selectedPack.amount}`
-                      : `Pay ${selectedPack.currency} ${selectedPack.amount}`
+                      : payWithRazorpay
+                        ? `Pay with Razorpay · ${selectedPack.currency} ${selectedPack.amount}`
+                        : `Pay ${selectedPack.currency} ${selectedPack.amount}`
                     : "Pay & Render"}
               </button>
 

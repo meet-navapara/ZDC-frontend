@@ -12,6 +12,7 @@ import {
 } from "@/lib/b2b";
 import { LIMITS } from "@/lib/limits";
 import { COUNTRIES, matchCountry } from "@/lib/countries";
+import { toast } from "@/lib/toast";
 
 type FormState = {
   name: string;
@@ -142,15 +143,19 @@ export function BranchManager({ compact = false, refreshKey = 0 }: Props) {
       if (editingId) {
         await updateBranch(editingId, body);
         setNotice("Branch updated.");
+        toast.success("Branch updated");
       } else {
         await createBranch(body);
         setNotice("Branch added.");
+        toast.success("Branch added");
       }
       setShowForm(false);
       setEditingId(null);
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save branch");
+      const msg = err instanceof Error ? err.message : "Could not save branch";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -165,9 +170,12 @@ export function BranchManager({ compact = false, refreshKey = 0 }: Props) {
     try {
       await deleteBranch(b.id);
       setNotice("Branch removed.");
+      toast.success("Branch removed");
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not delete");
+      const msg = err instanceof Error ? err.message : "Could not delete";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -176,9 +184,12 @@ export function BranchManager({ compact = false, refreshKey = 0 }: Props) {
     try {
       await updateBranch(b.id, { isPrimary: true });
       setNotice(`“${b.name}” is now the primary branch.`);
+      toast.success("Primary branch updated");
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not update");
+      const msg = err instanceof Error ? err.message : "Could not update";
+      setError(msg);
+      toast.error(msg);
     }
   }
 

@@ -15,6 +15,7 @@ import {
   currencyForCountry,
   paymentHintForCurrency,
 } from "@/lib/countries";
+import { toast } from "@/lib/toast";
 
 const CATEGORIES = [
   { id: "salon", label: "Salon" },
@@ -142,9 +143,12 @@ export default function SettingsPage() {
         saveAuth(token, { ...current, ...res.user });
       }
       setNotice("Profile updated.");
+      toast.success("Profile updated");
       setBranchRefreshKey((k) => k + 1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save");
+      const msg = err instanceof Error ? err.message : "Could not save";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

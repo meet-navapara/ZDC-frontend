@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { apiUrl, downloadImage } from "@/lib/api";
+import { toast } from "@/lib/toast";
 
 type Props = {
   /** Relative or absolute URL of the result image to act on. */
@@ -77,21 +77,18 @@ export function TryOnShareActions({
   challengePath = "/app/try-on",
   variant = "default",
 }: Props) {
-  const [toast, setToast] = useState("");
-
-  function flash(msg: string) {
-    setToast(msg);
-    window.setTimeout(() => setToast(""), 2200);
-  }
-
   const absImage = apiUrl(imageUrl);
   const siteOrigin =
     typeof window !== "undefined" ? window.location.origin : "";
   const challengeUrl = `${siteOrigin}${challengePath}`;
 
   async function handleDownload() {
-    await downloadImage(imageUrl, filename);
-    flash("Download started");
+    try {
+      await downloadImage(imageUrl, filename);
+      toast.success("Download started");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Download failed");
+    }
   }
 
   function handleWhatsApp() {
@@ -104,13 +101,14 @@ export function TryOnShareActions({
   }
 
   async function handleInstagram() {
-    flash("Opening share…");
+    toast.info("Opening share…");
     await shareImageToInstagram(absImage, filename);
   }
 
   async function handleCopyLink() {
     const ok = await copyText(absImage);
-    flash(ok ? "Link copied" : "Could not copy — try again");
+    if (ok) toast.success("Link copied");
+    else toast.error("Could not copy — try again");
   }
 
   function handleChallenge() {
@@ -183,15 +181,6 @@ export function TryOnShareActions({
             </button>
           ))}
         </div>
-      )}
-
-      {toast && (
-        <p
-          role="status"
-          className="pointer-events-none mt-4 text-center text-xs font-semibold text-sage-dark sm:absolute sm:-bottom-10 sm:left-1/2 sm:mt-0 sm:-translate-x-1/2 sm:whitespace-nowrap sm:rounded-full sm:bg-ink sm:px-4 sm:py-1.5 sm:text-paper sm:shadow-lg"
-        >
-          {toast}
-        </p>
       )}
     </div>
   );

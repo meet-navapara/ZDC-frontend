@@ -11,6 +11,7 @@ import {
   type LedgerEntry,
 } from "@/lib/b2b";
 import { ChartPanel, useLiveRefresh } from "@/components/MiniBarChart";
+import { toast } from "@/lib/toast";
 
 function StatCard({
   label,
@@ -83,8 +84,11 @@ export default function OverviewPage() {
     setError(null);
     try {
       await downloadReport();
+      toast.success("Report downloaded");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Export failed");
+      const msg = e instanceof Error ? e.message : "Export failed";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setExporting(false);
     }

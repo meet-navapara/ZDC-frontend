@@ -13,6 +13,7 @@ import {
   type UserDetail,
   type UserStatus,
 } from "@/lib/admin";
+import { toast } from "@/lib/toast";
 
 const STATUS_STYLES: Record<string, string> = {
   active: "bg-sage/15 text-sage-dark",
@@ -63,8 +64,10 @@ function UsersInner() {
     load();
   }, [load]);
 
-  function flash(text: string) {
+  function flash(text: string, ok = true) {
     setMsg(text);
+    if (ok) toast.success(text);
+    else toast.error(text);
     setTimeout(() => setMsg(null), 2500);
   }
 
@@ -72,10 +75,18 @@ function UsersInner() {
     setBusyId(u.id);
     try {
       await setUserStatus(u.id, next);
-      flash(`${u.email} → ${next}`);
+      const label =
+        next === "active"
+          ? u.status === "pending"
+            ? "User approved"
+            : "User reactivated"
+          : next === "suspended"
+            ? "User suspended"
+            : `${u.email} → ${next}`;
+      flash(label);
       load();
     } catch (e) {
-      flash(e instanceof Error ? e.message : "Action failed");
+      flash(e instanceof Error ? e.message : "Action failed", false);
     } finally {
       setBusyId(null);
     }
@@ -85,7 +96,7 @@ function UsersInner() {
     const pw = window.prompt(`New password for ${u.email} (min 8 chars):`);
     if (!pw) return;
     if (pw.length < 8) {
-      flash("Password must be at least 8 characters");
+      flash("Password must be at least 8 characters", false);
       return;
     }
     setBusyId(u.id);
@@ -93,7 +104,7 @@ function UsersInner() {
       await resetUserPassword(u.id, pw);
       flash("Password reset");
     } catch (e) {
-      flash(e instanceof Error ? e.message : "Reset failed");
+      flash(e instanceof Error ? e.message : "Reset failed", false);
     } finally {
       setBusyId(null);
     }
@@ -112,7 +123,7 @@ function UsersInner() {
       flash("User deleted");
       load();
     } catch (e) {
-      flash(e instanceof Error ? e.message : "Delete failed");
+      flash(e instanceof Error ? e.message : "Delete failed", false);
     } finally {
       setBusyId(null);
     }
@@ -122,7 +133,10 @@ function UsersInner() {
     setDetail(null);
     getUserDetail(u.id)
       .then(setDetail)
-      .catch((e) => flash(e instanceof Error ? e.message : "Failed to load"));
+      .catch((e) => {
+        setMsg(e instanceof Error ? e.message : "Failed to load");
+        setTimeout(() => setMsg(null), 2500);
+      });
   }
 
   function applyFilters(e: React.FormEvent) {

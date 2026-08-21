@@ -10,6 +10,7 @@ import { apiPost } from "@/lib/api";
 import { saveAuth, homeForRole, type AuthUser } from "@/lib/auth";
 import { track } from "@/lib/analytics";
 import { LIMITS } from "@/lib/limits";
+import { toast } from "@/lib/toast";
 import {
   COUNTRIES,
   CURRENCIES,
@@ -188,11 +189,10 @@ export default function RegisterPage() {
     const code = res.mockOtp || res.devOtp || "";
     setDevOtp(code);
     if (code) setOtp(code);
-    setNotice(
-      res.mock
-        ? `Mock OTP mode — use code ${code}.`
-        : res.message || `We sent a verification code to ${email}. Enter it below.`
-    );
+    const noticeText = res.mock
+      ? `Mock OTP mode — use code ${code}.`
+      : res.message || `We sent a verification code to ${email}. Enter it below.`;
+    setNotice(noticeText);
     setStep("otp");
     if (!code) setOtp("");
   }
@@ -204,8 +204,11 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await requestOtp();
+      toast.success("OTP sent");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not send code");
+      const msg = err instanceof Error ? err.message : "Could not send code";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -229,9 +232,12 @@ export default function RegisterPage() {
       if (kind === "b2b") {
         track("business_registered", { category, currency });
       }
+      toast.success("Account created");
       router.push(homeForRole(res.user.role));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Verification failed");
+      const msg = err instanceof Error ? err.message : "Verification failed";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -243,8 +249,11 @@ export default function RegisterPage() {
     try {
       await requestOtp();
       setNotice("A new code was sent.");
+      toast.success("Code resent");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not resend code");
+      const msg = err instanceof Error ? err.message : "Could not resend code";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

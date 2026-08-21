@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { apiPost } from "@/lib/api";
 import { saveAuth, type AuthUser } from "@/lib/auth";
 import { LIMITS } from "@/lib/limits";
+import { toast } from "@/lib/toast";
 
 type AuthResponse = { token: string; user: AuthUser };
 
@@ -26,14 +27,19 @@ export default function AdminLoginPage() {
         portal: "admin",
       });
       if (res.user.role !== "admin") {
-        setError("This login is for platform administrators only.");
+        const msg = "This login is for platform administrators only.";
+        setError(msg);
+        toast.error(msg);
         setLoading(false);
         return;
       }
       saveAuth(res.token, res.user);
+      toast.success("Signed in to HQ");
       router.push("/admin");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      const msg = err instanceof Error ? err.message : "Login failed";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

@@ -9,6 +9,7 @@ import {
   type AuthUser,
 } from "@/lib/auth";
 import { LIMITS } from "@/lib/limits";
+import { toast } from "@/lib/toast";
 
 const inputClass =
   "w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-sage";
@@ -76,8 +77,11 @@ export default function ConsumerSettingsPage() {
       );
       if (token) saveAuth(token, res.user);
       setNotice("Profile saved.");
+      toast.success("Profile saved");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save profile");
+      const msg = err instanceof Error ? err.message : "Could not save profile";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -88,11 +92,15 @@ export default function ConsumerSettingsPage() {
     setError("");
     setNotice("");
     if (pwd.newPassword.length < 8) {
-      setError("New password must be at least 8 characters.");
+      const msg = "New password must be at least 8 characters.";
+      setError(msg);
+      toast.error(msg);
       return;
     }
     if (pwd.newPassword !== pwd.confirm) {
-      setError("New passwords do not match.");
+      const msg = "New passwords do not match.";
+      setError(msg);
+      toast.error(msg);
       return;
     }
     setPwdSaving(true);
@@ -108,8 +116,12 @@ export default function ConsumerSettingsPage() {
       );
       setPwd({ currentPassword: "", newPassword: "", confirm: "" });
       setNotice("Password updated.");
+      toast.success("Password updated");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not update password");
+      const msg =
+        err instanceof Error ? err.message : "Could not update password";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setPwdSaving(false);
     }

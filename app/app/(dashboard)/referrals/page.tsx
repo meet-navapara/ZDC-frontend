@@ -5,6 +5,7 @@ import { getMyReferral, type ReferralStats } from "@/lib/b2c";
 import { getUser, saveAuth, getToken } from "@/lib/auth";
 import { apiGet } from "@/lib/api";
 import type { AuthUser } from "@/lib/auth";
+import { toast } from "@/lib/toast";
 
 export default function ReferralsPage() {
   const [stats, setStats] = useState<ReferralStats | null>(null);
@@ -42,9 +43,10 @@ export default function ReferralsPage() {
     try {
       await navigator.clipboard.writeText(stats.referralCode);
       setCopied(true);
+      toast.success("Copied");
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      // ignore
+      toast.error("Could not copy");
     }
   }
 
@@ -53,9 +55,10 @@ export default function ReferralsPage() {
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
+      toast.success("Copied");
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      // ignore
+      toast.error("Could not copy");
     }
   }
 

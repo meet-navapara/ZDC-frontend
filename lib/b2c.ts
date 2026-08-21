@@ -96,8 +96,14 @@ export async function payForTryon(
   payment: {
     id: string;
     status: string;
+    gateway?: string;
     failureReason?: string | null;
     customerMessage?: string | null;
+    razorpay?: {
+      keyId: string | null;
+      orderId: string | null;
+      amountPaise: number | null;
+    } | null;
   };
   pending?: boolean;
   instructions?: string;
@@ -106,8 +112,14 @@ export async function payForTryon(
     payment: body.payment as {
       id: string;
       status: string;
+      gateway?: string;
       failureReason?: string | null;
       customerMessage?: string | null;
+      razorpay?: {
+        keyId: string | null;
+        orderId: string | null;
+        amountPaise: number | null;
+      } | null;
     },
     pending: true as const,
     instructions: (body.instructions as string) || undefined,
@@ -119,8 +131,14 @@ export async function payForTryon(
       payment: {
         id: string;
         status: string;
+        gateway?: string;
         failureReason?: string | null;
         customerMessage?: string | null;
+        razorpay?: {
+          keyId: string | null;
+          orderId: string | null;
+          amountPaise: number | null;
+        } | null;
       };
       pending?: boolean;
       instructions?: string;
@@ -144,7 +162,6 @@ export async function payForTryon(
     }
     return res;
   } catch (err) {
-    // Legacy 402 + duck-type (instanceof can fail across Next bundles)
     const e = err as { status?: number; body?: Record<string, unknown> };
     if (e?.status === 402 && e.body?.payment) {
       return asPending(e.body);
@@ -153,11 +170,25 @@ export async function payForTryon(
   }
 }
 
+export function verifyRazorpayPayment(body: {
+  paymentId: string;
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}) {
+  return apiPost<{
+    payment: { id: string; status: string };
+    pending?: boolean;
+  }>("/api/payments/razorpay/verify", body, tok());
+}
+
 export function listPaymentMethods() {
   return apiGet<{
     defaultGateway: string;
     plannedGateway?: string | null;
     mpesaEnabled?: boolean;
+    razorpayEnabled?: boolean;
+    razorpayKeyId?: string | null;
     paymentNotice?: string | null;
     methods: { id: string; label: string; available: boolean }[];
   }>("/api/payments/methods", tok());

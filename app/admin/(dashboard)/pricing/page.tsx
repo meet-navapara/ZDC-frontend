@@ -8,6 +8,7 @@ import {
   type CreditPack,
 } from "@/lib/admin";
 import { LIMITS } from "@/lib/limits";
+import { toast } from "@/lib/toast";
 
 function Field({
   label,
@@ -76,8 +77,11 @@ export default function AdminPricingPage() {
       setB2c(r.pricing.b2cPacks);
       setCredits(r.pricing.creditPacks);
       setMsg({ ok: true, text: "Pricing saved" });
+      toast.success("Pricing saved");
     } catch (e) {
-      setMsg({ ok: false, text: e instanceof Error ? e.message : "Save failed" });
+      const text = e instanceof Error ? e.message : "Save failed";
+      setMsg({ ok: false, text });
+      toast.error(text);
     } finally {
       setSaving(false);
       setTimeout(() => setMsg(null), 3000);

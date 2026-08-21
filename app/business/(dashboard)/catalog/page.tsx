@@ -17,6 +17,7 @@ import {
 } from "@/lib/b2b";
 import { LIMITS } from "@/lib/limits";
 import BulkUploadModal from "@/components/BulkUploadModal";
+import { toast } from "@/lib/toast";
 
 const MAX_CATEGORIES = 10;
 
@@ -105,8 +106,11 @@ export default function CatalogPage() {
       const res = await createCategory({ name: newCategory.trim() });
       setCategories((cs) => [...cs, res.category]);
       setNewCategory("");
+      toast.success("Category added");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not add category");
+      const msg = err instanceof Error ? err.message : "Could not add category";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setAddingCat(false);
     }
@@ -120,8 +124,12 @@ export default function CatalogPage() {
       setProducts((ps) =>
         ps.map((p) => (p.category === id ? { ...p, category: null } : p))
       );
+      toast.success("Category deleted");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not delete category");
+      const msg =
+        err instanceof Error ? err.message : "Could not delete category";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -135,8 +143,12 @@ export default function CatalogPage() {
       const res = await updateCategory(id, { name: name.trim() });
       setCategories((cs) => cs.map((c) => (c.id === id ? res.category : c)));
       setRenamingCat(null);
+      toast.success("Category updated");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not rename category");
+      const msg =
+        err instanceof Error ? err.message : "Could not rename category";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -202,13 +214,18 @@ export default function CatalogPage() {
         setProducts((ps) =>
           ps.map((p) => (p.id === editing.id ? res.product : p))
         );
+        toast.success("Product updated");
       } else {
         const res = await createProduct(fd);
         setProducts((ps) => [res.product, ...ps]);
+        toast.success("Product added");
       }
       setModalOpen(false);
     } catch (err) {
-      setModalError(err instanceof Error ? err.message : "Could not save product");
+      const msg =
+        err instanceof Error ? err.message : "Could not save product";
+      setModalError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -219,8 +236,12 @@ export default function CatalogPage() {
     try {
       await deleteProduct(p.id);
       setProducts((ps) => ps.filter((x) => x.id !== p.id));
+      toast.success("Product deleted");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not delete product");
+      const msg =
+        err instanceof Error ? err.message : "Could not delete product";
+      setError(msg);
+      toast.error(msg);
     }
   }
 

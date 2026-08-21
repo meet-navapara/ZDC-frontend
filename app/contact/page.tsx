@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { apiPost } from "@/lib/api";
+import { toast } from "@/lib/toast";
 
 const INQUIRY_TYPES = [
   "General inquiry",
@@ -154,8 +155,12 @@ export default function ContactPage() {
         message,
       });
       setSent(true);
+      toast.success("Message sent");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not send. Try again.");
+      const msg =
+        err instanceof Error ? err.message : "Could not send. Try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSending(false);
     }

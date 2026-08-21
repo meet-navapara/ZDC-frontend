@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getContent, updateContent } from "@/lib/admin";
 import type { SiteContent } from "@/lib/content";
+import { toast } from "@/lib/toast";
 
 const input =
   "w-full rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage";
@@ -149,8 +150,11 @@ export default function AdminContentPage() {
       const r = await updateContent(cleaned);
       setContent(r.content);
       setSaved(true);
+      toast.success("Content saved");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to save");
+      const msg = e instanceof Error ? e.message : "Failed to save";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

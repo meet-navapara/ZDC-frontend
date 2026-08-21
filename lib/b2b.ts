@@ -242,9 +242,15 @@ export async function purchaseCredits(
       payment?: {
         id: string;
         status: string;
+        gateway?: string;
         reference: string | null;
         amount: number;
         currency: string;
+        razorpay?: {
+          keyId: string | null;
+          orderId: string | null;
+          amountPaise: number | null;
+        } | null;
       };
       invoiceUrl?: string;
       pending?: boolean;

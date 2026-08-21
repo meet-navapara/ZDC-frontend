@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { apiPost } from "@/lib/api";
 import { saveAuth, homeForRole, type AuthUser } from "@/lib/auth";
 import { LIMITS } from "@/lib/limits";
+import { toast } from "@/lib/toast";
 
 type AuthResponse = { token: string; user: AuthUser };
 
@@ -28,6 +29,7 @@ export default function LoginPage() {
         portal: "app",
       });
       saveAuth(res.token, res.user);
+      toast.success("Welcome back");
       const next = new URLSearchParams(window.location.search).get("next");
       if (next && next.startsWith("/") && !next.startsWith("//")) {
         router.push(next);
@@ -35,7 +37,9 @@ export default function LoginPage() {
         router.push(homeForRole(res.user.role));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      const msg = err instanceof Error ? err.message : "Login failed";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

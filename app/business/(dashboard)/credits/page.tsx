@@ -11,8 +11,14 @@ import {
   type CreditPack,
   type LedgerEntry,
 } from "@/lib/b2b";
-import { listPaymentMethods, waitForPayment } from "@/lib/b2c";
+import {
+  listPaymentMethods,
+  verifyRazorpayPayment,
+  waitForPayment,
+} from "@/lib/b2c";
 import { getUser } from "@/lib/auth";
+import { openRazorpayCheckout } from "@/lib/razorpay";
+import { toast } from "@/lib/toast";
 
 const LEDGER_LABEL: Record<LedgerEntry["type"], string> = {
   purchase: "Purchase",
@@ -29,14 +35,16 @@ export default function CreditsPage() {
   const [notice, setNotice] = useState("");
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
   const [defaultGateway, setDefaultGateway] = useState("stub");
-  const [mpesaEnabled, setMpesaEnabled] = useState(false);
   const [mpesaPhone, setMpesaPhone] = useState(
     () => getUser()?.phone || getUser()?.business?.whatsapp || ""
   );
-  const [awaitingMpesa, setAwaitingMpesa] = useState(false);
-  const [mpesaHint, setMpesaHint] = useState("");
+  const [awaitingPay, setAwaitingPay] = useState<
+    null | "mpesa" | "razorpay"
+  >(null);
+  const [payHint, setPayHint] = useState("");
 
-  const payWithMpesa = mpesaEnabled || defaultGateway === "mpesa";
+  const payWithMpesa = defaultGateway === "mpesa";
+  const payWithRazorpay = defaultGateway === "razorpay";
 
   async function refresh() {
     const [b, l] = await Promise.all([
@@ -55,7 +63,6 @@ export default function CreditsPage() {
       .then((r) => {
         setPaymentNotice(r.paymentNotice || null);
         setDefaultGateway(r.defaultGateway || "stub");
-        setMpesaEnabled(Boolean(r.mpesaEnabled));
       })
       .catch(() => {});
     refresh();
@@ -64,9 +71,9 @@ export default function CreditsPage() {
   async function buy(pack: CreditPack) {
     setError("");
     setNotice("");
-    setMpesaHint("");
+    setPayHint("");
     setBuying(pack.id);
-    setAwaitingMpesa(false);
+    setAwaitingPay(null);
     try {
       if (payWithMpesa && mpesaPhone.trim().length < 9) {
         throw new Error("Enter your M-Pesa phone number (Safaricom).");
@@ -77,12 +84,56 @@ export default function CreditsPage() {
       });
 
       if (res.pending && res.payment?.id) {
-        setMpesaHint(
+        const rz = res.payment.razorpay;
+        if (
+          (res.payment.gateway === "razorpay" || payWithRazorpay) &&
+          rz?.keyId &&
+          rz?.orderId &&
+          rz?.amountPaise
+        ) {
+          setPayHint(
+            res.instructions || "Complete payment in the Razorpay window…"
+          );
+          setAwaitingPay("razorpay");
+          await new Promise((r) => setTimeout(r, 150));
+          const user = getUser();
+          const checkout = await openRazorpayCheckout({
+            key: rz.keyId,
+            orderId: rz.orderId,
+            amountPaise: rz.amountPaise,
+            currency: pack.currency || "INR",
+            description: `zimji credits — ${pack.label}`,
+            prefill: {
+              email: user?.email || undefined,
+              contact:
+                user?.phone || user?.business?.whatsapp || undefined,
+              name: user?.business?.name || undefined,
+            },
+          });
+          await verifyRazorpayPayment({
+            paymentId: res.payment.id,
+            razorpay_order_id: checkout.razorpay_order_id,
+            razorpay_payment_id: checkout.razorpay_payment_id,
+            razorpay_signature: checkout.razorpay_signature,
+          });
+          notifyCreditsChanged();
+          try {
+            await downloadCreditInvoice(res.payment.id);
+          } catch {
+            // optional
+          }
+          setAwaitingPay(null);
+          setNotice(`Payment received. Credits added for ${pack.label}.`);
+          toast.success(`Payment received — credits added for ${pack.label}`);
+          await refresh();
+          return;
+        }
+
+        setPayHint(
           res.instructions ||
             "Approve the M-Pesa prompt on your phone, then wait here."
         );
-        setAwaitingMpesa(true);
-        // Let React paint the waiting screen before polling (same as B2C).
+        setAwaitingPay("mpesa");
         await new Promise((r) => setTimeout(r, 150));
         await waitForPayment(res.payment.id, {
           timeoutMs: 90_000,
@@ -94,8 +145,9 @@ export default function CreditsPage() {
         } catch {
           // optional
         }
-        setAwaitingMpesa(false);
+        setAwaitingPay(null);
         setNotice(`Payment received. Credits added for ${pack.label}.`);
+        toast.success(`Payment received — credits added for ${pack.label}`);
         await refresh();
         return;
       }
@@ -103,16 +155,21 @@ export default function CreditsPage() {
       setNotice(
         `Added ${res.credited} credits. New balance: ${res.balance}. Invoice downloaded.`
       );
+      toast.success(
+        `Added ${res.credited} credits — balance ${res.balance}`
+      );
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Purchase failed");
+      const msg = err instanceof Error ? err.message : "Purchase failed";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setBuying(null);
-      setAwaitingMpesa(false);
+      setAwaitingPay(null);
     }
   }
 
-  if (awaitingMpesa) {
+  if (awaitingPay === "mpesa") {
     return (
       <div className="mx-auto max-w-5xl">
         <div className="card mx-auto max-w-lg rounded-2xl p-8 text-center">
@@ -121,7 +178,7 @@ export default function CreditsPage() {
             Confirm on M-Pesa
           </h2>
           <p className="mt-3 text-sm text-ink-muted">
-            {mpesaHint ||
+            {payHint ||
               "Enter your PIN on the Safaricom prompt. This page updates when payment clears."}
           </p>
           <ul className="mt-5 space-y-2 text-left text-xs text-ink-muted">
@@ -137,6 +194,23 @@ export default function CreditsPage() {
               4. Approve within ~30 seconds or Safaricom returns “DS timeout”.
             </li>
           </ul>
+        </div>
+      </div>
+    );
+  }
+
+  if (awaitingPay === "razorpay") {
+    return (
+      <div className="mx-auto max-w-5xl">
+        <div className="card mx-auto max-w-lg rounded-2xl p-8 text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-sage/30 border-t-sage" />
+          <h2 className="mt-5 font-display text-2xl font-semibold text-ink">
+            Complete Razorpay payment
+          </h2>
+          <p className="mt-3 text-sm text-ink-muted">
+            {payHint ||
+              "Finish UPI / card payment in the Razorpay window. This page continues when it succeeds."}
+          </p>
         </div>
       </div>
     );
@@ -230,21 +304,27 @@ export default function CreditsPage() {
                 className="mt-5 w-full rounded-full bg-sage py-3 font-semibold text-paper transition hover:bg-sage-dark disabled:opacity-60"
               >
                 {buying === p.id
-                  ? awaitingMpesa
-                    ? "Waiting for M-Pesa…"
+                  ? awaitingPay
+                    ? awaitingPay === "razorpay"
+                      ? "Waiting for Razorpay…"
+                      : "Waiting for M-Pesa…"
                     : "Processing…"
-                  : payWithMpesa
-                    ? "Pay with M-Pesa"
-                    : "Buy"}
+                  : payWithRazorpay
+                    ? "Pay with Razorpay"
+                    : payWithMpesa
+                      ? "Pay with M-Pesa"
+                      : "Buy"}
               </button>
             </div>
           );
         })}
       </div>
       <p className="mt-3 text-xs leading-relaxed text-ink-muted">
-        {payWithMpesa
-          ? "You will receive an M-Pesa STK prompt on your phone to enter your PIN."
-          : "Demo mode: payment completes instantly until M-Pesa credentials are enabled."}
+        {payWithRazorpay
+          ? "A Razorpay window will open for UPI, card, or netbanking."
+          : payWithMpesa
+            ? "You will receive an M-Pesa STK prompt on your phone to enter your PIN."
+            : "Demo mode: payment completes instantly until a live gateway is enabled for your market."}
       </p>
 
       <h2 className="mt-10 font-display text-xl font-semibold text-ink sm:text-2xl">

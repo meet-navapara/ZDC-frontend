@@ -32,7 +32,7 @@ export type CountryName = (typeof COUNTRIES)[number];
 
 /** Supported billing currencies (ISO 4217). */
 export const CURRENCIES = [
-  { code: "KES", label: "KES — Kenyan Shilling", paymentHint: "M-Pesa (Phase 2)" },
+  { code: "KES", label: "KES — Kenyan Shilling", paymentHint: "M-Pesa" },
   { code: "UGX", label: "UGX — Ugandan Shilling", paymentHint: "Mobile money / card" },
   { code: "TZS", label: "TZS — Tanzanian Shilling", paymentHint: "Mobile money / card" },
   { code: "RWF", label: "RWF — Rwandan Franc", paymentHint: "Mobile money / card" },
@@ -40,7 +40,7 @@ export const CURRENCIES = [
   { code: "NGN", label: "NGN — Nigerian Naira", paymentHint: "Card / bank transfer" },
   { code: "GHS", label: "GHS — Ghanaian Cedi", paymentHint: "Mobile money / card" },
   { code: "ZAR", label: "ZAR — South African Rand", paymentHint: "Card / EFT" },
-  { code: "INR", label: "INR — Indian Rupee", paymentHint: "Razorpay UPI / card (Phase 3)" },
+  { code: "INR", label: "INR — Indian Rupee", paymentHint: "Razorpay (UPI / card)" },
   { code: "AED", label: "AED — UAE Dirham", paymentHint: "Card" },
   { code: "GBP", label: "GBP — British Pound", paymentHint: "Card" },
   { code: "USD", label: "USD — US Dollar", paymentHint: "Card" },

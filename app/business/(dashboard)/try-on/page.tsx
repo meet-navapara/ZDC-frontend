@@ -19,6 +19,7 @@ import {
   type Category,
   type B2BJob,
 } from "@/lib/b2b";
+import { toast } from "@/lib/toast";
 
 type Stage = "form" | "working" | "processing" | "done" | "error";
 
@@ -105,8 +106,11 @@ export default function B2BTryOnPage() {
           clearInterval(interval);
           window.dispatchEvent(new Event("zdc-credits"));
           setStage("done");
+          toast.success("Try-on complete");
         } else if (r.job.status === "failed") {
-          setError("Rendering failed. Your credits were refunded.");
+          const msg = "Rendering failed. Your credits were refunded.";
+          setError(msg);
+          toast.error(msg);
           setStage("error");
           clearInterval(interval);
         }
@@ -211,8 +215,11 @@ export default function B2BTryOnPage() {
       setBalance(res.credits);
       setJob(res.job);
       setStage("processing");
+      toast.success("Try-on started");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      setError(msg);
+      toast.error(msg);
       setStage("error");
     }
   }
