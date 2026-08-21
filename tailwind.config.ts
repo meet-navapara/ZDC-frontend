@@ -70,8 +70,8 @@ const config: Config = {
           to: { transform: "rotate(360deg)" },
         },
         lookReveal: {
-          "0%": { opacity: "0", transform: "scale(1.06)" },
-          "100%": { opacity: "1", transform: "scale(1)" },
+          "0%": { opacity: "0", transform: "scale(1.08) translateY(10px)" },
+          "100%": { opacity: "1", transform: "scale(1) translateY(0)" },
         },
         fadeUp: {
           "0%": { opacity: "0", transform: "translateY(12px)" },
@@ -80,6 +80,19 @@ const config: Config = {
         glowPulse: {
           "0%,100%": { opacity: "0.35" },
           "50%": { opacity: "0.7" },
+        },
+        softRise: {
+          "0%": { opacity: "0", transform: "translateY(18px) scale(0.98)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        revealSheen: {
+          "0%": { transform: "translateX(-120%) skewX(-12deg)", opacity: "0" },
+          "30%": { opacity: "0.55" },
+          "100%": { transform: "translateX(160%) skewX(-12deg)", opacity: "0" },
+        },
+        floatGlow: {
+          "0%,100%": { transform: "scale(1)", opacity: "0.45" },
+          "50%": { transform: "scale(1.08)", opacity: "0.75" },
         },
       },
       animation: {
@@ -91,9 +104,12 @@ const config: Config = {
         scan: "scan 3.4s ease-in-out infinite",
         gradient: "gradientMove 8s ease infinite",
         spinSlow: "spinSlow 22s linear infinite",
-        lookReveal: "lookReveal 1.1s cubic-bezier(0.22,1,0.36,1) both",
+        lookReveal: "lookReveal 1.15s cubic-bezier(0.22,1,0.36,1) both",
         fadeUp: "fadeUp 0.7s ease both",
         glowPulse: "glowPulse 2.4s ease-in-out infinite",
+        softRise: "softRise 0.85s cubic-bezier(0.22,1,0.36,1) both",
+        revealSheen: "revealSheen 1.4s cubic-bezier(0.22,1,0.36,1) 0.35s both",
+        floatGlow: "floatGlow 4.5s ease-in-out infinite",
       },
     },
   },

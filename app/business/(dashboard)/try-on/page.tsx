@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { apiUrl } from "@/lib/api";
 import { track } from "@/lib/analytics";
-import { TryOnShareActions } from "@/components/TryOnShareActions";
+import { TryOnResultReady } from "@/components/TryOnResultReady";
 import {
   listProducts,
   listCategories,
@@ -564,54 +564,14 @@ export default function B2BTryOnPage() {
           )}
 
           {stage === "done" && job && (
-            <div className="flex flex-col items-center">
-              <div className="text-center">
-                <p className="animate-fadeUp text-[11px] font-semibold uppercase tracking-[0.22em] text-sage">
-                  Look ready
-                </p>
-                <h3
-                  className="mt-1 font-display text-2xl font-semibold text-ink animate-fadeUp sm:text-3xl"
-                  style={{ animationDelay: "80ms" }}
-                >
-                  Your try-on is ready
-                </h3>
-                <span
-                  className="mt-2 inline-flex animate-fadeUp items-center gap-2 rounded-full bg-sage/10 px-3 py-1 text-xs font-semibold text-sage-dark"
-                  style={{ animationDelay: "140ms" }}
-                >
-                  ✓ {job.creditsCost} credit{job.creditsCost > 1 ? "s" : ""} used
-                  {selectedProduct ? ` · ${selectedProduct.name}` : ""}
-                </span>
-              </div>
-
-              <div className="mt-5 flex w-fit flex-row items-center justify-center gap-3 sm:gap-5">
-                <div className="relative w-[9.5rem] shrink-0 animate-lookReveal sm:w-[16rem]">
-                  <div className="absolute -inset-3 rounded-[1.75rem] bg-sage/15 blur-2xl" />
-                  <div className="relative overflow-hidden rounded-[1.25rem] border border-ink/10 shadow-[0_24px_50px_-28px_rgba(0,0,0,0.7)] dark:border-white/10">
-                    <div className="relative aspect-[3/4] max-h-[58vh]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={apiUrl(job.resultImageUrls[0])}
-                        alt="Try-on look"
-                        className="absolute inset-0 h-full w-full object-cover"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {job.resultImageUrls[0] && (
-                  <div className="w-44 shrink-0 sm:w-56">
-                    <TryOnShareActions
-                      imageUrl={job.resultImageUrls[0]}
-                      filename="zimji-tryon-1.png"
-                      onTryAnother={reset}
-                      challengePath="/try-on"
-                      variant="studio"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
+            <TryOnResultReady
+              resultImageUrls={job.resultImageUrls}
+              badge={`${job.creditsCost} credit${job.creditsCost > 1 ? "s" : ""} used${
+                selectedProduct ? ` · ${selectedProduct.name}` : ""
+              }`}
+              onTryAnother={reset}
+              challengePath="/try-on"
+            />
           )}
 
           {stage === "error" && (

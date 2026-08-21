@@ -149,16 +149,17 @@ export function TryOnShareActions({
   return (
     <div className={`relative ${studio ? "mt-0 w-full" : "mt-8"}`}>
       {studio ? (
-        <div className="flex w-full flex-col gap-2">
-          {actions.map((a) => (
+        <div className="flex w-full flex-col gap-1.5">
+          {actions.map((a, i) => (
             <button
               key={a.key}
               type="button"
               onClick={() => void a.onClick()}
+              style={{ animationDelay: `${420 + i * 40}ms` }}
               className={
                 a.primary
-                  ? "w-full rounded-full bg-sage px-3 py-2 text-xs font-semibold text-paper transition hover:bg-sage-dark sm:px-4 sm:py-2.5 sm:text-sm"
-                  : "w-full rounded-full border border-ink/12 px-3 py-2 text-xs font-semibold text-ink transition hover:border-sage hover:text-sage dark:border-white/12 dark:text-[#f4efe7] dark:hover:border-sage sm:px-4 sm:py-2.5 sm:text-sm"
+                  ? "w-full animate-fadeUp rounded-full bg-sage px-3 py-1.5 text-[11px] font-semibold tracking-wide text-paper shadow-[0_10px_22px_-12px_rgba(92,122,104,1)] transition hover:bg-sage-dark sm:py-2 sm:text-xs"
+                  : "w-full animate-fadeUp rounded-full border border-ink/10 bg-white/30 px-3 py-1.5 text-[11px] font-medium tracking-wide text-ink/90 transition hover:border-sage/45 hover:bg-sage/10 hover:text-sage-dark dark:border-white/12 dark:bg-white/[0.03] dark:text-[#e8e2d8] dark:hover:border-sage/40 dark:hover:bg-white/5 sm:py-2 sm:text-xs"
               }
             >
               {a.label}

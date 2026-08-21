@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { apiGet, apiUrl } from "@/lib/api";
+import { apiGet } from "@/lib/api";
 import { getToken, getUser, saveAuth, type AuthUser } from "@/lib/auth";
 import { track } from "@/lib/analytics";
-import { TryOnShareActions } from "@/components/TryOnShareActions";
+import { TryOnResultReady } from "@/components/TryOnResultReady";
 import {
   createTryon,
   getJob,
@@ -205,7 +205,6 @@ export default function B2cTryOnStudio() {
   const [stage, setStage] = useState<Stage>("form");
   const [job, setJob] = useState<Job | null>(null);
   const [error, setError] = useState("");
-  const [activeResult, setActiveResult] = useState(0);
   const [freeTryons, setFreeTryons] = useState(0);
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
   const searchParams = useSearchParams();
@@ -256,7 +255,6 @@ export default function B2cTryOnStudio() {
         if (r.job.status === "completed") {
           setJob(r.job);
           setStage("done");
-          setActiveResult(0);
           track("b2c_render_completed", {
             pack: r.job.pack,
             results: r.job.resultImageUrls.length,
@@ -365,7 +363,6 @@ export default function B2cTryOnStudio() {
     setSourcePreview("");
     setJob(null);
     setError("");
-    setActiveResult(0);
     setStage("form");
   }
 
@@ -592,74 +589,19 @@ export default function B2cTryOnStudio() {
       )}
 
       {stage === "done" && job && (
-        <div className="mx-auto mt-4 max-w-3xl">
-          <div className="card rounded-3xl p-6 text-center sm:p-8">
-            <span className="inline-flex items-center gap-2 rounded-full bg-sage/10 px-4 py-1.5 text-sm font-semibold text-sage-dark">
-              ✓ Your try-on is ready
-            </span>
-
-            <div className="mt-6 flex flex-wrap items-start justify-center gap-5">
-              {sourcePreview && (
-                <div className="w-40 sm:w-44">
-                  <div className="overflow-hidden rounded-2xl border border-ink/10 shadow-sm">
-                    <div className="relative aspect-[3/4]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={sourcePreview}
-                        alt="Your original selfie"
-                        className="absolute inset-0 h-full w-full object-cover"
-                      />
-                    </div>
-                  </div>
-                  <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                    Before
-                  </p>
-                </div>
-              )}
-
-              {job.resultImageUrls.map((url, i) => {
-                const selected = activeResult === i;
-                return (
-                  <div key={i} className="w-40 sm:w-44">
-                    <button
-                      type="button"
-                      onClick={() => setActiveResult(i)}
-                      className={`w-full overflow-hidden rounded-2xl border shadow-sm transition ${
-                        selected
-                          ? "border-sage ring-2 ring-sage/40"
-                          : "border-ink/10 hover:border-sage/40"
-                      }`}
-                      aria-pressed={selected}
-                      aria-label={`Select look ${i + 1}`}
-                    >
-                      <div className="relative aspect-[3/4]">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={apiUrl(url)}
-                          alt={`Try-on result ${i + 1}`}
-                          className="absolute inset-0 h-full w-full object-cover"
-                        />
-                      </div>
-                    </button>
-                    <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-sage-dark">
-                      {job.resultImageUrls.length > 1
-                        ? `Look ${i + 1}${selected ? " · selected" : ""}`
-                        : "After"}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-
-            {job.resultImageUrls[activeResult] && (
-              <TryOnShareActions
-                imageUrl={job.resultImageUrls[activeResult]}
-                filename={`zimji-tryon-${activeResult + 1}.png`}
-                onTryAnother={reset}
-                challengePath="/app/try-on"
-              />
-            )}
-          </div>
+        <div className="mx-auto">
+          <TryOnResultReady
+            resultImageUrls={job.resultImageUrls}
+            badge={
+              job.pack
+                ? `${job.pack} pack`
+                : selectedPack
+                  ? `${selectedPack.label} pack`
+                  : null
+            }
+            onTryAnother={reset}
+            challengePath="/app/try-on"
+          />
         </div>
       )}
 

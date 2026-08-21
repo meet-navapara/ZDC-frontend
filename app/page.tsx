@@ -393,10 +393,15 @@ export default async function Home() {
           ))}
         </div>
 
-        <p className="mt-12 text-center text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted sm:mt-16">
-          For boutiques &amp; salons
-        </p>
-        <div className="relative mt-4 grid gap-4 sm:gap-6 md:grid-cols-3">
+        <div className="mt-12 text-center sm:mt-16">
+          <p className="font-display text-2xl font-bold uppercase tracking-[0.12em] text-ink sm:text-3xl md:text-4xl">
+            For boutiques &amp; salons
+          </p>
+          <p className="mx-auto mt-3 max-w-2xl text-base font-medium text-ink-muted sm:mt-4 sm:text-lg md:text-xl">
+            Customer should not feel like a Gamble while selecting Style.
+          </p>
+        </div>
+        <div className="relative mt-6 grid gap-4 sm:mt-8 sm:gap-6 md:grid-cols-3">
           <div className="pointer-events-none absolute left-0 right-0 top-14 hidden h-px bg-ink/10 md:block" />
           {b2bSteps.map((s, i) => (
             <Reveal key={`b2b-${s.n}`} delay={i * 120}>

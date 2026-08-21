@@ -215,7 +215,7 @@ export default function DashboardLayout({
       {/* Main */}
       <div className="flex min-h-screen flex-1 flex-col">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-ink/10 bg-paper px-4 py-3 dark:border-white/10 dark:bg-[#100e0b] md:px-5">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-ink/10 bg-paper px-4 py-3 dark:border-white/10 dark:bg-[#0c0b09] md:px-5">
           <div className="flex min-w-0 items-center gap-2.5">
             {/* Hamburger (mobile only) */}
             <button
