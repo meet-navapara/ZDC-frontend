@@ -4,7 +4,6 @@ import { Reveal } from "@/components/Reveal";
 import { Spotlight } from "@/components/Spotlight";
 import { LandingNav } from "@/components/LandingNav";
 import { BrandLogo } from "@/components/BrandLogo";
-import { LandingPhotoGuide } from "@/components/LandingPhotoGuide";
 import { getSiteContent } from "@/lib/content";
 
 const categories = [
@@ -129,7 +128,6 @@ export default async function Home() {
 
   return (
     <main className="relative">
-      <LandingPhotoGuide />
       {/* ============ NAV ============ */}
       <LandingNav />
 
@@ -185,37 +183,37 @@ export default async function Home() {
           {/* Hero collage */}
           <Reveal delay={140} className="relative z-10">
             <div className="grid grid-cols-2 grid-rows-[auto_auto] gap-3 sm:gap-4">
-              {/* African woman — portrait with braids & colourful outfit */}
-              <div className="card row-span-2 overflow-hidden rounded-[1.25rem] sm:rounded-[1.6rem]">
+              {/* Box 1 — top left (before / short hair) */}
+              <div className="card overflow-hidden rounded-[1.25rem] bg-white sm:rounded-[1.6rem]">
+                <div className="relative aspect-square">
+                  <Image
+                    src="/images/hero-1.png"
+                    alt="Woman in a patterned blue top with short natural hair"
+                    fill
+                    sizes="(max-width: 768px) 45vw, 260px"
+                    className="object-contain object-bottom p-1 sm:p-2"
+                  />
+                </div>
+              </div>
+              {/* Box 2 — tall right (after / try-on result) */}
+              <div className="card row-span-2 overflow-hidden rounded-[1.25rem] bg-white sm:rounded-[1.6rem]">
                 <div className="relative aspect-[3/4.4]">
                   <Image
-                    src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=600&q=80"
-                    alt="African woman with braids"
+                    src="/images/hero-3.png"
+                    alt="Woman with cornrow curls in a patterned top — try-on result"
                     fill
                     priority
                     sizes="(max-width: 768px) 45vw, 300px"
-                    className="object-cover object-top"
+                    className="object-contain object-bottom p-1 sm:p-2"
                   />
                 </div>
               </div>
-              {/* Indian woman — saree ethnic outfit */}
-              <div className="card overflow-hidden rounded-[1.25rem] sm:rounded-[1.6rem]">
+              {/* Box 3 — bottom left (unchanged) */}
+              <div className="card overflow-hidden rounded-[1.25rem] bg-white sm:rounded-[1.6rem]">
                 <div className="relative aspect-square">
                   <Image
-                    src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&q=80"
-                    alt="Indian woman in saree"
-                    fill
-                    sizes="(max-width: 768px) 45vw, 260px"
-                    className="object-cover object-top"
-                  />
-                </div>
-              </div>
-              {/* African man — portrait smart wear */}
-              <div className="card overflow-hidden rounded-[1.25rem] sm:rounded-[1.6rem]">
-                <div className="relative aspect-square">
-                  <Image
-                    src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=600&q=80"
-                    alt="African man in smart wear"
+                    src="/images/hero-2.jpg"
+                    alt="Woman with two-tone curls in a yellow top"
                     fill
                     sizes="(max-width: 768px) 45vw, 260px"
                     className="object-cover object-top"
@@ -223,7 +221,7 @@ export default async function Home() {
                 </div>
               </div>
             </div>
-            <div className="absolute bottom-3 left-2 flex max-w-[calc(100%-1rem)] items-center gap-2 rounded-2xl glass-strong px-3 py-2.5 sm:bottom-6 sm:-left-4 sm:gap-3 sm:px-4 sm:py-3">
+            <div className="absolute bottom-3 right-2 flex max-w-[calc(100%-1rem)] items-center gap-2 rounded-2xl glass-strong px-3 py-2.5 sm:bottom-6 sm:-right-4 sm:gap-3 sm:px-4 sm:py-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sage text-sm text-paper sm:h-9 sm:w-9">
                 ✓
               </span>

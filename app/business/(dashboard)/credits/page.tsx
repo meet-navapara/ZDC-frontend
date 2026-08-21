@@ -6,10 +6,13 @@ import {
   getCreditPacks,
   getLedger,
   purchaseCredits,
+  downloadCreditInvoice,
+  notifyCreditsChanged,
   type CreditPack,
   type LedgerEntry,
 } from "@/lib/b2b";
-import { listPaymentMethods } from "@/lib/b2c";
+import { listPaymentMethods, waitForPayment } from "@/lib/b2c";
+import { getUser } from "@/lib/auth";
 
 const LEDGER_LABEL: Record<LedgerEntry["type"], string> = {
   purchase: "Purchase",
@@ -25,6 +28,15 @@ export default function CreditsPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
+  const [defaultGateway, setDefaultGateway] = useState("stub");
+  const [mpesaEnabled, setMpesaEnabled] = useState(false);
+  const [mpesaPhone, setMpesaPhone] = useState(
+    () => getUser()?.phone || getUser()?.business?.whatsapp || ""
+  );
+  const [awaitingMpesa, setAwaitingMpesa] = useState(false);
+  const [mpesaHint, setMpesaHint] = useState("");
+
+  const payWithMpesa = mpesaEnabled || defaultGateway === "mpesa";
 
   async function refresh() {
     const [b, l] = await Promise.all([
@@ -40,7 +52,11 @@ export default function CreditsPage() {
       .then((r) => setPacks(r.packs))
       .catch(() => setPacks([]));
     listPaymentMethods()
-      .then((r) => setPaymentNotice(r.paymentNotice || null))
+      .then((r) => {
+        setPaymentNotice(r.paymentNotice || null);
+        setDefaultGateway(r.defaultGateway || "stub");
+        setMpesaEnabled(Boolean(r.mpesaEnabled));
+      })
       .catch(() => {});
     refresh();
   }, []);
@@ -48,9 +64,42 @@ export default function CreditsPage() {
   async function buy(pack: CreditPack) {
     setError("");
     setNotice("");
+    setMpesaHint("");
     setBuying(pack.id);
+    setAwaitingMpesa(false);
     try {
-      const res = await purchaseCredits(pack.id, "stub");
+      if (payWithMpesa && mpesaPhone.trim().length < 9) {
+        throw new Error("Enter your M-Pesa phone number (Safaricom).");
+      }
+      const res = await purchaseCredits(pack.id, {
+        gateway: "auto",
+        phone: mpesaPhone.trim() || undefined,
+      });
+
+      if (res.pending && res.payment?.id) {
+        setMpesaHint(
+          res.instructions ||
+            "Approve the M-Pesa prompt on your phone, then wait here."
+        );
+        setAwaitingMpesa(true);
+        // Let React paint the waiting screen before polling (same as B2C).
+        await new Promise((r) => setTimeout(r, 150));
+        await waitForPayment(res.payment.id, {
+          timeoutMs: 90_000,
+          intervalMs: 4000,
+        });
+        notifyCreditsChanged();
+        try {
+          await downloadCreditInvoice(res.payment.id);
+        } catch {
+          // optional
+        }
+        setAwaitingMpesa(false);
+        setNotice(`Payment received. Credits added for ${pack.label}.`);
+        await refresh();
+        return;
+      }
+
       setNotice(
         `Added ${res.credited} credits. New balance: ${res.balance}. Invoice downloaded.`
       );
@@ -59,7 +108,38 @@ export default function CreditsPage() {
       setError(err instanceof Error ? err.message : "Purchase failed");
     } finally {
       setBuying(null);
+      setAwaitingMpesa(false);
     }
+  }
+
+  if (awaitingMpesa) {
+    return (
+      <div className="mx-auto max-w-5xl">
+        <div className="card mx-auto max-w-lg rounded-2xl p-8 text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-sage/30 border-t-sage" />
+          <h2 className="mt-5 font-display text-2xl font-semibold text-ink">
+            Confirm on M-Pesa
+          </h2>
+          <p className="mt-3 text-sm text-ink-muted">
+            {mpesaHint ||
+              "Enter your PIN on the Safaricom prompt. This page updates when payment clears."}
+          </p>
+          <ul className="mt-5 space-y-2 text-left text-xs text-ink-muted">
+            <li>1. Keep this tab open.</li>
+            <li>
+              2. On the phone (or Daraja STK simulator), open the M-Pesa prompt.
+            </li>
+            <li>
+              3. Sandbox test PIN is often{" "}
+              <span className="font-semibold text-ink">174379</span>.
+            </li>
+            <li>
+              4. Approve within ~30 seconds or Safaricom returns “DS timeout”.
+            </li>
+          </ul>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -95,6 +175,20 @@ export default function CreditsPage() {
       <h2 className="mt-8 font-display text-xl font-semibold text-ink sm:text-2xl">
         Choose a pack
       </h2>
+
+      {payWithMpesa && (
+        <label className="mt-4 block max-w-md text-sm">
+          <span className="font-medium text-ink">M-Pesa phone</span>
+          <input
+            type="tel"
+            value={mpesaPhone}
+            onChange={(e) => setMpesaPhone(e.target.value)}
+            placeholder="07XX XXX XXX"
+            className="mt-1.5 w-full rounded-xl border border-ink/15 bg-white px-3 py-2.5 text-ink outline-none focus:border-sage dark:border-white/15 dark:bg-[#12100e]"
+          />
+        </label>
+      )}
+
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {packs.length === 0 && (
           <>
@@ -135,14 +229,22 @@ export default function CreditsPage() {
                 disabled={!!buying}
                 className="mt-5 w-full rounded-full bg-sage py-3 font-semibold text-paper transition hover:bg-sage-dark disabled:opacity-60"
               >
-                {buying === p.id ? "Processing…" : "Buy"}
+                {buying === p.id
+                  ? awaitingMpesa
+                    ? "Waiting for M-Pesa…"
+                    : "Processing…"
+                  : payWithMpesa
+                    ? "Pay with M-Pesa"
+                    : "Buy"}
               </button>
             </div>
           );
         })}
       </div>
       <p className="mt-3 text-xs leading-relaxed text-ink-muted">
-        Demo mode: payment completes instantly. Live card/M-Pesa will return with a new provider.
+        {payWithMpesa
+          ? "You will receive an M-Pesa STK prompt on your phone to enter your PIN."
+          : "Demo mode: payment completes instantly until M-Pesa credentials are enabled."}
       </p>
 
       <h2 className="mt-10 font-display text-xl font-semibold text-ink sm:text-2xl">

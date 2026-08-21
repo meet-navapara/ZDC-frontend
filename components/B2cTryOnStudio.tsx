@@ -7,19 +7,43 @@ import { getToken, getUser, saveAuth, type AuthUser } from "@/lib/auth";
 import { track } from "@/lib/analytics";
 import { TryOnResultReady } from "@/components/TryOnResultReady";
 import {
+  isPhotoGuideDismissed,
+  PhotoGuideModal,
+} from "@/components/LandingPhotoGuide";
+import {
   createTryon,
   getJob,
   getMyReferral,
   listPaymentMethods,
   listPricing,
   payForTryon,
+  waitForPayment,
   type B2cJob,
   type B2cPack,
 } from "@/lib/b2c";
 
 type Pack = B2cPack;
 type Job = B2cJob;
-type Stage = "form" | "working" | "processing" | "done" | "error";
+type Stage = "form" | "working" | "awaiting_mpesa" | "processing" | "done" | "error";
+
+/** Map Safaricom ResultDesc into actionable copy for the try-on UI. */
+function friendlyMpesaFailure(raw: string): string {
+  const m = raw.toLowerCase();
+  if (m.includes("ds timeout") || m.includes("cannot be reached") || m.includes("1037")) {
+    return (
+      "M-Pesa timed out (no PIN entered / phone unreachable). " +
+      "In sandbox, use 254708374149, watch for the STK prompt (or Daraja simulator), " +
+      "enter PIN 174379 within ~30 seconds, then try again."
+    );
+  }
+  if (m.includes("cancel") || m.includes("1032")) {
+    return "M-Pesa payment was cancelled on the phone. Try again and approve the prompt.";
+  }
+  if (m.includes("insufficient")) {
+    return "Insufficient M-Pesa balance for this payment.";
+  }
+  return raw;
+}
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
@@ -41,6 +65,7 @@ function UploadBox({
   onPick,
   sizeClass = "aspect-[3/4]",
   compact = false,
+  showGuide = false,
 }: {
   label: string;
   hint: string;
@@ -48,10 +73,13 @@ function UploadBox({
   onPick: (f: File | null) => void;
   sizeClass?: string;
   compact?: boolean;
+  /** Show the photo-quality guide before the file picker (selfie only). */
+  showGuide?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [localError, setLocalError] = useState<string>("");
+  const [guideOpen, setGuideOpen] = useState(false);
 
   const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => {
@@ -74,17 +102,29 @@ function UploadBox({
     onPick(f);
   }
 
+  function openPicker() {
+    inputRef.current?.click();
+  }
+
+  function requestPick() {
+    if (showGuide && !isPhotoGuideDismissed()) {
+      setGuideOpen(true);
+      return;
+    }
+    openPicker();
+  }
+
   return (
     <div>
       <div
         role="button"
         tabIndex={0}
         aria-label={`Upload ${label}`}
-        onClick={() => inputRef.current?.click()}
+        onClick={requestPick}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            inputRef.current?.click();
+            requestPick();
           }
         }}
         onDragOver={(e) => {
@@ -166,6 +206,17 @@ function UploadBox({
         />
       </div>
 
+      {showGuide ? (
+        <PhotoGuideModal
+          open={guideOpen}
+          onClose={() => setGuideOpen(false)}
+          onSelect={() => {
+            setGuideOpen(false);
+            openPicker();
+          }}
+        />
+      ) : null}
+
       {localError && (
         <p className="mt-1.5 px-1 text-xs text-red-600">{localError}</p>
       )}
@@ -207,6 +258,11 @@ export default function B2cTryOnStudio() {
   const [error, setError] = useState("");
   const [freeTryons, setFreeTryons] = useState(0);
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
+  const [defaultGateway, setDefaultGateway] = useState("stub");
+  const [mpesaPhone, setMpesaPhone] = useState(
+    () => getUser()?.phone || ""
+  );
+  const [mpesaHint, setMpesaHint] = useState("");
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -224,7 +280,10 @@ export default function B2cTryOnStudio() {
       .catch(() => setFreeTryons(getUser()?.freeTryons || 0));
 
     listPaymentMethods()
-      .then((r) => setPaymentNotice(r.paymentNotice || null))
+      .then((r) => {
+        setPaymentNotice(r.paymentNotice || null);
+        setDefaultGateway(r.defaultGateway || "stub");
+      })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -295,10 +354,17 @@ export default function B2cTryOnStudio() {
 
   const targetsFilled =
     targets.length === targetCount && targets.every(Boolean);
-  const canSubmit = !!source && targetsFilled && stage !== "working";
+  const needsMpesaPhone = defaultGateway === "mpesa";
+  const canSubmit =
+    !!source &&
+    targetsFilled &&
+    stage !== "working" &&
+    stage !== "awaiting_mpesa" &&
+    (!needsMpesaPhone || mpesaPhone.trim().length >= 9);
 
   async function handleSubmit(useFreeTryon = false) {
     setError("");
+    setMpesaHint("");
     if (!getToken()) {
       setError("Please log in to start a try-on.");
       setStage("error");
@@ -316,6 +382,10 @@ export default function B2cTryOnStudio() {
       setError("Free try-ons only work with the Single pack.");
       return;
     }
+    if (!useFreeTryon && needsMpesaPhone && mpesaPhone.trim().length < 9) {
+      setError("Enter your M-Pesa phone number (Safaricom).");
+      return;
+    }
     setStage("working");
     track("b2c_tryon_started", { pack: packId, free: useFreeTryon });
     setSourcePreview(URL.createObjectURL(source));
@@ -330,8 +400,52 @@ export default function B2cTryOnStudio() {
       const created = await createTryon(form);
       const paid = await payForTryon(created.job.id, {
         useFreeTryon,
-        gateway: useFreeTryon ? "referral" : "stub",
+        gateway: useFreeTryon ? "referral" : "auto",
+        phone: useFreeTryon ? undefined : mpesaPhone.trim() || undefined,
       });
+
+      if (paid.pending && paid.payment?.id) {
+        setJob(created.job);
+        setMpesaHint(
+          paid.instructions ||
+            "Approve the M-Pesa prompt on your phone, then wait here."
+        );
+        setStage("awaiting_mpesa");
+        // Let React paint the waiting screen before we start polling.
+        await new Promise((r) => setTimeout(r, 150));
+        try {
+          await waitForPayment(paid.payment.id, {
+            timeoutMs: 90_000,
+            intervalMs: 4000,
+          });
+        } catch (payErr) {
+          const msg =
+            payErr instanceof Error ? payErr.message : "Payment failed";
+          throw new Error(friendlyMpesaFailure(msg));
+        }
+        const refreshed = await getJob(created.job.id);
+        if (refreshed.job.status === "awaiting_payment") {
+          throw new Error(
+            friendlyMpesaFailure(
+              "Payment was not confirmed. DS timeout / PIN not entered — try again and approve within 30 seconds."
+            )
+          );
+        }
+        track("b2c_payment_succeeded", {
+          pack: packId,
+          amount: refreshed.job.amount,
+          currency: refreshed.job.currency,
+          free: false,
+          gateway: "mpesa",
+        });
+        setJob(refreshed.job);
+        setStage("processing");
+        return;
+      }
+
+      if (!paid.job) {
+        throw new Error("Payment completed but job was not returned.");
+      }
 
       track("b2c_payment_succeeded", {
         pack: packId,
@@ -368,6 +482,29 @@ export default function B2cTryOnStudio() {
 
   return (
     <div className="mx-auto max-w-5xl">
+      {stage === "awaiting_mpesa" && (
+        <div className="card mx-auto max-w-lg rounded-2xl p-8 text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-sage/30 border-t-sage" />
+          <h2 className="mt-5 font-display text-2xl font-semibold text-ink">
+            Confirm on M-Pesa
+          </h2>
+          <p className="mt-3 text-sm text-ink-muted">
+            {mpesaHint ||
+              "Enter your PIN on the Safaricom prompt. This page updates when payment clears."}
+          </p>
+          <ul className="mt-5 space-y-2 text-left text-xs text-ink-muted">
+            <li>1. Keep this tab open.</li>
+            <li>
+              2. On the phone (or Daraja STK simulator), open the M-Pesa prompt.
+            </li>
+            <li>
+              3. Sandbox test PIN is often <span className="font-semibold text-ink">174379</span>.
+            </li>
+            <li>4. Approve within ~30 seconds or Safaricom returns “DS timeout”.</li>
+          </ul>
+        </div>
+      )}
+
       {(stage === "form" || stage === "working") && (
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
@@ -394,6 +531,7 @@ export default function B2cTryOnStudio() {
                   file={source}
                   onPick={setSource}
                   compact={targetCount > 1}
+                  showGuide
                 />
                 {targets.map((t, i) => (
                   <UploadBox
@@ -518,6 +656,22 @@ export default function B2cTryOnStudio() {
                 </div>
               )}
 
+              {needsMpesaPhone && (
+                <label className="mt-4 block text-sm">
+                  <span className="font-medium text-ink">M-Pesa phone</span>
+                  <input
+                    type="tel"
+                    value={mpesaPhone}
+                    onChange={(e) => setMpesaPhone(e.target.value)}
+                    placeholder="07XX XXX XXX"
+                    className="mt-1.5 w-full rounded-xl border border-ink/15 bg-white px-3 py-2.5 text-ink outline-none focus:border-sage dark:border-white/15 dark:bg-[#12100e]"
+                  />
+                  <span className="mt-1 block text-xs text-ink-muted">
+                    Safaricom number that will receive the STK PIN prompt
+                  </span>
+                </label>
+              )}
+
               <button
                 onClick={() => handleSubmit(false)}
                 disabled={!canSubmit}
@@ -529,7 +683,9 @@ export default function B2cTryOnStudio() {
                 {stage === "working"
                   ? "Processing…"
                   : selectedPack
-                    ? `Pay ${selectedPack.currency} ${selectedPack.amount}`
+                    ? needsMpesaPhone
+                      ? `Pay with M-Pesa · ${selectedPack.currency} ${selectedPack.amount}`
+                      : `Pay ${selectedPack.currency} ${selectedPack.amount}`
                     : "Pay & Render"}
               </button>
 

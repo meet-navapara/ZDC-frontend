@@ -69,8 +69,17 @@
 /* Inline badge in hero (white/60 pill) */
 .dark .bg-white\/60 { background-color: rgba(255,255,255,0.05) !important; }
 
-/* Footer social icon buttons */
-.dark .bg-white { background-color: #14120f !important; }
+/* Surfaces that use Tailwind bg-white — remap to dark plate.
+   BrandLogo uses bg-[#ffffff] so it stays a true white plate. */
+.dark .bg-white {
+  background-color: #14120f !important;
+}
+
+/* Footer social icon buttons (same plate; kept for clarity) */
+.dark footer .bg-white,
+.dark #contact .bg-white {
+  background-color: #14120f !important;
+}
 
 /* Native <select> menus are OS-drawn with a light list — keep option text dark. */
 .dark select option {

@@ -88,27 +88,76 @@ export function createTryon(form: FormData) {
   return apiPostForm<{ job: B2cJob }>("/api/tryon", form, tok());
 }
 
-export function payForTryon(
+export async function payForTryon(
   jobId: string,
-  opts?: { useFreeTryon?: boolean; gateway?: string }
-) {
-  return apiPost<{
-    job: B2cJob;
-    payment: { id: string; status: string };
-  }>(
-    "/api/payments",
-    {
-      jobId,
-      gateway: opts?.useFreeTryon ? "referral" : opts?.gateway || "stub",
-      useFreeTryon: Boolean(opts?.useFreeTryon),
+  opts?: { useFreeTryon?: boolean; gateway?: string; phone?: string }
+): Promise<{
+  job?: B2cJob;
+  payment: {
+    id: string;
+    status: string;
+    failureReason?: string | null;
+    customerMessage?: string | null;
+  };
+  pending?: boolean;
+  instructions?: string;
+}> {
+  const asPending = (body: Record<string, unknown>) => ({
+    payment: body.payment as {
+      id: string;
+      status: string;
+      failureReason?: string | null;
+      customerMessage?: string | null;
     },
-    tok()
-  );
+    pending: true as const,
+    instructions: (body.instructions as string) || undefined,
+  });
+
+  try {
+    const res = await apiPost<{
+      job?: B2cJob;
+      payment: {
+        id: string;
+        status: string;
+        failureReason?: string | null;
+        customerMessage?: string | null;
+      };
+      pending?: boolean;
+      instructions?: string;
+    }>(
+      "/api/payments",
+      {
+        jobId,
+        gateway: opts?.useFreeTryon ? "referral" : opts?.gateway || "auto",
+        phone: opts?.phone,
+        useFreeTryon: Boolean(opts?.useFreeTryon),
+      },
+      tok()
+    );
+
+    if (res.pending || res.payment?.status === "pending") {
+      return {
+        payment: res.payment,
+        pending: true,
+        instructions: res.instructions,
+      };
+    }
+    return res;
+  } catch (err) {
+    // Legacy 402 + duck-type (instanceof can fail across Next bundles)
+    const e = err as { status?: number; body?: Record<string, unknown> };
+    if (e?.status === 402 && e.body?.payment) {
+      return asPending(e.body);
+    }
+    throw err;
+  }
 }
 
 export function listPaymentMethods() {
   return apiGet<{
     defaultGateway: string;
+    plannedGateway?: string | null;
+    mpesaEnabled?: boolean;
     paymentNotice?: string | null;
     methods: { id: string; label: string; available: boolean }[];
   }>("/api/payments/methods", tok());
@@ -124,8 +173,40 @@ export function getPayment(id: string) {
       purpose: string;
       job: string | null;
       failureReason: string | null;
+      customerMessage?: string | null;
     };
   }>(`/api/payments/${id}`, tok());
+}
+
+/** Poll until paid / failed / cancelled or timeout (ms). */
+export async function waitForPayment(
+  paymentId: string,
+  opts?: { timeoutMs?: number; intervalMs?: number }
+) {
+  const timeoutMs = opts?.timeoutMs ?? 90_000;
+  const intervalMs = opts?.intervalMs ?? 1500;
+  const started = Date.now();
+
+  while (Date.now() - started < timeoutMs) {
+    const { payment } = await getPayment(paymentId);
+    if (payment.status === "paid") return payment;
+
+    // Keep waiting on pending; only hard-fail after we've given sandbox
+    // auto-pay enough time (first 20s ignore failed/cancelled).
+    if (payment.status === "failed" || payment.status === "cancelled") {
+      const elapsed = Date.now() - started;
+      const reason = payment.failureReason || `Payment ${payment.status}`;
+      if (elapsed < 20_000) {
+        await new Promise((r) => setTimeout(r, intervalMs));
+        continue;
+      }
+      throw new Error(reason);
+    }
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  throw new Error(
+    "Payment confirmation timed out. If you paid on M-Pesa, check Payments or try again."
+  );
 }
 
 export function cancelPayment(id: string) {

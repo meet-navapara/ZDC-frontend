@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 export const size = { width: 512, height: 512 };
 export const contentType = "image/png";
 
-/** Browser tab / PWA icon — minimal “z” monogram with sage accent. */
+/** Browser tab / PWA icon — geometric “z” from the zimji wordmark. */
 export default function Icon() {
   return new ImageResponse(
     (
@@ -28,32 +28,14 @@ export default function Icon() {
             background: "#1A1A1A",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              position: "relative",
-              color: "#FAF8F4",
-              fontSize: 220,
-              fontWeight: 600,
-              fontFamily: "Georgia, serif",
-              fontStyle: "italic",
-              lineHeight: 1,
-              marginTop: -12,
-            }}
+          <svg
+            width="210"
+            height="230"
+            viewBox="0 0 132 156"
+            fill="#FAF8F4"
           >
-            z
-            <div
-              style={{
-                position: "absolute",
-                top: 28,
-                right: -8,
-                width: 28,
-                height: 28,
-                borderRadius: 999,
-                background: "#2F5D50",
-              }}
-            />
-          </div>
+            <path d="M8 10h116L104 48 66 118h58v38H0l24-38L64 48H8V10z" />
+          </svg>
         </div>
       </div>
     ),

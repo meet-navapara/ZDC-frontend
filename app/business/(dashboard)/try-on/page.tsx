@@ -6,6 +6,10 @@ import { apiUrl } from "@/lib/api";
 import { track } from "@/lib/analytics";
 import { TryOnResultReady } from "@/components/TryOnResultReady";
 import {
+  isPhotoGuideDismissed,
+  PhotoGuideModal,
+} from "@/components/LandingPhotoGuide";
+import {
   listProducts,
   listCategories,
   createB2BTryon,
@@ -65,6 +69,7 @@ export default function B2BTryOnPage() {
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
   const [lookLine, setLookLine] = useState(0);
+  const [guideOpen, setGuideOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const catalogRef = useRef<HTMLDivElement>(null);
 
@@ -140,6 +145,19 @@ export default function B2BTryOnPage() {
       .filter((c) => products.some((p) => p.category === c.id))
       .map((c) => ({ id: c.id, label: c.name })),
   ];
+
+  function openPicker() {
+    fileRef.current?.click();
+  }
+
+  function requestPick() {
+    if (busy) return;
+    if (!source && !isPhotoGuideDismissed()) {
+      setGuideOpen(true);
+      return;
+    }
+    openPicker();
+  }
 
   function pickFile(f: File | null) {
     setError("");
@@ -235,11 +253,11 @@ export default function B2BTryOnPage() {
                   <div
                     role="button"
                     tabIndex={0}
-                    onClick={() => !busy && fileRef.current?.click()}
+                    onClick={requestPick}
                     onKeyDown={(e) => {
-                      if (!busy && (e.key === "Enter" || e.key === " ")) {
+                      if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        fileRef.current?.click();
+                        requestPick();
                       }
                     }}
                     onDragOver={(e) => {
@@ -310,6 +328,14 @@ export default function B2BTryOnPage() {
                     accept="image/png,image/jpeg,image/webp"
                     className="hidden"
                     onChange={(e) => pickFile(e.target.files?.[0] || null)}
+                  />
+                  <PhotoGuideModal
+                    open={guideOpen}
+                    onClose={() => setGuideOpen(false)}
+                    onSelect={() => {
+                      setGuideOpen(false);
+                      openPicker();
+                    }}
                   />
                 </section>
 

@@ -231,34 +231,74 @@ export function getLedger(limit = 50) {
   );
 }
 
-export async function purchaseCredits(packId: string, gateway?: string) {
-  const res = await apiPost<{
-    balance: number;
-    credited: number;
-    payment?: {
-      id: string;
-      status: string;
-      reference: string | null;
-      amount: number;
-      currency: string;
-    };
-    invoiceUrl?: string;
-  }>(
-    "/api/b2b/credits/purchase",
-    { pack: packId, gateway: gateway || "stub" },
-    tok()
-  );
-  notifyCreditsChanged();
+export async function purchaseCredits(
+  packId: string,
+  opts?: { gateway?: string; phone?: string }
+) {
+  try {
+    const res = await apiPost<{
+      balance: number;
+      credited: number;
+      payment?: {
+        id: string;
+        status: string;
+        reference: string | null;
+        amount: number;
+        currency: string;
+      };
+      invoiceUrl?: string;
+      pending?: boolean;
+      instructions?: string;
+    }>(
+      "/api/b2b/credits/purchase",
+      {
+        pack: packId,
+        gateway: opts?.gateway || "auto",
+        phone: opts?.phone,
+      },
+      tok()
+    );
 
-  if (res.payment?.id && res.payment.status === "paid") {
-    try {
-      await downloadCreditInvoice(res.payment.id);
-    } catch {
-      // Purchase succeeded even if the download fails.
+    if (res.pending || res.payment?.status === "pending") {
+      return {
+        balance: 0,
+        credited: 0,
+        payment: res.payment,
+        pending: true,
+        instructions: res.instructions,
+      };
     }
-  }
 
-  return res;
+    notifyCreditsChanged();
+
+    if (res.payment?.id && res.payment.status === "paid") {
+      try {
+        await downloadCreditInvoice(res.payment.id);
+      } catch {
+        // Purchase succeeded even if the download fails.
+      }
+    }
+
+    return res;
+  } catch (err) {
+    const e = err as { status?: number; body?: Record<string, unknown> };
+    if (e?.status === 402 && e.body?.payment) {
+      return {
+        balance: 0,
+        credited: 0,
+        payment: e.body.payment as {
+          id: string;
+          status: string;
+          reference: string | null;
+          amount: number;
+          currency: string;
+        },
+        pending: true,
+        instructions: (e.body.instructions as string) || undefined,
+      };
+    }
+    throw err;
+  }
 }
 
 export async function downloadCreditInvoice(paymentId: string) {

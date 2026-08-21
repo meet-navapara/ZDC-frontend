@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "zimji_landing_photo_guide_v4";
+const STORAGE_KEY = "zimji_landing_photo_guide_v6";
 
 const GOOD_EXAMPLES = [
   {
@@ -59,6 +59,22 @@ const AVOID_POINTS = [
   "Sitting in the photo",
 ];
 
+export function isPhotoGuideDismissed() {
+  try {
+    return localStorage.getItem(STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function persistPhotoGuideDismissed() {
+  try {
+    localStorage.setItem(STORAGE_KEY, "1");
+  } catch {
+    // ignore
+  }
+}
+
 function ExampleThumb({
   src,
   alt,
@@ -97,36 +113,39 @@ function ExampleThumb({
   );
 }
 
-export function LandingPhotoGuide() {
-  const [open, setOpen] = useState(false);
-  const [dontShowAgain, setDontShowAgain] = useState(true);
+type PhotoGuideModalProps = {
+  open: boolean;
+  onClose: () => void;
+  /** Called from the “Select Photo” button — keep this in the same click tick. */
+  onSelect: () => void;
+};
+
+export function PhotoGuideModal({ open, onClose, onSelect }: PhotoGuideModalProps) {
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {
-    try {
-      if (localStorage.getItem(STORAGE_KEY) === "1") return;
-    } catch {
-      // private browsing — still show once per session
+    if (!open) {
+      document.body.style.overflow = "";
+      return;
     }
-    setOpen(true);
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
     };
-  }, []);
-
-  useEffect(() => {
-    if (!open) document.body.style.overflow = "";
   }, [open]);
 
+  function persistIfNeeded() {
+    if (dontShowAgain) persistPhotoGuideDismissed();
+  }
+
   function dismiss() {
-    if (dontShowAgain) {
-      try {
-        localStorage.setItem(STORAGE_KEY, "1");
-      } catch {
-        // ignore
-      }
-    }
-    setOpen(false);
+    persistIfNeeded();
+    onClose();
+  }
+
+  function selectPhoto() {
+    persistIfNeeded();
+    onSelect();
   }
 
   if (!open) return null;
@@ -213,7 +232,7 @@ export function LandingPhotoGuide() {
 
           <button
             type="button"
-            onClick={dismiss}
+            onClick={selectPhoto}
             className="w-full rounded-full bg-sage py-3.5 text-center text-base font-semibold text-paper transition hover:bg-sage-dark"
           >
             Select Photo

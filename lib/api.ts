@@ -3,23 +3,35 @@ import * as Sentry from "@sentry/nextjs";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 
+export class ApiHttpError extends Error {
+  status: number;
+  body: Record<string, unknown>;
+
+  constructor(status: number, message: string, body: Record<string, unknown> = {}) {
+    super(message);
+    this.name = "ApiHttpError";
+    this.status = status;
+    this.body = body;
+  }
+}
+
 async function handle<T>(res: Response, path: string): Promise<T> {
   if (!res.ok) {
     let message = `${res.status}`;
+    let body: Record<string, unknown> = {};
     try {
-      const body = await res.json();
-      message = body.error || message;
+      body = (await res.json()) as Record<string, unknown>;
+      message = (body.error as string) || message;
     } catch {
       // ignore
     }
-    // Leave a trail for Sentry so failed requests have request context.
     Sentry.addBreadcrumb({
       category: "api",
       level: res.status >= 500 ? "error" : "warning",
       message: `${res.status} ${path}`,
       data: { path, status: res.status },
     });
-    throw new Error(message);
+    throw new ApiHttpError(res.status, message, body);
   }
   return res.json() as Promise<T>;
 }
