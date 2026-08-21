@@ -231,6 +231,20 @@ export function getLedger(limit = 50) {
   );
 }
 
+export type CreditPurchasePayment = {
+  id: string;
+  status: string;
+  gateway?: string;
+  reference: string | null;
+  amount: number;
+  currency: string;
+  razorpay?: {
+    keyId: string | null;
+    orderId: string | null;
+    amountPaise: number | null;
+  } | null;
+};
+
 export async function purchaseCredits(
   packId: string,
   opts?: { gateway?: string; phone?: string }
@@ -239,19 +253,7 @@ export async function purchaseCredits(
     const res = await apiPost<{
       balance: number;
       credited: number;
-      payment?: {
-        id: string;
-        status: string;
-        gateway?: string;
-        reference: string | null;
-        amount: number;
-        currency: string;
-        razorpay?: {
-          keyId: string | null;
-          orderId: string | null;
-          amountPaise: number | null;
-        } | null;
-      };
+      payment?: CreditPurchasePayment;
       invoiceUrl?: string;
       pending?: boolean;
       instructions?: string;
@@ -270,7 +272,7 @@ export async function purchaseCredits(
         balance: 0,
         credited: 0,
         payment: res.payment,
-        pending: true,
+        pending: true as const,
         instructions: res.instructions,
       };
     }
@@ -292,14 +294,8 @@ export async function purchaseCredits(
       return {
         balance: 0,
         credited: 0,
-        payment: e.body.payment as {
-          id: string;
-          status: string;
-          reference: string | null;
-          amount: number;
-          currency: string;
-        },
-        pending: true,
+        payment: e.body.payment as CreditPurchasePayment,
+        pending: true as const,
         instructions: (e.body.instructions as string) || undefined,
       };
     }
