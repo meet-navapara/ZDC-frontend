@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getAnalytics, type PlatformStats } from "@/lib/admin";
 import { ChartPanel, useLiveRefresh } from "@/components/MiniBarChart";
+import { PageLoader } from "@/components/PageLoader";
 
 function fmt(n: number) {
   return new Intl.NumberFormat("en-US").format(n);
@@ -78,6 +79,10 @@ export default function AdminAnalyticsPage() {
   const revenueSeries = stats?.series.revenue || [];
   const tryonSeries = stats?.series.tryons || [];
 
+  if (loading && !stats) {
+    return <PageLoader label="Loading analytics…" />;
+  }
+
   return (
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -116,23 +121,23 @@ export default function AdminAnalyticsPage() {
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="Revenue (all-time)"
-          value={loading && !stats ? "—" : money(stats?.revenue.total ?? 0, cur)}
+          value={money(stats?.revenue.total ?? 0, cur)}
           hint={`${money(stats?.revenue.today ?? 0, cur)} today`}
           accent
         />
         <StatCard
           label="Try-ons (all-time)"
-          value={loading && !stats ? "—" : fmt(stats?.tryons.total ?? 0)}
+          value={fmt(stats?.tryons.total ?? 0)}
           hint={`${fmt(stats?.tryons.today ?? 0)} today`}
         />
         <StatCard
           label="Total users"
-          value={loading && !stats ? "—" : fmt(stats?.users.total ?? 0)}
+          value={fmt(stats?.users.total ?? 0)}
           hint={`+${fmt(stats?.users.newToday ?? 0)} today`}
         />
         <StatCard
           label="Render success"
-          value={loading && !stats ? "—" : `${stats?.tryons.successRate ?? 0}%`}
+          value={`${stats?.tryons.successRate ?? 0}%`}
           hint="completed / all try-ons"
         />
       </div>
@@ -140,19 +145,19 @@ export default function AdminAnalyticsPage() {
       <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="Revenue today"
-          value={loading && !stats ? "—" : money(stats?.revenue.today ?? 0, cur)}
+          value={money(stats?.revenue.today ?? 0, cur)}
         />
         <StatCard
           label="Try-ons today"
-          value={loading && !stats ? "—" : fmt(stats?.tryons.today ?? 0)}
+          value={fmt(stats?.tryons.today ?? 0)}
         />
         <StatCard
           label="New users today"
-          value={loading && !stats ? "—" : fmt(stats?.users.newToday ?? 0)}
+          value={fmt(stats?.users.newToday ?? 0)}
         />
         <StatCard
           label="Pending B2B"
-          value={loading && !stats ? "—" : fmt(stats?.users.pendingB2B ?? 0)}
+          value={fmt(stats?.users.pendingB2B ?? 0)}
           accent={(stats?.users.pendingB2B ?? 0) > 0}
         />
       </div>
@@ -165,7 +170,7 @@ export default function AdminAnalyticsPage() {
           valueKey="amount"
           chart="line"
           formatValue={(n) => money(n, cur)}
-          loading={loading && !stats}
+          loading={false}
           updatedAt={updatedAt}
           emptyHint="When customers pay for try-ons or businesses buy credits, daily revenue appears here."
         />
@@ -175,7 +180,7 @@ export default function AdminAnalyticsPage() {
           data={tryonSeries}
           dual
           formatValue={(n) => fmt(n)}
-          loading={loading && !stats}
+          loading={false}
           updatedAt={updatedAt}
           emptyHint="Try-ons from consumers and businesses show up here as soon as jobs are created."
         />
@@ -189,12 +194,12 @@ export default function AdminAnalyticsPage() {
           valueKey="count"
           chart="bar"
           formatValue={(n) => fmt(n)}
-          loading={loading && !stats}
+          loading={false}
           updatedAt={updatedAt}
         />
       </div>
 
-      {!loading && stats && (
+      {stats && (
         <div className="mt-4 flex flex-wrap gap-4 text-xs text-ink-muted">
           <span>
             B2C try-on revenue:{" "}

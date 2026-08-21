@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { listAudit, type AuditEntry } from "@/lib/admin";
 import { CustomSelect } from "@/components/CustomSelect";
+import { PageLoader } from "@/components/PageLoader";
 
 const ACTION_LABEL: Record<string, string> = {
   "user.status_changed": "Status changed",
@@ -78,6 +79,10 @@ export default function AdminAuditPage() {
     load();
   }, [load]);
 
+  if (loading && logs.length === 0) {
+    return <PageLoader label="Loading audit log…" />;
+  }
+
   return (
     <div className="mx-auto max-w-5xl">
       {error && (
@@ -142,13 +147,7 @@ export default function AdminAuditPage() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-ink-muted">
-                  Loading…
-                </td>
-              </tr>
-            ) : logs.length === 0 ? (
+            {logs.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-ink-muted">
                   No audit entries yet.

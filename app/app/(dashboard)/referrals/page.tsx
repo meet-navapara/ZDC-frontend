@@ -6,6 +6,7 @@ import { getUser, saveAuth, getToken } from "@/lib/auth";
 import { apiGet } from "@/lib/api";
 import type { AuthUser } from "@/lib/auth";
 import { toast } from "@/lib/toast";
+import { PageLoader } from "@/components/PageLoader";
 
 export default function ReferralsPage() {
   const [stats, setStats] = useState<ReferralStats | null>(null);
@@ -73,6 +74,10 @@ export default function ReferralsPage() {
 
   const user = getUser();
 
+  if (loading) {
+    return <PageLoader label="Loading referrals…" />;
+  }
+
   return (
     <div className="mx-auto max-w-3xl">
       {error && (
@@ -81,13 +86,6 @@ export default function ReferralsPage() {
         </div>
       )}
 
-      {loading ? (
-        <div className="space-y-4">
-          <div className="h-36 animate-pulse rounded-2xl bg-ink/5" />
-          <div className="h-28 animate-pulse rounded-2xl bg-ink/5" />
-        </div>
-      ) : (
-        <>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="card rounded-2xl border-sage/30 bg-sage/10 p-5">
               <div className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
@@ -191,8 +189,6 @@ export default function ReferralsPage() {
               </li>
             </ol>
           </section>
-        </>
-      )}
     </div>
   );
 }

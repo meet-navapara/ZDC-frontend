@@ -7,6 +7,7 @@ import {
   type PaymentRow,
   type PaymentSummary,
 } from "@/lib/admin";
+import { PageLoader } from "@/components/PageLoader";
 
 const STATUS_TONE: Record<string, string> = {
   paid: "bg-sage/10 text-sage-dark border-sage/30",
@@ -106,6 +107,10 @@ export default function AdminPaymentsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  if (loading && rows.length === 0 && !summary) {
+    return <PageLoader label="Loading payments…" />;
+  }
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -232,13 +237,7 @@ export default function AdminPaymentsPage() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-ink-muted">
-                  Loading…
-                </td>
-              </tr>
-            ) : rows.length === 0 ? (
+            {rows.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-10 text-center text-ink-muted">
                   No payments match these filters.

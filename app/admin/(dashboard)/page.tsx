@@ -9,6 +9,7 @@ import {
   type PlatformStats,
 } from "@/lib/admin";
 import { ChartPanel, useLiveRefresh } from "@/components/MiniBarChart";
+import { PageLoader } from "@/components/PageLoader";
 
 function StatCard({
   label,
@@ -71,7 +72,10 @@ export default function AdminOverviewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick]);
 
-  const dash = "—";
+  if (loading && !data) {
+    return <PageLoader label="Loading overview…" />;
+  }
+
   const u = data?.users;
   const cur = analytics?.revenue.currency || "KES";
 
@@ -87,38 +91,36 @@ export default function AdminOverviewPage() {
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Total users" value={loading ? dash : u?.total ?? 0} />
-        <StatCard label="Consumers (B2C)" value={loading ? dash : u?.b2c ?? 0} />
-        <StatCard label="Businesses (B2B)" value={loading ? dash : u?.b2b ?? 0} />
+        <StatCard label="Total users" value={u?.total ?? 0} />
+        <StatCard label="Consumers (B2C)" value={u?.b2c ?? 0} />
+        <StatCard label="Businesses (B2B)" value={u?.b2b ?? 0} />
         <StatCard
           label="Pending approval"
-          value={loading ? dash : u?.pendingB2B ?? 0}
+          value={u?.pendingB2B ?? 0}
           hint="B2B awaiting review"
-          accent={!loading && (u?.pendingB2B ?? 0) > 0}
+          accent={(u?.pendingB2B ?? 0) > 0}
         />
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="Revenue today"
-          value={loading ? dash : money(analytics?.revenue.today ?? 0, cur)}
-          hint={
-            loading ? "" : `${money(analytics?.revenue.total ?? 0, cur)} all-time`
-          }
+          value={money(analytics?.revenue.today ?? 0, cur)}
+          hint={`${money(analytics?.revenue.total ?? 0, cur)} all-time`}
           accent
         />
         <StatCard
           label="Revenue (7d)"
-          value={loading ? dash : money(analytics?.revenue.last7 ?? 0, cur)}
+          value={money(analytics?.revenue.last7 ?? 0, cur)}
         />
         <StatCard
           label="Try-ons today"
-          value={loading ? dash : data?.tryons.today ?? 0}
-          hint={loading ? "" : `${data?.tryons.total ?? 0} all-time`}
+          value={data?.tryons.today ?? 0}
+          hint={`${data?.tryons.total ?? 0} all-time`}
         />
         <StatCard
           label="New users today"
-          value={loading ? dash : analytics?.users.newToday ?? 0}
+          value={analytics?.users.newToday ?? 0}
         />
       </div>
 
@@ -130,7 +132,7 @@ export default function AdminOverviewPage() {
           valueKey="amount"
           chart="line"
           formatValue={(n) => money(n, cur)}
-          loading={loading}
+          loading={false}
           updatedAt={updatedAt}
           emptyHint="Revenue bars fill when payments succeed."
         />
@@ -140,7 +142,7 @@ export default function AdminOverviewPage() {
           data={analytics?.series.tryons || []}
           dual
           formatValue={(n) => fmt(n)}
-          loading={loading}
+          loading={false}
           updatedAt={updatedAt}
           emptyHint="Try-on jobs appear here as soon as they are created."
         />

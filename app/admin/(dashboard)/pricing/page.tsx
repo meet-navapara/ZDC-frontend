@@ -9,6 +9,7 @@ import {
 } from "@/lib/admin";
 import { LIMITS } from "@/lib/limits";
 import { toast } from "@/lib/toast";
+import { PageLoader } from "@/components/PageLoader";
 
 function Field({
   label,
@@ -89,7 +90,7 @@ export default function AdminPricingPage() {
   }
 
   if (loading) {
-    return <div className="p-8 text-ink-muted">Loading pricing…</div>;
+    return <PageLoader label="Loading pricing…" />;
   }
 
   return (

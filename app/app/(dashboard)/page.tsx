@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { apiUrl } from "@/lib/api";
 import { getMyReferral, getMyStats, type B2cJob, type B2cStats } from "@/lib/b2c";
 import { getUser } from "@/lib/auth";
+import { PageLoader } from "@/components/PageLoader";
 
 function StatCard({
   label,
@@ -63,7 +64,9 @@ export default function ConsumerOverviewPage() {
       .finally(() => setLoading(false));
   }, [user?.freeTryons]);
 
-  const dash = "—";
+  if (loading) {
+    return <PageLoader label="Loading overview…" />;
+  }
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -93,25 +96,21 @@ export default function ConsumerOverviewPage() {
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Total try-ons"
-          value={loading ? dash : stats?.total ?? 0}
+          value={stats?.total ?? 0}
           accent
         />
         <StatCard
           label="Completed looks"
-          value={loading ? dash : stats?.completed ?? 0}
+          value={stats?.completed ?? 0}
         />
         <StatCard
           label="Free try-ons"
-          value={loading ? dash : freeTryons}
+          value={freeTryons}
           hint="From referrals"
         />
         <StatCard
           label="Total spent"
-          value={
-            loading
-              ? dash
-              : money(stats?.spentTotal ?? 0, stats?.currency || "KES")
-          }
+          value={money(stats?.spentTotal ?? 0, stats?.currency || "KES")}
         />
       </div>
 
@@ -128,13 +127,7 @@ export default function ConsumerOverviewPage() {
           </Link>
         </div>
 
-        {loading ? (
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="aspect-[3/4] animate-pulse rounded-2xl bg-ink/5" />
-            ))}
-          </div>
-        ) : recent.length === 0 ? (
+        {recent.length === 0 ? (
           <div className="card mt-4 rounded-2xl px-6 py-12 text-center">
             <p className="text-ink-muted">
               No looks yet. Start your first try-on to see results here.

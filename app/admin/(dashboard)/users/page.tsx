@@ -14,6 +14,7 @@ import {
   type UserStatus,
 } from "@/lib/admin";
 import { toast } from "@/lib/toast";
+import { PageLoader } from "@/components/PageLoader";
 
 const STATUS_STYLES: Record<string, string> = {
   active: "bg-sage/15 text-sage-dark",
@@ -145,6 +146,10 @@ function UsersInner() {
     load();
   }
 
+  if (loading && rows.length === 0) {
+    return <PageLoader label="Loading users…" />;
+  }
+
   return (
     <div className="mx-auto max-w-6xl">
       {msg && (
@@ -220,13 +225,7 @@ function UsersInner() {
             </tr>
           </thead>
           <tbody className="divide-y divide-ink/5">
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-ink-muted">
-                  Loading…
-                </td>
-              </tr>
-            ) : rows.length === 0 ? (
+            {rows.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-ink-muted">
                   No users match these filters.
@@ -318,11 +317,7 @@ function UsersInner() {
 
       {/* Cards (mobile) */}
       <div className="mt-6 space-y-3 md:hidden">
-        {loading ? (
-          <div className="rounded-2xl border border-ink/10 bg-white px-4 py-10 text-center text-ink-muted dark:border-white/10 dark:bg-[#14120f]">
-            Loading…
-          </div>
-        ) : rows.length === 0 ? (
+        {rows.length === 0 ? (
           <div className="rounded-2xl border border-ink/10 bg-white px-4 py-10 text-center text-ink-muted dark:border-white/10 dark:bg-[#14120f]">
             No users match these filters.
           </div>
@@ -548,7 +543,7 @@ function UsersInner() {
 
 export default function AdminUsersPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-ink-muted">Loading…</div>}>
+    <Suspense fallback={<PageLoader label="Loading users…" />}>
       <UsersInner />
     </Suspense>
   );

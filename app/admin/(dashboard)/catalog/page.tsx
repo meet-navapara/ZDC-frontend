@@ -7,6 +7,7 @@ import {
   type CatalogProduct,
   type CatalogUploader,
 } from "@/lib/admin";
+import { PageLoader } from "@/components/PageLoader";
 
 const STATUS_TONE: Record<string, string> = {
   active: "bg-sage/10 text-sage-dark border-sage/30",
@@ -230,6 +231,10 @@ export default function AdminCatalogPage() {
 
   const selectedUploader = uploaders.find((u) => u.id === businessId) || null;
 
+  if (loading && products.length === 0) {
+    return <PageLoader label="Loading catalog…" />;
+  }
+
   return (
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -419,16 +424,7 @@ export default function AdminCatalogPage() {
         </div>
       )}
 
-      {loading ? (
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-64 animate-pulse rounded-2xl bg-ink/5 dark:bg-white/5"
-            />
-          ))}
-        </div>
-      ) : products.length === 0 ? (
+      {products.length === 0 ? (
         <div className="mt-10 rounded-2xl border border-dashed border-ink/15 bg-white py-16 text-center text-ink-muted dark:border-white/12 dark:bg-[#14120f]">
           No products match these filters.
         </div>

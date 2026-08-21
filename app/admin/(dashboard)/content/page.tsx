@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getContent, updateContent } from "@/lib/admin";
 import type { SiteContent } from "@/lib/content";
 import { toast } from "@/lib/toast";
+import { PageLoader } from "@/components/PageLoader";
 
 const input =
   "w-full rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sage";
@@ -161,7 +162,7 @@ export default function AdminContentPage() {
   }
 
   if (loading) {
-    return <div className="text-ink-muted">Loading…</div>;
+    return <PageLoader label="Loading content…" />;
   }
 
   if (!content) {

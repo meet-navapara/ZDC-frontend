@@ -16,6 +16,7 @@ import {
   paymentHintForCurrency,
 } from "@/lib/countries";
 import { toast } from "@/lib/toast";
+import { PageLoader } from "@/components/PageLoader";
 
 const CATEGORIES = [
   { id: "salon", label: "Salon" },
@@ -154,16 +155,12 @@ export default function SettingsPage() {
     }
   }
 
+  if (loading) {
+    return <PageLoader label="Loading settings…" />;
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      {loading ? (
-        <div className="space-y-3">
-          <div className="h-12 animate-pulse rounded-xl bg-ink/5" />
-          <div className="h-12 animate-pulse rounded-xl bg-ink/5" />
-          <div className="h-12 animate-pulse rounded-xl bg-ink/5" />
-        </div>
-      ) : (
-        <>
         <form onSubmit={onSubmit} className="card space-y-4 rounded-2xl p-6">
           {notice && (
             <div className="rounded-xl border border-sage/40 bg-sage/10 px-4 py-3 text-sm text-sage-dark">
@@ -330,8 +327,6 @@ export default function SettingsPage() {
         <section className="card space-y-4 rounded-2xl p-6">
           <BranchManager compact refreshKey={branchRefreshKey} />
         </section>
-        </>
-      )}
     </div>
   );
 }

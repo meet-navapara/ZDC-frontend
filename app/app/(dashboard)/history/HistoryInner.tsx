@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { apiUrl } from "@/lib/api";
 import { listMyJobs, type B2cJob } from "@/lib/b2c";
 import { TryOnShareActions } from "@/components/TryOnShareActions";
+import { PageLoader } from "@/components/PageLoader";
 
 const HOURS_72 = 72 * 60 * 60 * 1000;
 
@@ -74,6 +75,10 @@ export default function HistoryInner() {
     [jobs]
   );
 
+  if (loading && jobs.length === 0) {
+    return <PageLoader label="Loading history…" />;
+  }
+
   return (
     <div className="mx-auto max-w-5xl">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -115,23 +120,12 @@ export default function HistoryInner() {
       )}
 
       <p className="mt-4 text-sm text-ink-muted">
-        {loading
-          ? "Loading…"
-          : `${jobs.length} try-on${jobs.length === 1 ? "" : "s"}${
-              completedCount ? ` · ${completedCount} with photos` : ""
-            }`}
+        {`${jobs.length} try-on${jobs.length === 1 ? "" : "s"}${
+          completedCount ? ` · ${completedCount} with photos` : ""
+        }`}
       </p>
 
-      {loading ? (
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="aspect-[3/4] animate-pulse rounded-2xl bg-ink/5"
-            />
-          ))}
-        </div>
-      ) : jobs.length === 0 ? (
+      {jobs.length === 0 ? (
         <div className="card mt-6 rounded-2xl px-6 py-12 text-center text-ink-muted">
           No try-ons match this filter yet.
         </div>

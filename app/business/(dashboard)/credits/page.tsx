@@ -19,6 +19,7 @@ import {
 import { getUser } from "@/lib/auth";
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { toast } from "@/lib/toast";
+import { PageLoader } from "@/components/PageLoader";
 
 const LEDGER_LABEL: Record<LedgerEntry["type"], string> = {
   purchase: "Purchase",
@@ -30,6 +31,7 @@ export default function CreditsPage() {
   const [balance, setBalance] = useState<number | null>(null);
   const [packs, setPacks] = useState<CreditPack[]>([]);
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
+  const [loading, setLoading] = useState(true);
   const [buying, setBuying] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -56,16 +58,42 @@ export default function CreditsPage() {
   }
 
   useEffect(() => {
-    getCreditPacks()
-      .then((r) => setPacks(r.packs))
-      .catch(() => setPacks([]));
-    listPaymentMethods()
-      .then((r) => {
-        setPaymentNotice(r.paymentNotice || null);
-        setDefaultGateway(r.defaultGateway || "stub");
-      })
-      .catch(() => {});
-    refresh();
+    let cancelled = false;
+    Promise.all([
+      getCreditPacks()
+        .then((r) => {
+          if (!cancelled) setPacks(r.packs);
+        })
+        .catch(() => {
+          if (!cancelled) setPacks([]);
+        }),
+      listPaymentMethods()
+        .then((r) => {
+          if (cancelled) return;
+          setPaymentNotice(r.paymentNotice || null);
+          setDefaultGateway(r.defaultGateway || "stub");
+        })
+        .catch(() => {}),
+      getBalance()
+        .then((b) => {
+          if (!cancelled) setBalance(b.balance);
+        })
+        .catch(() => {
+          if (!cancelled) setBalance(0);
+        }),
+      getLedger(50)
+        .then((l) => {
+          if (!cancelled) setLedger(l.ledger);
+        })
+        .catch(() => {
+          if (!cancelled) setLedger([]);
+        }),
+    ]).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function buy(pack: CreditPack) {
@@ -169,6 +197,10 @@ export default function CreditsPage() {
     }
   }
 
+  if (loading) {
+    return <PageLoader label="Loading credits…" />;
+  }
+
   if (awaitingPay === "mpesa") {
     return (
       <div className="mx-auto max-w-5xl">
@@ -224,7 +256,7 @@ export default function CreditsPage() {
             Current balance
           </div>
           <div className="mt-1 font-display text-4xl font-semibold text-ink sm:text-5xl">
-            {balance ?? "—"}
+            {balance ?? 0}
           </div>
         </div>
         <p className="text-sm text-ink-muted">1 credit = 1 try-on render</p>
@@ -264,13 +296,6 @@ export default function CreditsPage() {
       )}
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {packs.length === 0 && (
-          <>
-            <div className="h-48 animate-pulse rounded-2xl bg-ink/5" />
-            <div className="h-48 animate-pulse rounded-2xl bg-ink/5" />
-            <div className="h-48 animate-pulse rounded-2xl bg-ink/5" />
-          </>
-        )}
         {packs.map((p, i) => {
           const perCredit = (p.amount / p.credits).toFixed(1);
           const best = i === 1;

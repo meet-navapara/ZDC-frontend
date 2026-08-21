@@ -11,6 +11,7 @@ import {
   type LedgerEntry,
 } from "@/lib/b2b";
 import { ChartPanel, useLiveRefresh } from "@/components/MiniBarChart";
+import { PageLoader } from "@/components/PageLoader";
 import { toast } from "@/lib/toast";
 
 function StatCard({
@@ -94,7 +95,10 @@ export default function OverviewPage() {
     }
   }
 
-  const dash = "—";
+  if (loading && !stats) {
+    return <PageLoader label="Loading overview…" />;
+  }
+
   const cur = stats?.finance?.currency || "KES";
   const tryonSeries = stats?.charts?.tryons || stats?.series || [];
   const spendSeries = stats?.charts?.spend || [];
@@ -131,23 +135,23 @@ export default function OverviewPage() {
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="Catalogue items"
-          value={loading ? dash : stats?.catalog.activeProducts ?? 0}
+          value={stats?.catalog.activeProducts ?? 0}
           hint="active products"
         />
         <StatCard
           label="Credits balance"
-          value={loading ? dash : stats?.credits.balance ?? 0}
+          value={stats?.credits.balance ?? 0}
           hint="1 credit = 1 render"
         />
         <StatCard
           label="Credits utilized"
-          value={loading ? dash : stats?.credits.consumed ?? 0}
+          value={stats?.credits.consumed ?? 0}
           hint="all-time"
         />
         <StatCard
           label="Try-ons this week"
-          value={loading ? dash : stats?.tryons.last7 ?? 0}
-          hint={loading ? "" : `${stats?.tryons.today ?? 0} today`}
+          value={stats?.tryons.last7 ?? 0}
+          hint={`${stats?.tryons.today ?? 0} today`}
         />
       </div>
 
@@ -155,19 +159,13 @@ export default function OverviewPage() {
       <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="Spend (all-time)"
-          value={
-            loading ? dash : money(stats?.finance?.spentTotal ?? 0, cur)
-          }
-          hint={
-            loading
-              ? ""
-              : `${money(stats?.finance?.spentLast30 ?? 0, cur)} last 30d`
-          }
+          value={money(stats?.finance?.spentTotal ?? 0, cur)}
+          hint={`${money(stats?.finance?.spentLast30 ?? 0, cur)} last 30d`}
           accent
         />
         <StatCard
           label="Render success"
-          value={loading ? dash : `${stats?.tryons.successRate ?? 0}%`}
+          value={`${stats?.tryons.successRate ?? 0}%`}
           hint="completed / total"
         />
         <Link
@@ -178,7 +176,7 @@ export default function OverviewPage() {
             Branches
           </div>
           <div className="mt-2 font-display text-3xl font-semibold text-ink">
-            {loading ? dash : (stats?.branches?.count ?? 0)}
+            {stats?.branches?.count ?? 0}
           </div>
           <div className="mt-1 text-xs text-ink-muted">
             Manage locations · Add branch
@@ -205,7 +203,7 @@ export default function OverviewPage() {
           valueKey="amount"
           chart="line"
           formatValue={(n) => money(n, cur)}
-          loading={loading}
+          loading={false}
           updatedAt={updatedAt}
           emptyHint="Buy a credit pack to see spend appear here day by day."
         />
@@ -215,7 +213,7 @@ export default function OverviewPage() {
           data={tryonSeries}
           valueKey="count"
           chart="bar"
-          loading={loading}
+          loading={false}
           updatedAt={updatedAt}
           emptyHint="Run a try-on from the Try-On page — today’s bar updates live."
         />
@@ -228,7 +226,7 @@ export default function OverviewPage() {
           data={creditSeries}
           valueKey="count"
           chart="bar"
-          loading={loading}
+          loading={false}
           updatedAt={updatedAt}
           emptyHint="Credits used show up here after completed renders."
         />
@@ -241,12 +239,7 @@ export default function OverviewPage() {
             Popular styles
           </h2>
           <p className="text-xs text-ink-muted">Top 5 most tried products</p>
-          {loading ? (
-            <div className="mt-4 space-y-2">
-              <div className="h-12 animate-pulse rounded-lg bg-ink/5" />
-              <div className="h-12 animate-pulse rounded-lg bg-ink/5" />
-            </div>
-          ) : stats && stats.popular.length > 0 ? (
+          {stats && stats.popular.length > 0 ? (
             <ol className="mt-4 space-y-3">
               {stats.popular.map((p, i) => (
                 <li key={p.productId} className="flex items-center gap-3">
@@ -294,13 +287,7 @@ export default function OverviewPage() {
             </Link>
           </div>
 
-          {loading ? (
-            <div className="mt-4 space-y-2">
-              <div className="h-10 animate-pulse rounded-lg bg-ink/5" />
-              <div className="h-10 animate-pulse rounded-lg bg-ink/5" />
-              <div className="h-10 animate-pulse rounded-lg bg-ink/5" />
-            </div>
-          ) : ledger.length === 0 ? (
+          {ledger.length === 0 ? (
             <p className="mt-4 text-sm text-ink-muted">
               No activity yet. Buy credits and run your first try-on.
             </p>

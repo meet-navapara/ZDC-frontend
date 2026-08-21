@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiUrl } from "@/lib/api";
 import { listMyPayments, type B2cPayment } from "@/lib/b2c";
+import { PageLoader } from "@/components/PageLoader";
 
 function money(n: number, currency = "KES") {
   return `${currency} ${new Intl.NumberFormat("en-US").format(n)}`;
@@ -27,6 +28,10 @@ export default function ConsumerPaymentsPage() {
       )
       .finally(() => setLoading(false));
   }, []);
+
+  if (loading) {
+    return <PageLoader label="Loading payments…" />;
+  }
 
   const spent = payments
     .filter((p) => p.status === "paid")
@@ -56,7 +61,7 @@ export default function ConsumerPaymentsPage() {
             Total spent
           </div>
           <div className="mt-2 font-display text-3xl font-semibold text-ink">
-            {loading ? "—" : money(spent, currency)}
+            {money(spent, currency)}
           </div>
         </div>
         <div className="card rounded-2xl border-sage/30 bg-sage/10 p-5">
@@ -64,7 +69,7 @@ export default function ConsumerPaymentsPage() {
             Payments
           </div>
           <div className="mt-2 font-display text-3xl font-semibold text-ink">
-            {loading ? "—" : total}
+            {total}
           </div>
         </div>
       </div>
@@ -73,13 +78,7 @@ export default function ConsumerPaymentsPage() {
         <div className="border-b border-ink/10 px-4 py-3 text-sm font-semibold text-ink">
           History
         </div>
-        {loading ? (
-          <div className="space-y-3 p-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-14 animate-pulse rounded-xl bg-ink/5" />
-            ))}
-          </div>
-        ) : payments.length === 0 ? (
+        {payments.length === 0 ? (
           <div className="px-4 py-12 text-center text-sm text-ink-muted">
             No payments yet.{" "}
             <Link href="/app/try-on" className="font-semibold text-sage">

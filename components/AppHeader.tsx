@@ -51,7 +51,7 @@ export function AppHeader() {
     <header className="fixed inset-x-0 top-0 z-50 px-3 sm:px-4">
       <div className="mx-auto mt-3 flex max-w-6xl items-center justify-between rounded-full glass px-3 py-2.5 sm:mt-4 sm:px-5 sm:py-3">
         <div onClick={() => setOpen(false)}>
-          <BrandLogo size="md" />
+          <BrandLogo size="md" href={user ? accountHref : "/"} />
         </div>
 
         {/* Desktop actions */}

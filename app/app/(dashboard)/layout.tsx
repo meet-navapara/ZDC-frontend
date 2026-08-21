@@ -86,7 +86,7 @@ export default function ConsumerDashboardLayout({
     return pathname === item.href || pathname.startsWith(item.href + "/");
   }
 
-  const brand = <BrandLogo href="/" size="sm" onDark badge="Personal" />;
+  const brand = <BrandLogo href="/app" size="sm" onDark badge="Personal" />;
 
   const navLinks = (
     <nav className="space-y-1">

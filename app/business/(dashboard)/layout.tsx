@@ -153,7 +153,7 @@ export default function DashboardLayout({
   }
 
   const brand = (
-    <BrandLogo href="/" size="sm" onDark badge="Business" />
+    <BrandLogo href="/business" size="sm" onDark badge="Business" />
   );
 
   const navLinks = (
@@ -181,7 +181,14 @@ export default function DashboardLayout({
         Credit balance
       </div>
       <div className="mt-1 font-display text-3xl font-semibold text-paper">
-        {credits ?? "—"}
+        {credits === null ? (
+          <span className="inline-flex items-center gap-2 text-paper/50">
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-paper/20 border-t-sage" />
+            <span className="text-lg">…</span>
+          </span>
+        ) : (
+          credits
+        )}
       </div>
       <Link
         href="/business/credits"
@@ -238,8 +245,12 @@ export default function DashboardLayout({
             <DarkModeToggle />
             <span className="inline-flex items-center gap-1.5 rounded-full bg-sage/10 px-3 py-1.5 text-sm font-semibold text-sage-dark dark:border dark:border-white/8 dark:bg-white/5 dark:text-[#d8d0c2]">
               <span className="text-xs">◈</span>
-              <span className="hidden sm:inline">{credits ?? "—"} credits</span>
-              <span className="sm:hidden">{credits ?? "—"}</span>
+              <span className="hidden sm:inline">
+                {credits === null ? "…" : credits} credits
+              </span>
+              <span className="sm:hidden">
+                {credits === null ? "…" : credits}
+              </span>
             </span>
             <button
               onClick={logout}

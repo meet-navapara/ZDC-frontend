@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiUrl } from "@/lib/api";
 import { TryOnShareActions } from "@/components/TryOnShareActions";
+import { PageLoader } from "@/components/PageLoader";
 import { getJob, type B2BJob } from "@/lib/b2b";
 
 export default function B2BTryOnResultPage() {
@@ -40,12 +41,7 @@ export default function B2BTryOnResultPage() {
   }, [jobId]);
 
   if (loading) {
-    return (
-      <div className="mt-24 flex flex-col items-center text-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-sage/20 border-t-sage" />
-        <p className="mt-4 text-ink-muted">Loading your render…</p>
-      </div>
-    );
+    return <PageLoader label="Loading your render…" />;
   }
 
   if (error || !job) {

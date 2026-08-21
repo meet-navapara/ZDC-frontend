@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth";
 import { LIMITS } from "@/lib/limits";
 import { toast } from "@/lib/toast";
+import { PageLoader } from "@/components/PageLoader";
 
 const inputClass =
   "w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-sage";
@@ -128,12 +129,7 @@ export default function ConsumerSettingsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="mx-auto max-w-3xl">
-        <div className="h-64 animate-pulse rounded-2xl bg-ink/5" />
-        <div className="mt-4 h-56 animate-pulse rounded-2xl bg-ink/5" />
-      </div>
-    );
+    return <PageLoader label="Loading settings…" />;
   }
 
   return (

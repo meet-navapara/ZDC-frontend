@@ -18,6 +18,7 @@ import {
 import { LIMITS } from "@/lib/limits";
 import BulkUploadModal from "@/components/BulkUploadModal";
 import { toast } from "@/lib/toast";
+import { PageLoader } from "@/components/PageLoader";
 
 const MAX_CATEGORIES = 10;
 
@@ -245,6 +246,10 @@ export default function CatalogPage() {
     }
   }
 
+  if (loading) {
+    return <PageLoader label="Loading catalog…" />;
+  }
+
   return (
     <div className="mx-auto max-w-6xl">
       {error && (
@@ -335,7 +340,7 @@ export default function CatalogPage() {
               </span>
             )
           )}
-          {categories.length === 0 && !loading && (
+          {categories.length === 0 && (
             <span className="text-sm text-ink-muted">No categories yet.</span>
           )}
         </div>
@@ -382,13 +387,7 @@ export default function CatalogPage() {
       </div>
 
       {/* Products */}
-      {loading ? (
-        <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="aspect-square animate-pulse rounded-2xl bg-ink/5" />
-          ))}
-        </div>
-      ) : visibleProducts.length === 0 ? (
+      {visibleProducts.length === 0 ? (
         <div className="mt-6 card rounded-2xl px-6 py-12 text-center">
           <p className="text-ink-muted">
             No products here yet. Use{" "}
