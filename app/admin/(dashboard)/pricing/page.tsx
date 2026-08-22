@@ -60,13 +60,27 @@ export default function AdminPricingPage() {
   function addB2c() {
     setB2c((a) => [
       ...a,
-      { id: `pack${a.length + 1}`, label: "New pack", images: 1, amount: 0, currency: "KES" },
+      {
+        id: `pack${a.length + 1}`,
+        label: "New pack",
+        images: 1,
+        amount: 0,
+        currency: "KES",
+        amountInr: 0,
+      },
     ]);
   }
   function addCredit() {
     setCredits((a) => [
       ...a,
-      { id: `bundle${a.length + 1}`, label: "New bundle", credits: 10, amount: 0, currency: "KES" },
+      {
+        id: `bundle${a.length + 1}`,
+        label: "New bundle",
+        credits: 10,
+        amount: 0,
+        currency: "KES",
+        amountInr: 0,
+      },
     ]);
   }
 
@@ -134,7 +148,7 @@ export default function AdminPricingPage() {
           {b2c.map((p, i) => (
             <div
               key={i}
-              className="grid grid-cols-2 gap-3 rounded-2xl border border-ink/10 bg-white p-4 md:grid-cols-6"
+              className="grid grid-cols-2 gap-3 rounded-2xl border border-ink/10 bg-white p-4 md:grid-cols-7"
             >
               <Field label="ID">
                 <input
@@ -163,7 +177,7 @@ export default function AdminPricingPage() {
                   }
                 />
               </Field>
-              <Field label="Amount">
+              <Field label="Amount (KES)">
                 <input
                   type="number"
                   min={0}
@@ -174,12 +188,19 @@ export default function AdminPricingPage() {
                   }
                 />
               </Field>
-              <Field label="Currency">
+              <Field label="Amount (INR)">
                 <input
+                  type="number"
+                  min={0}
                   className={inputCls}
-                  maxLength={LIMITS.currency}
-                  value={p.currency}
-                  onChange={(e) => updateB2c(i, { currency: e.target.value })}
+                  value={p.amountInr ?? ""}
+                  onChange={(e) =>
+                    updateB2c(i, {
+                      amountInr: e.target.value
+                        ? parseFloat(e.target.value)
+                        : null,
+                    })
+                  }
                 />
               </Field>
               <div className="flex items-end">
@@ -212,7 +233,7 @@ export default function AdminPricingPage() {
           {credits.map((p, i) => (
             <div
               key={i}
-              className="grid grid-cols-2 gap-3 rounded-2xl border border-ink/10 bg-white p-4 md:grid-cols-6"
+              className="grid grid-cols-2 gap-3 rounded-2xl border border-ink/10 bg-white p-4 md:grid-cols-7"
             >
               <Field label="ID">
                 <input
@@ -241,7 +262,7 @@ export default function AdminPricingPage() {
                   }
                 />
               </Field>
-              <Field label="Amount">
+              <Field label="Amount (KES)">
                 <input
                   type="number"
                   min={0}
@@ -252,12 +273,19 @@ export default function AdminPricingPage() {
                   }
                 />
               </Field>
-              <Field label="Currency">
+              <Field label="Amount (INR)">
                 <input
+                  type="number"
+                  min={0}
                   className={inputCls}
-                  maxLength={LIMITS.currency}
-                  value={p.currency}
-                  onChange={(e) => updateCredit(i, { currency: e.target.value })}
+                  value={p.amountInr ?? ""}
+                  onChange={(e) =>
+                    updateCredit(i, {
+                      amountInr: e.target.value
+                        ? parseFloat(e.target.value)
+                        : null,
+                    })
+                  }
                 />
               </Field>
               <div className="flex items-end">

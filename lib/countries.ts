@@ -1,36 +1,4 @@
-/** Countries for B2B registration / settings dropdowns. */
-export const COUNTRIES = [
-  "Kenya",
-  "Uganda",
-  "Tanzania",
-  "Rwanda",
-  "Ethiopia",
-  "Nigeria",
-  "Ghana",
-  "South Africa",
-  "India",
-  "United Arab Emirates",
-  "United Kingdom",
-  "United States",
-  "Canada",
-  "Australia",
-  "Germany",
-  "France",
-  "Netherlands",
-  "Singapore",
-  "Malaysia",
-  "Philippines",
-  "Indonesia",
-  "Pakistan",
-  "Bangladesh",
-  "Egypt",
-  "Morocco",
-  "Other",
-] as const;
-
-export type CountryName = (typeof COUNTRIES)[number];
-
-/** Supported billing currencies (ISO 4217). */
+/** Billing currencies (ISO 4217) and payment hints. */
 export const CURRENCIES = [
   { code: "KES", label: "KES — Kenyan Shilling", paymentHint: "M-Pesa" },
   { code: "UGX", label: "UGX — Ugandan Shilling", paymentHint: "Mobile money / card" },
@@ -61,59 +29,22 @@ export type CurrencyCode = (typeof CURRENCIES)[number]["code"];
 
 export const CURRENCY_CODES = CURRENCIES.map((c) => c.code) as CurrencyCode[];
 
-const COUNTRY_CURRENCY: Record<CountryName, CurrencyCode> = {
-  Kenya: "KES",
-  Uganda: "UGX",
-  Tanzania: "TZS",
-  Rwanda: "RWF",
-  Ethiopia: "ETB",
-  Nigeria: "NGN",
-  Ghana: "GHS",
-  "South Africa": "ZAR",
-  India: "INR",
-  "United Arab Emirates": "AED",
-  "United Kingdom": "GBP",
-  "United States": "USD",
-  Canada: "CAD",
-  Australia: "AUD",
-  Germany: "EUR",
-  France: "EUR",
-  Netherlands: "EUR",
-  Singapore: "SGD",
-  Malaysia: "MYR",
-  Philippines: "PHP",
-  Indonesia: "IDR",
-  Pakistan: "PKR",
-  Bangladesh: "BDT",
-  Egypt: "EGP",
-  Morocco: "MAD",
-  Other: "USD",
-};
-
-/** Default currency for a country (falls back to USD). */
-export function currencyForCountry(country: string | undefined | null): CurrencyCode {
-  if (!country) return "USD";
-  const matched = matchCountry(country) as CountryName;
-  return COUNTRY_CURRENCY[matched] || "USD";
-}
-
 export function paymentHintForCurrency(code: string | undefined | null): string {
   const found = CURRENCIES.find((c) => c.code === code);
   return found?.paymentHint || "Card / local methods";
 }
 
-/** Map Google Places country names onto our dropdown values when possible. */
-export function matchCountry(name: string | undefined | null): string {
-  if (!name) return "";
-  const trimmed = name.trim();
-  const exact = COUNTRIES.find((c) => c.toLowerCase() === trimmed.toLowerCase());
-  if (exact) return exact;
-  const aliases: Record<string, CountryName> = {
-    usa: "United States",
-    "united states of america": "United States",
-    uk: "United Kingdom",
-    "great britain": "United Kingdom",
-    uae: "United Arab Emirates",
-  };
-  return aliases[trimmed.toLowerCase()] || "Other";
-}
+export {
+  COUNTRIES,
+  PHONE_COUNTRIES,
+  countrySelectOptions,
+  phoneDialOptions,
+  currencyForCountry,
+  matchCountry,
+  getCountryByName,
+  dialCodeForCountry,
+  detectCountryFromPhone,
+  parsePhoneNumber,
+} from "./phoneCountries";
+
+export type { CountryName, PhoneCountry } from "./phoneCountries";

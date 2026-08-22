@@ -191,7 +191,7 @@ export type PaymentRow = {
   id: string;
   amount: number;
   currency: string;
-  status: "pending" | "paid" | "failed";
+  status: "pending" | "paid" | "failed" | "cancelled" | "refunded";
   gateway: string;
   purpose: string;
   reference: string | null;
@@ -204,12 +204,66 @@ export type PaymentRow = {
   } | null;
 };
 
-export type PaymentSummary = {
-  currency: string;
-  paid: { count: number; amount: number };
-  pending: { count: number; amount: number };
-  failed: { count: number; amount: number };
+export type CurrencyAmount = { count: number; amount: number };
+
+export type StatusCurrencySummary = {
+  kes: CurrencyAmount;
+  inr: CurrencyAmount;
+  totalCount: number;
 };
+
+export type PaymentSummary = {
+  paid: StatusCurrencySummary;
+  pending: StatusCurrencySummary;
+  failed: StatusCurrencySummary;
+  cancelled?: StatusCurrencySummary;
+  refunded?: StatusCurrencySummary;
+  byCurrency?: {
+    KES: Record<string, CurrencyAmount>;
+    INR: Record<string, CurrencyAmount>;
+  };
+};
+
+function emptyBucket(): CurrencyAmount {
+  return { count: 0, amount: 0 };
+}
+
+function emptyStatusSummary(): StatusCurrencySummary {
+  return { kes: emptyBucket(), inr: emptyBucket(), totalCount: 0 };
+}
+
+/** Accept new `{ paid: { kes, inr } }` or legacy `{ paid: { count, amount }, currency }`. */
+export function normalizePaymentSummary(raw: unknown): PaymentSummary {
+  const s = raw as Record<string, unknown> | null | undefined;
+  if (!s) {
+    return {
+      paid: emptyStatusSummary(),
+      pending: emptyStatusSummary(),
+      failed: emptyStatusSummary(),
+    };
+  }
+
+  const paid = s.paid as Record<string, unknown> | undefined;
+  if (paid && typeof paid.kes === "object" && typeof paid.inr === "object") {
+    return raw as PaymentSummary;
+  }
+
+  function fromLegacy(key: string): StatusCurrencySummary {
+    const bucket = (s![key] as CurrencyAmount | undefined) || emptyBucket();
+    const cur = String(s!.currency || "KES").toUpperCase();
+    const kes = cur === "INR" ? emptyBucket() : { ...bucket };
+    const inr = cur === "INR" ? { ...bucket } : emptyBucket();
+    return { kes, inr, totalCount: bucket.count };
+  }
+
+  return {
+    paid: fromLegacy("paid"),
+    pending: fromLegacy("pending"),
+    failed: fromLegacy("failed"),
+    cancelled: fromLegacy("cancelled"),
+    refunded: fromLegacy("refunded"),
+  };
+}
 
 export type PaymentResult = {
   payments: PaymentRow[];
@@ -241,7 +295,23 @@ export function listPayments(params?: {
   if (params?.q) qs.set("q", params.q);
   if (params?.days) qs.set("days", String(params.days));
   const query = qs.toString();
-  return apiGet<PaymentResult>(`/api/admin/payments${query ? `?${query}` : ""}`, tok());
+  return apiGet<PaymentResult>(`/api/admin/payments${query ? `?${query}` : ""}`, tok()).then(
+    (r) => ({ ...r, summary: normalizePaymentSummary(r.summary) })
+  );
+}
+
+export function refundPayment(id: string, body?: { reason?: string; reverseCredits?: boolean }) {
+  return apiPost<{
+    payment: {
+      id: string;
+      status: string;
+      amount: number;
+      currency: string;
+      gateway?: string;
+      purpose?: string;
+      reference?: string | null;
+    };
+  }>(`/api/admin/payments/${id}/refund`, body || {}, tok());
 }
 
 /* ---------------------------- Catalogue oversight ------------------------- */
@@ -316,6 +386,7 @@ export type B2cPack = {
   images: number;
   amount: number;
   currency: string;
+  amountInr?: number | null;
 };
 
 export type CreditPack = {
@@ -324,6 +395,7 @@ export type CreditPack = {
   credits: number;
   amount: number;
   currency: string;
+  amountInr?: number | null;
 };
 
 export type PricingConfig = {

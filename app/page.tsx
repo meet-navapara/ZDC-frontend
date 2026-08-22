@@ -5,6 +5,7 @@ import { Spotlight } from "@/components/Spotlight";
 import { LandingNav } from "@/components/LandingNav";
 import { BrandLogo } from "@/components/BrandLogo";
 import { getSiteContent } from "@/lib/content";
+import { formatDualPrice, getPublicPricing } from "@/lib/pricing";
 
 const categories = [
   "Braids",
@@ -68,7 +69,7 @@ const features = [
 
 const steps = [
   { n: "01", title: "Upload", desc: "Add a selfie and the outfit or hairstyle you want to try." },
-  { n: "02", title: "Pay", desc: "One tap via M-Pesa — pay only for what you render." },
+  { n: "02", title: "Pay", desc: "M-Pesa (Kenya) or Razorpay (India) — pay only for what you render." },
   { n: "03", title: "Reveal", desc: "Your try-on lands instantly in WhatsApp or email." },
 ];
 
@@ -123,8 +124,18 @@ const SOCIAL_LINKS = [
 ];
 
 export default async function Home() {
-  const content = await getSiteContent();
+  const [content, pricing] = await Promise.all([
+    getSiteContent(),
+    getPublicPricing(),
+  ]);
   const { hero, testimonials, pricingNote } = content;
+  const singlePack = pricing.packs.find((p) => p.id === "single") || pricing.packs[0];
+  const trioPack = pricing.packs.find((p) => p.id === "trio") || pricing.packs[1];
+  const starterCredit =
+    pricing.creditPacks?.find((p) => p.id === "starter") || pricing.creditPacks?.[0];
+  const singlePrice = singlePack ? formatDualPrice(singlePack) : null;
+  const trioPrice = trioPack ? formatDualPrice(trioPack) : null;
+  const creditPrice = starterCredit ? formatDualPrice(starterCredit) : null;
 
   return (
     <main className="relative">
@@ -521,11 +532,21 @@ export default async function Home() {
         <div className="mt-10 grid gap-4 sm:mt-14 sm:gap-6 md:grid-cols-3">
           <Reveal>
             <div className="card flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
-              <span className="text-sm text-ink-muted">Single</span>
+              <span className="text-sm text-ink-muted">
+                {singlePack?.label || "Single"}
+              </span>
               <div className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">
-                KES 20
+                {singlePrice?.primary || "KES 20"}
               </div>
-              <p className="mt-2 text-sm text-ink-muted">1 AI try-on render</p>
+              {singlePrice?.secondary && (
+                <div className="mt-1 text-lg font-medium text-ink-muted">
+                  {singlePrice.secondary}
+                </div>
+              )}
+              <p className="mt-2 text-sm text-ink-muted">
+                {singlePack?.images || 1} AI try-on render
+                {(singlePack?.images || 1) > 1 ? "s" : ""}
+              </p>
               <div className="mt-6 flex-1" />
               <a
                 href="/try-on"
@@ -538,11 +559,20 @@ export default async function Home() {
 
           <Reveal delay={100}>
             <div className="flex h-full flex-col rounded-2xl bg-sage p-6 text-paper shadow-xl shadow-sage/25 sm:rounded-3xl sm:p-8">
-              <span className="text-sm text-paper/80">Trio</span>
+              <span className="text-sm text-paper/80">
+                {trioPack?.label || "Trio"}
+              </span>
               <div className="mt-3 font-display text-4xl font-semibold sm:text-5xl">
-                KES 50
+                {trioPrice?.primary || "KES 50"}
               </div>
-              <p className="mt-2 text-sm text-paper/80">3 AI try-on renders</p>
+              {trioPrice?.secondary && (
+                <div className="mt-1 text-lg font-medium text-paper/80">
+                  {trioPrice.secondary}
+                </div>
+              )}
+              <p className="mt-2 text-sm text-paper/80">
+                {trioPack?.images || 3} AI try-on renders
+              </p>
               <span className="mt-4 inline-block w-fit rounded-full bg-paper/20 px-3 py-1 text-xs font-semibold">
                 Best value
               </span>
@@ -560,10 +590,17 @@ export default async function Home() {
             <div className="card flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
               <span className="text-sm text-ink-muted">Business</span>
               <div className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">
-                Credits
+                {creditPrice?.primary || "Credits"}
               </div>
+              {creditPrice?.secondary && (
+                <div className="mt-1 text-lg font-medium text-ink-muted">
+                  {creditPrice.secondary}
+                </div>
+              )}
               <p className="mt-2 text-sm text-ink-muted">
-                Prepaid packs for boutiques &amp; salons. 1 credit = 1 render.
+                {starterCredit
+                  ? `${starterCredit.label} — ${starterCredit.credits ?? ""} credits`
+                  : "Prepaid packs for boutiques & salons. 1 credit = 1 render."}
               </p>
               <div className="mt-6 flex-1" />
               <a
@@ -575,7 +612,9 @@ export default async function Home() {
             </div>
           </Reveal>
         </div>
-        <p className="mt-6 text-center text-xs text-ink-muted">{pricingNote}</p>
+        <p className="mt-6 text-center text-xs text-ink-muted">
+          {pricingNote} Pay with M-Pesa (KES) or Razorpay (INR).
+        </p>
       </section>
 
       {/* ============ TESTIMONIALS ============ */}

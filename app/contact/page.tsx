@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
+import { CustomSelect } from "@/components/CustomSelect";
 import { apiPost } from "@/lib/api";
 import { toast } from "@/lib/toast";
 
@@ -24,110 +25,6 @@ const COUNTRY_CODES = [
 
 const fieldClass =
   "w-full rounded-xl border border-ink/10 bg-white/70 px-4 py-3 text-sm text-ink outline-none transition placeholder:text-ink-muted focus:border-sage dark:border-white/10 dark:bg-white/[0.04] dark:text-[#f4efe7]";
-
-// ── Reusable custom dropdown ──────────────────────────────────────────────────
-function CustomSelect({
-  value,
-  onChange,
-  options,
-  placeholder,
-  required,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-  placeholder?: string;
-  required?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  // Close on outside click
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  // Close on Escape
-  useEffect(() => {
-    function handler(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, []);
-
-  const selected = options.find((o) => o.value === value);
-
-  return (
-    <div ref={ref} className="relative">
-      {/* Hidden native input for required validation */}
-      {required && (
-        <input
-          tabIndex={-1}
-          required
-          value={value}
-          onChange={() => {}}
-          className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
-          aria-hidden
-        />
-      )}
-
-      {/* Trigger button */}
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        className={`${fieldClass} flex items-center justify-between text-left ${
-          !selected ? "text-ink-muted" : ""
-        }`}
-      >
-        <span>{selected ? selected.label : (placeholder ?? "Select…")}</span>
-        <svg
-          className={`ml-2 h-4 w-4 shrink-0 text-ink-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-          viewBox="0 0 12 8"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        >
-          <path d="M1 1l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-
-      {/* Dropdown list */}
-      {open && (
-        <ul
-          role="listbox"
-          className="absolute z-50 mt-1.5 w-full overflow-hidden rounded-xl border border-ink/10 bg-white shadow-lg dark:border-white/10 dark:bg-[#1e1c18]"
-        >
-          {options.map((opt) => (
-            <li
-              key={opt.value}
-              role="option"
-              aria-selected={opt.value === value}
-              onClick={() => {
-                onChange(opt.value);
-                setOpen(false);
-              }}
-              className={`cursor-pointer px-4 py-2.5 text-sm transition-colors
-                ${
-                  opt.value === value
-                    ? "bg-sage/10 font-semibold text-sage-dark dark:text-sage"
-                    : "text-ink hover:bg-ink/5 dark:text-[#f4efe7] dark:hover:bg-white/5"
-                }`}
-            >
-              {opt.label}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function ContactPage() {

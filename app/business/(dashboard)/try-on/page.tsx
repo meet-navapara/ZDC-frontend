@@ -15,23 +15,88 @@ import {
   createB2BTryon,
   getJob,
   getBalance,
+  tryOnFeatureLabel,
+  type TryOnFeature,
   type Product,
   type Category,
   type B2BJob,
 } from "@/lib/b2b";
 import { toast } from "@/lib/toast";
+import {
+  friendlyTryOnError,
+  readImageDimensions,
+  tryOnImageSizeMessage,
+  tryOnImageTooSmall,
+} from "@/lib/tryOnImage";
 
 type Stage = "form" | "working" | "processing" | "done" | "error";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const ACCEPTED = ["image/png", "image/jpeg", "image/webp"];
 
-const LOOK_LINES = [
-  "Reading the silhouette…",
-  "Draping the fabric…",
-  "Matching colour and light…",
-  "Adding the finishing look…",
-];
+const LOOK_LINES_BY_FEATURE: Record<TryOnFeature, string[]> = {
+  cloth: [
+    "Reading the silhouette…",
+    "Draping the fabric…",
+    "Matching colour and light…",
+    "Adding the finishing look…",
+  ],
+  hair: [
+    "Mapping your features…",
+    "Blending the hairstyle…",
+    "Matching tone and texture…",
+    "Finishing the look…",
+  ],
+  haircolor: [
+    "Detecting hair regions…",
+    "Blending the new shade…",
+    "Balancing highlights…",
+    "Polishing the result…",
+  ],
+  beard: [
+    "Mapping facial structure…",
+    "Applying the beard style…",
+    "Blending edges naturally…",
+    "Finishing the look…",
+  ],
+};
+
+function getB2bTryOnCopy(feature: TryOnFeature) {
+  switch (feature) {
+    case "hair":
+      return {
+        selectedTitle: "Selected hairstyle",
+        selectedEmpty: "Select a hairstyle",
+        catalogTitle: "Choose hairstyle",
+        catalogDesc: "Pick a catalog item to try on the customer",
+        lookLines: LOOK_LINES_BY_FEATURE.hair,
+      };
+    case "haircolor":
+      return {
+        selectedTitle: "Selected hair color",
+        selectedEmpty: "Select a hair color look",
+        catalogTitle: "Choose hair color",
+        catalogDesc: "Pick a swatch or reference from your catalog",
+        lookLines: LOOK_LINES_BY_FEATURE.haircolor,
+      };
+    case "beard":
+      return {
+        selectedTitle: "Selected beard style",
+        selectedEmpty: "Select a beard style",
+        catalogTitle: "Choose beard style",
+        catalogDesc: "Pick a product — photo shows the beard style for your customer",
+        lookLines: LOOK_LINES_BY_FEATURE.beard,
+      };
+    default:
+      return {
+        selectedTitle: "Selected outfit",
+        selectedEmpty: "Select an outfit",
+        catalogTitle: "Choose your outfit",
+        catalogDesc: "Select the pieces you want to try on",
+        lookLines: LOOK_LINES_BY_FEATURE.cloth,
+      };
+  }
+}
 
 function HangerIcon() {
   return (
@@ -108,8 +173,8 @@ export default function B2BTryOnPage() {
           setStage("done");
           toast.success("Try-on complete");
         } else if (r.job.status === "failed") {
-          const msg = "Rendering failed. Your credits were refunded.";
-          setError(msg);
+          const msg = friendlyTryOnError(r.job.error);
+          setError(`${msg} Your credits were refunded.`);
           toast.error(msg);
           setStage("error");
           clearInterval(interval);
@@ -121,18 +186,28 @@ export default function B2BTryOnPage() {
     return () => clearInterval(interval);
   }, [stage, job]);
 
+  const selectedProduct = products.find((p) => p.id === productId);
+  const selectedCategory = selectedProduct?.category
+    ? categories.find((c) => c.id === selectedProduct.category)
+    : null;
+  const tryOnFeature: TryOnFeature =
+    selectedCategory?.tryOnFeature || "cloth";
+  const copy = useMemo(
+    () => getB2bTryOnCopy(tryOnFeature),
+    [tryOnFeature]
+  );
+
   useEffect(() => {
     if (stage !== "processing") {
       setLookLine(0);
       return;
     }
     const tick = window.setInterval(() => {
-      setLookLine((i) => (i + 1) % LOOK_LINES.length);
+      setLookLine((i) => (i + 1) % copy.lookLines.length);
     }, 1800);
     return () => window.clearInterval(tick);
-  }, [stage]);
+  }, [stage, copy.lookLines]);
 
-  const selectedProduct = products.find((p) => p.id === productId);
   const categoryName = (id: string | null) =>
     categories.find((c) => c.id === id)?.name || "";
   const busy = stage === "working";
@@ -163,7 +238,7 @@ export default function B2BTryOnPage() {
     openPicker();
   }
 
-  function pickFile(f: File | null) {
+  async function pickFile(f: File | null) {
     setError("");
     if (!f) {
       setSource(null);
@@ -176,6 +251,16 @@ export default function B2BTryOnPage() {
     }
     if (f.size > MAX_FILE_BYTES) {
       setError("Image is larger than 10 MB.");
+      return;
+    }
+    try {
+      const { width, height } = await readImageDimensions(f);
+      if (tryOnImageTooSmall(width, height)) {
+        setError(tryOnImageSizeMessage(width, height));
+        return;
+      }
+    } catch {
+      setError("Could not read image. Try another file.");
       return;
     }
     setSource(f);
@@ -348,7 +433,7 @@ export default function B2BTryOnPage() {
 
                 <section className="flex w-full flex-col rounded-2xl border border-ink/10 bg-white/40 p-3.5 shadow-sm dark:border-white/10 dark:bg-white/[0.04] lg:w-[15.5rem]">
                   <h3 className="whitespace-nowrap font-display text-base font-semibold text-ink">
-                    Selected Outfit
+                    {copy.selectedTitle}
                   </h3>
 
                   <div
@@ -383,6 +468,18 @@ export default function B2BTryOnPage() {
                           <p className="truncate text-[10px] text-paper/75">
                             {[
                               categoryName(selectedProduct.category),
+                              tryOnFeatureLabel(tryOnFeature),
+                              tryOnFeature === "haircolor" &&
+                              selectedCategory?.hairColorPreset
+                                ? selectedCategory.hairColorPreset
+                                : null,
+                              tryOnFeature === "beard" &&
+                              selectedCategory?.beardTemplateId
+                                ? selectedCategory.beardTemplateId.replace(
+                                    /^all_/,
+                                    ""
+                                  )
+                                : null,
                               formatPrice(selectedProduct),
                             ]
                               .filter(Boolean)
@@ -396,7 +493,7 @@ export default function B2BTryOnPage() {
                           <HangerIcon />
                         </div>
                         <div className="mt-2 text-xs font-semibold text-ink">
-                          Select an outfit
+                          {copy.selectedEmpty}
                         </div>
                         <div className="mt-0.5 text-[10px] leading-snug text-ink-muted">
                           Choose from the catalog below
@@ -431,10 +528,10 @@ export default function B2BTryOnPage() {
                 <div className="flex items-end justify-between gap-3">
                   <div>
                     <h3 className="font-display text-lg font-semibold text-ink">
-                      Choose Your Outfit
+                      {copy.catalogTitle}
                     </h3>
                     <p className="mt-0.5 text-sm text-ink-muted">
-                      Select the pieces you want to try on
+                      {copy.catalogDesc}
                     </p>
                   </div>
                 </div>
@@ -488,6 +585,9 @@ export default function B2BTryOnPage() {
                       visibleProducts.map((p) => {
                         const selected = productId === p.id;
                         const cat = categoryName(p.category);
+                        const productCategory = p.category
+                          ? categories.find((c) => c.id === p.category)
+                          : null;
                         return (
                           <button
                             key={p.id}
@@ -524,6 +624,9 @@ export default function B2BTryOnPage() {
                               {cat && (
                                 <div className="truncate text-[11px] text-ink-muted">
                                   {cat}
+                                  {productCategory?.tryOnFeature
+                                    ? ` · ${tryOnFeatureLabel(productCategory.tryOnFeature)}`
+                                    : ""}
                                 </div>
                               )}
                               {formatPrice(p) && (
@@ -557,7 +660,7 @@ export default function B2BTryOnPage() {
                 Crafting the try-on
               </h3>
               <p className="mt-2 min-h-[1.25rem] text-sm text-ink-muted transition-opacity duration-500">
-                {LOOK_LINES[lookLine]}
+                {copy.lookLines[lookLine]}
               </p>
 
               <div className="relative mt-8 w-[min(100%,18rem)]">

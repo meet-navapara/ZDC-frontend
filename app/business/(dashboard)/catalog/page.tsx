@@ -14,13 +14,30 @@ import {
   deleteProduct,
   type Category,
   type Product,
+  TRY_ON_FEATURE_OPTIONS,
+  type TryOnFeature,
 } from "@/lib/b2b";
 import { LIMITS } from "@/lib/limits";
 import BulkUploadModal from "@/components/BulkUploadModal";
 import { toast } from "@/lib/toast";
 import { PageLoader } from "@/components/PageLoader";
+import { listPerfectCorpOptions } from "@/lib/b2c";
+import type { BeardTemplateOption, HairColorOption } from "@/lib/b2c";
 
 const MAX_CATEGORIES = 10;
+
+const TRY_ON_FEATURE_SELECT_OPTIONS = TRY_ON_FEATURE_OPTIONS.map((opt) => ({
+  value: opt.id,
+  label: opt.label,
+}));
+
+function hairColorSelectOptions(colors: HairColorOption[]) {
+  return colors.map((c) => ({ value: c.name, label: c.name }));
+}
+
+function beardSelectOptions(templates: BeardTemplateOption[]) {
+  return templates.map((t) => ({ value: t.id, label: t.title || t.id }));
+}
 
 type ProductForm = {
   name: string;
@@ -45,6 +62,12 @@ export default function CatalogPage() {
   const [error, setError] = useState("");
 
   const [newCategory, setNewCategory] = useState("");
+  const [newCategoryFeature, setNewCategoryFeature] =
+    useState<TryOnFeature>("cloth");
+  const [newCategoryHairPreset, setNewCategoryHairPreset] = useState("");
+  const [newCategoryBeardTemplate, setNewCategoryBeardTemplate] = useState("");
+  const [hairColorOptions, setHairColorOptions] = useState<HairColorOption[]>([]);
+  const [beardTemplates, setBeardTemplates] = useState<BeardTemplateOption[]>([]);
   const [addingCat, setAddingCat] = useState(false);
   const [filter, setFilter] = useState<string>("all");
 
@@ -88,6 +111,18 @@ export default function CatalogPage() {
 
   useEffect(() => {
     load();
+    listPerfectCorpOptions()
+      .then((r) => {
+        setHairColorOptions(r.hairColors || []);
+        setBeardTemplates(r.beardTemplates || []);
+        setNewCategoryHairPreset(
+          r.defaultHairColorPreset || r.hairColors?.[0]?.name || ""
+        );
+        setNewCategoryBeardTemplate(
+          r.defaultBeardTemplateId || r.beardTemplates?.[0]?.id || ""
+        );
+      })
+      .catch(() => {});
   }, []);
 
   const categoryName = (id: string | null) =>
@@ -98,13 +133,25 @@ export default function CatalogPage() {
       ? products
       : products.filter((p) => (p.category || "none") === filter);
 
+  const modalCategory = categories.find((c) => c.id === form.categoryId);
+  const modalTryOnFeature = modalCategory?.tryOnFeature || "cloth";
+
   async function addCategory(e: React.FormEvent) {
     e.preventDefault();
     if (!newCategory.trim()) return;
     setError("");
     setAddingCat(true);
     try {
-      const res = await createCategory({ name: newCategory.trim() });
+      const res = await createCategory({
+        name: newCategory.trim(),
+        tryOnFeature: newCategoryFeature,
+        ...(newCategoryFeature === "haircolor"
+          ? { hairColorPreset: newCategoryHairPreset }
+          : {}),
+        ...(newCategoryFeature === "beard"
+          ? { beardTemplateId: newCategoryBeardTemplate }
+          : {}),
+      });
       setCategories((cs) => [...cs, res.category]);
       setNewCategory("");
       toast.success("Category added");
@@ -114,6 +161,42 @@ export default function CatalogPage() {
       toast.error(msg);
     } finally {
       setAddingCat(false);
+    }
+  }
+
+  async function setCategoryFeature(id: string, tryOnFeature: TryOnFeature) {
+    try {
+      const res = await updateCategory(id, { tryOnFeature });
+      setCategories((prev) =>
+        prev.map((c) => (c.id === id ? res.category : c))
+      );
+      toast.success("Try-on type updated");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Update failed");
+    }
+  }
+
+  async function setCategoryHairPreset(id: string, hairColorPreset: string) {
+    try {
+      const res = await updateCategory(id, { hairColorPreset });
+      setCategories((prev) =>
+        prev.map((c) => (c.id === id ? res.category : c))
+      );
+      toast.success("Hair color updated");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Update failed");
+    }
+  }
+
+  async function setCategoryBeardTemplate(id: string, beardTemplateId: string) {
+    try {
+      const res = await updateCategory(id, { beardTemplateId });
+      setCategories((prev) =>
+        prev.map((c) => (c.id === id ? res.category : c))
+      );
+      toast.success("Beard style updated");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Update failed");
     }
   }
 
@@ -321,18 +404,52 @@ export default function CatalogPage() {
             ) : (
               <span
                 key={c.id}
-                className="group inline-flex items-center gap-2 rounded-full border border-ink/15 bg-white px-3 py-1.5 text-sm text-ink"
+                className="group inline-flex max-w-full flex-col gap-1 rounded-2xl border border-ink/15 bg-white px-3 py-2 text-sm text-ink sm:inline-flex sm:flex-row sm:items-center sm:gap-2 sm:rounded-full sm:py-1.5"
               >
                 <button
                   onClick={() => setRenamingCat({ id: c.id, name: c.name })}
-                  className="transition hover:text-sage-dark"
+                  className="text-left font-medium transition hover:text-sage-dark"
                   title="Rename"
                 >
                   {c.name}
                 </button>
+                <CustomSelect
+                  size="xs"
+                  className="max-w-[11rem]"
+                  value={c.tryOnFeature || "cloth"}
+                  onChange={(v) => setCategoryFeature(c.id, v as TryOnFeature)}
+                  options={TRY_ON_FEATURE_SELECT_OPTIONS}
+                  aria-label={`Try-on type for ${c.name}`}
+                />
+                {(c.tryOnFeature || "cloth") === "haircolor" &&
+                  hairColorOptions.length > 0 && (
+                    <CustomSelect
+                      size="xs"
+                      className="max-w-[11rem]"
+                      value={
+                        c.hairColorPreset || hairColorOptions[0]?.name || ""
+                      }
+                      onChange={(v) => setCategoryHairPreset(c.id, v)}
+                      options={hairColorSelectOptions(hairColorOptions)}
+                      aria-label={`Hair color for ${c.name}`}
+                    />
+                  )}
+                {(c.tryOnFeature || "cloth") === "beard" &&
+                  beardTemplates.length > 0 && (
+                    <CustomSelect
+                      size="xs"
+                      className="max-w-[11rem]"
+                      value={
+                        c.beardTemplateId || beardTemplates[0]?.id || ""
+                      }
+                      onChange={(v) => setCategoryBeardTemplate(c.id, v)}
+                      options={beardSelectOptions(beardTemplates)}
+                      aria-label={`Beard style for ${c.name}`}
+                    />
+                  )}
                 <button
                   onClick={() => removeCategory(c.id)}
-                  className="text-ink-muted transition hover:text-red-600"
+                  className="self-end text-ink-muted transition hover:text-red-600 sm:self-auto"
                   aria-label={`Delete ${c.name}`}
                 >
                   ×
@@ -346,12 +463,17 @@ export default function CatalogPage() {
         </div>
         {categories.length > 0 && (
           <p className="mt-2 text-xs text-ink-muted">
-            Click a category name to rename it.
+            Click a category name to rename. Set try-on type per category. For
+            hair color / beard categories, also pick the color or style applied
+            to every product in that category.
           </p>
         )}
 
         {categories.length < MAX_CATEGORIES && (
-          <form onSubmit={addCategory} className="mt-4 flex gap-2">
+          <form
+            onSubmit={addCategory}
+            className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center"
+          >
             <input
               maxLength={LIMITS.categoryName}
               value={newCategory}
@@ -359,6 +481,31 @@ export default function CatalogPage() {
               placeholder="New category name"
               className="w-full max-w-xs rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage"
             />
+            <CustomSelect
+              className="w-full max-w-xs sm:w-auto"
+              value={newCategoryFeature}
+              onChange={(v) => setNewCategoryFeature(v as TryOnFeature)}
+              options={TRY_ON_FEATURE_SELECT_OPTIONS}
+              aria-label="Try-on type for new category"
+            />
+            {newCategoryFeature === "haircolor" && hairColorOptions.length > 0 && (
+              <CustomSelect
+                className="w-full max-w-xs sm:w-auto"
+                value={newCategoryHairPreset || hairColorOptions[0]?.name}
+                onChange={setNewCategoryHairPreset}
+                options={hairColorSelectOptions(hairColorOptions)}
+                aria-label="Hair color for new category"
+              />
+            )}
+            {newCategoryFeature === "beard" && beardTemplates.length > 0 && (
+              <CustomSelect
+                className="w-full max-w-xs sm:w-auto"
+                value={newCategoryBeardTemplate || beardTemplates[0]?.id}
+                onChange={setNewCategoryBeardTemplate}
+                options={beardSelectOptions(beardTemplates)}
+                aria-label="Beard style for new category"
+              />
+            )}
             <button
               type="submit"
               disabled={addingCat || !newCategory.trim()}
@@ -574,6 +721,18 @@ export default function CatalogPage() {
                     e.target.value = "";
                   }}
                 />
+                {modalTryOnFeature === "beard" && (
+                  <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+                    Upload a clear photo showing this beard style on a face — staff
+                    and customers use it to preview the look in your catalog.
+                  </p>
+                )}
+                {modalTryOnFeature === "haircolor" && (
+                  <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+                    Upload a swatch or model photo with this hair color so your
+                    team can recognize the shade in the catalog.
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">

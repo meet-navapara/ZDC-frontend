@@ -1,5 +1,6 @@
 "use client";
 
+import { apiPost } from "./api";
 import { identifyUser, resetAnalytics } from "./analytics";
 
 const TOKEN_KEY = "zdc_token";
@@ -28,6 +29,8 @@ export type AuthUser = {
   firstName?: string;
   lastName?: string;
   phone?: string | null;
+  country?: string | null;
+  currency?: string | null;
   status?: string;
   emailVerified?: boolean;
   referralCode?: string | null;
@@ -72,4 +75,22 @@ export function clearAuth() {
   localStorage.removeItem(USER_KEY);
   resetAnalytics();
   window.dispatchEvent(new Event("zdc-auth"));
+}
+
+export function requestPasswordReset(email: string) {
+  return apiPost<{
+    ok: boolean;
+    message: string;
+    mock?: boolean;
+    devOtp?: string;
+    mockOtp?: string;
+  }>("/api/auth/forgot-password", { email });
+}
+
+export function resetPasswordWithCode(body: {
+  email: string;
+  code: string;
+  password: string;
+}) {
+  return apiPost<{ ok: boolean; message: string }>("/api/auth/reset-password", body);
 }

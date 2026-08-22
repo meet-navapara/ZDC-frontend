@@ -15,15 +15,28 @@ import {
   getJob,
   getMyReferral,
   listPaymentMethods,
+  listPerfectCorpOptions,
   listPricing,
   payForTryon,
   verifyRazorpayPayment,
   waitForPayment,
   type B2cJob,
   type B2cPack,
+  type PerfectCorpFeatureOption,
 } from "@/lib/b2c";
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { toast } from "@/lib/toast";
+import {
+  friendlyTryOnError,
+  readImageDimensions,
+  tryOnImageSizeMessage,
+  tryOnImageTooSmall,
+} from "@/lib/tryOnImage";
+import {
+  BeardStylePicker,
+  HairColorPicker,
+} from "@/components/PerfectCorpPickers";
+import type { BeardTemplateOption, HairColorOption } from "@/lib/b2c";
 
 type Pack = B2cPack;
 type Job = B2cJob;
@@ -37,14 +50,17 @@ type Stage =
   | "error";
 
 /** Map Safaricom ResultDesc into actionable copy for the try-on UI. */
-function friendlyMpesaFailure(raw: string): string {
+function friendlyMpesaFailure(raw: string, sandboxHints: boolean): string {
   const m = raw.toLowerCase();
   if (m.includes("ds timeout") || m.includes("cannot be reached") || m.includes("1037")) {
-    return (
-      "M-Pesa timed out (no PIN entered / phone unreachable). " +
-      "In sandbox, use 254708374149, watch for the STK prompt (or Daraja simulator), " +
-      "enter PIN 174379 within ~30 seconds, then try again."
-    );
+    if (sandboxHints) {
+      return (
+        "M-Pesa timed out (no PIN entered / phone unreachable). " +
+        "In sandbox, use 254708374149, watch for the STK prompt (or Daraja simulator), " +
+        "enter PIN 174379 within ~30 seconds, then try again."
+      );
+    }
+    return "M-Pesa timed out. Check your phone for the STK prompt and try again.";
   }
   if (m.includes("cancel") || m.includes("1032")) {
     return "M-Pesa payment was cancelled on the phone. Try again and approve the prompt.";
@@ -57,6 +73,59 @@ function friendlyMpesaFailure(raw: string): string {
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
+
+function getTryonUploadCopy(feature: string, targetCount: number) {
+  switch (feature) {
+    case "hair":
+      return {
+        desc:
+          targetCount > 1
+            ? `Your selfie plus ${targetCount} hairstyles — one styled result each.`
+            : "Your selfie and the hairstyle you want to try.",
+        stepTitle: "Upload your photos",
+        targetLabel: (i: number) =>
+          targetCount > 1 ? `Hairstyle ${i + 1}` : "Hairstyle",
+        targetHint: "Reference hair look",
+        targetWord: "hairstyle",
+      };
+    case "haircolor":
+      return {
+        desc:
+          targetCount > 1
+            ? `Your selfie, then pick ${targetCount} hair colors — one result each.`
+            : "Your selfie and the hair color you want to try.",
+        stepTitle: "Choose hair color",
+        targetLabel: (i: number) =>
+          targetCount > 1 ? `Color ${i + 1}` : "Hair color",
+        targetHint: "Pick a shade",
+        targetWord: "hair color",
+      };
+    case "beard":
+      return {
+        desc:
+          targetCount > 1
+            ? `Your selfie, then pick ${targetCount} beard styles — one result each.`
+            : "Your selfie and the beard style you want to try.",
+        stepTitle: "Choose beard style",
+        targetLabel: (i: number) =>
+          targetCount > 1 ? `Style ${i + 1}` : "Beard style",
+        targetHint: "Pick a style",
+        targetWord: "beard style",
+      };
+    default:
+      return {
+        desc:
+          targetCount > 1
+            ? `Your selfie plus ${targetCount} different outfits — one styled result each.`
+            : "Your selfie and the outfit you want to try.",
+        stepTitle: "Upload your photos",
+        targetLabel: (i: number) =>
+          targetCount > 1 ? `Outfit ${i + 1}` : "Outfit / hairstyle",
+        targetHint: "Dress, outfit…",
+        targetWord: "outfit",
+      };
+  }
+}
 
 function validateImage(file: File): string | null {
   if (!ACCEPTED_TYPES.includes(file.type)) {
@@ -109,7 +178,15 @@ function UploadBox({
       setLocalError(err);
       return;
     }
-    onPick(f);
+    readImageDimensions(f)
+      .then(({ width, height }) => {
+        if (tryOnImageTooSmall(width, height)) {
+          setLocalError(tryOnImageSizeMessage(width, height));
+          return;
+        }
+        onPick(f);
+      })
+      .catch(() => setLocalError("Could not read image. Try another file."));
   }
 
   function openPicker() {
@@ -260,6 +337,16 @@ function SectionHead({
 export default function B2cTryOnStudio() {
   const [packs, setPacks] = useState<Pack[]>([]);
   const [packId, setPackId] = useState<string>("single");
+  const [featureOptions, setFeatureOptions] = useState<PerfectCorpFeatureOption[]>([]);
+  const [feature, setFeature] = useState<string>("cloth");
+  const [hairColorOptions, setHairColorOptions] = useState<HairColorOption[]>([]);
+  const [beardTemplates, setBeardTemplates] = useState<BeardTemplateOption[]>([]);
+  const [defaultHairColor, setDefaultHairColor] = useState("Honey Blonde");
+  const [defaultBeardTemplate, setDefaultBeardTemplate] = useState("all_anchor");
+  const [hairColorSelections, setHairColorSelections] = useState<string[]>([
+    "Honey Blonde",
+  ]);
+  const [beardSelections, setBeardSelections] = useState<string[]>(["all_anchor"]);
   const [source, setSource] = useState<File | null>(null);
   const [targets, setTargets] = useState<(File | null)[]>([null]);
   const [sourcePreview, setSourcePreview] = useState<string>("");
@@ -269,6 +356,14 @@ export default function B2cTryOnStudio() {
   const [freeTryons, setFreeTryons] = useState(0);
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
   const [defaultGateway, setDefaultGateway] = useState("stub");
+  const [mpesaEnabled, setMpesaEnabled] = useState(false);
+  const [razorpayEnabled, setRazorpayEnabled] = useState(false);
+  const [allowGatewayChoice, setAllowGatewayChoice] = useState(false);
+  const [sandboxAutoPaid, setSandboxAutoPaid] = useState(false);
+  const [mpesaSandbox, setMpesaSandbox] = useState(false);
+  const [selectedGateway, setSelectedGateway] = useState<
+    "mpesa" | "razorpay" | "stub" | "auto"
+  >("auto");
   const [mpesaPhone, setMpesaPhone] = useState(
     () => getUser()?.phone || ""
   );
@@ -292,7 +387,47 @@ export default function B2cTryOnStudio() {
     listPaymentMethods()
       .then((r) => {
         setPaymentNotice(r.paymentNotice || null);
-        setDefaultGateway(r.defaultGateway || "stub");
+        const def = (r.defaultGateway || "stub") as
+          | "mpesa"
+          | "razorpay"
+          | "stub"
+          | "auto";
+        setDefaultGateway(def);
+        setMpesaEnabled(Boolean(r.mpesaEnabled));
+        setRazorpayEnabled(Boolean(r.razorpayEnabled));
+        setAllowGatewayChoice(Boolean(r.allowGatewayChoice));
+        setSandboxAutoPaid(Boolean(r.sandboxAutoPaid));
+        setMpesaSandbox(Boolean(r.mpesaSandbox));
+        setSelectedGateway(
+          r.allowGatewayChoice
+            ? def === "razorpay" || def === "mpesa"
+              ? def
+              : r.mpesaEnabled
+                ? "mpesa"
+                : "razorpay"
+            : def
+        );
+      })
+      .catch(() => {});
+
+    listPerfectCorpOptions()
+      .then((r) => {
+        if (r.features?.length) setFeatureOptions(r.features);
+        const initial =
+          r.features?.find((f) => f.id === r.defaultFeature)?.id ||
+          r.defaultFeature ||
+          "cloth";
+        setFeature(initial);
+        setHairColorOptions(r.hairColors || []);
+        setBeardTemplates(r.beardTemplates || []);
+        const hairDefault =
+          r.defaultHairColorPreset || r.hairColors?.[0]?.name || "Honey Blonde";
+        const beardDefault =
+          r.defaultBeardTemplateId || r.beardTemplates?.[0]?.id || "all_anchor";
+        setDefaultHairColor(hairDefault);
+        setDefaultBeardTemplate(beardDefault);
+        setHairColorSelections([hairDefault]);
+        setBeardSelections([beardDefault]);
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -306,7 +441,7 @@ export default function B2cTryOnStudio() {
         setJob(r.job);
         if (r.job.status === "completed") setStage("done");
         else if (r.job.status === "failed") {
-          setError("Rendering failed. Please try again.");
+          setError(friendlyTryOnError(r.job.error));
           setStage("error");
         } else {
           setStage("processing");
@@ -341,7 +476,7 @@ export default function B2cTryOnStudio() {
             clearInterval(interval);
           }
         } else if (r.job.status === "failed") {
-          const msg = "Rendering failed. Please try again.";
+          const msg = friendlyTryOnError(r.job.error);
           setError(msg);
           toast.error(msg);
           setStage("error");
@@ -356,6 +491,45 @@ export default function B2cTryOnStudio() {
 
   const selectedPack = packs.find((p) => p.id === packId);
   const targetCount = selectedPack?.images ?? 1;
+  const needsReferenceImage =
+    featureOptions.find((f) => f.id === feature)?.needsReferenceImage ??
+    (feature === "cloth" || feature === "hair");
+  const uploadCopy = useMemo(
+    () => getTryonUploadCopy(feature, targetCount),
+    [feature, targetCount]
+  );
+
+  useEffect(() => {
+    if (needsReferenceImage) return;
+    if (feature === "haircolor") {
+      setHairColorSelections((prev) => {
+        const seed = prev[0] || defaultHairColor;
+        return Array.from({ length: targetCount }, (_, i) => prev[i] || seed);
+      });
+    }
+    if (feature === "beard") {
+      setBeardSelections((prev) => {
+        const seed = prev[0] || defaultBeardTemplate;
+        return Array.from({ length: targetCount }, (_, i) => prev[i] || seed);
+      });
+    }
+  }, [targetCount, feature, needsReferenceImage, defaultHairColor, defaultBeardTemplate]);
+  const payGateway =
+    selectedGateway === "auto" ? defaultGateway : selectedGateway;
+  const needsMpesaPhone = payGateway === "mpesa";
+  const payWithRazorpay = payGateway === "razorpay";
+  const displayAmount =
+    payGateway === "razorpay"
+      ? selectedPack?.amountInr ?? selectedPack?.prices?.INR?.amount ?? selectedPack?.amount
+      : payGateway === "mpesa"
+        ? selectedPack?.amountKes ?? selectedPack?.prices?.KES?.amount ?? selectedPack?.amount
+        : selectedPack?.amount;
+  const displayCurrency =
+    payGateway === "razorpay"
+      ? "INR"
+      : payGateway === "mpesa"
+        ? "KES"
+        : selectedPack?.currency || "KES";
 
   useEffect(() => {
     setTargets((prev) => {
@@ -368,11 +542,20 @@ export default function B2cTryOnStudio() {
 
   const targetsFilled =
     targets.length === targetCount && targets.every(Boolean);
-  const needsMpesaPhone = defaultGateway === "mpesa";
-  const payWithRazorpay = defaultGateway === "razorpay";
+  const hairColorsFilled =
+    hairColorSelections.length === targetCount &&
+    hairColorSelections.every(Boolean);
+  const beardsFilled =
+    beardSelections.length === targetCount && beardSelections.every(Boolean);
+  const styleReady =
+    feature === "haircolor"
+      ? hairColorsFilled
+      : feature === "beard"
+        ? beardsFilled
+        : targetsFilled;
   const canSubmit =
     !!source &&
-    targetsFilled &&
+    styleReady &&
     stage !== "working" &&
     stage !== "awaiting_mpesa" &&
     stage !== "awaiting_razorpay" &&
@@ -386,9 +569,21 @@ export default function B2cTryOnStudio() {
       setStage("error");
       return;
     }
-    if (!source || targets.some((t) => !t)) {
+    if (!source) {
+      setError("Please upload your selfie first.");
+      return;
+    }
+    if (feature === "haircolor" && !hairColorsFilled) {
+      setError("Please choose a hair color for each result.");
+      return;
+    }
+    if (feature === "beard" && !beardsFilled) {
+      setError("Please choose a beard style for each result.");
+      return;
+    }
+    if (needsReferenceImage && targets.some((t) => !t)) {
       setError(
-        `Please upload your selfie and ${targetCount} outfit image${
+        `Please upload your selfie and ${targetCount} ${uploadCopy.targetWord} image${
           targetCount > 1 ? "s" : ""
         }.`
       );
@@ -409,14 +604,25 @@ export default function B2cTryOnStudio() {
       const form = new FormData();
       form.append("pack", packId);
       form.append("source", source);
-      targets.forEach((t) => {
-        if (t) form.append("target", t);
-      });
+      form.append("feature", feature);
+      if (feature === "haircolor") {
+        form.append("hairColorPresets", hairColorSelections.join("|"));
+      } else if (feature === "beard") {
+        form.append("beardTemplateIds", beardSelections.join("|"));
+      } else {
+        targets.forEach((t) => {
+          if (t) form.append("target", t);
+        });
+      }
 
       const created = await createTryon(form);
       const paid = await payForTryon(created.job.id, {
         useFreeTryon,
-        gateway: useFreeTryon ? "referral" : "auto",
+        gateway: useFreeTryon
+          ? "referral"
+          : payGateway === "stub"
+            ? "auto"
+            : payGateway,
         phone: useFreeTryon ? undefined : mpesaPhone.trim() || undefined,
       });
 
@@ -487,13 +693,14 @@ export default function B2cTryOnStudio() {
         } catch (payErr) {
           const msg =
             payErr instanceof Error ? payErr.message : "Payment failed";
-          throw new Error(friendlyMpesaFailure(msg));
+          throw new Error(friendlyMpesaFailure(msg, mpesaSandbox && !sandboxAutoPaid));
         }
         const refreshed = await getJob(created.job.id);
         if (refreshed.job.status === "awaiting_payment") {
           throw new Error(
             friendlyMpesaFailure(
-              "Payment was not confirmed. DS timeout / PIN not entered — try again and approve within 30 seconds."
+              "Payment was not confirmed. DS timeout / PIN not entered — try again and approve within 30 seconds.",
+              mpesaSandbox && !sandboxAutoPaid
             )
           );
         }
@@ -567,10 +774,16 @@ export default function B2cTryOnStudio() {
             <li>
               2. On the phone (or Daraja STK simulator), open the M-Pesa prompt.
             </li>
+            {mpesaSandbox && !sandboxAutoPaid && (
+              <li>
+                3. Sandbox test PIN is often{" "}
+                <span className="font-semibold text-ink">174379</span>.
+              </li>
+            )}
             <li>
-              3. Sandbox test PIN is often <span className="font-semibold text-ink">174379</span>.
+              {mpesaSandbox && !sandboxAutoPaid ? "4" : "3"}. Approve within ~30
+              seconds or Safaricom returns “DS timeout”.
             </li>
-            <li>4. Approve within ~30 seconds or Safaricom returns “DS timeout”.</li>
           </ul>
         </div>
       )}
@@ -594,18 +807,50 @@ export default function B2cTryOnStudio() {
             <div className="card rounded-2xl p-5 sm:rounded-3xl sm:p-8">
               <SectionHead
                 n={1}
-                title="Upload your photos"
-                desc={
-                  targetCount > 1
-                    ? `Your selfie plus ${targetCount} different outfits — one styled result each.`
-                    : "Your selfie and the outfit or hairstyle you want to try."
-                }
+                title="Choose try-on type"
+                desc="Pick a style, then upload your photo."
+              />
+              {featureOptions.length > 0 ? (
+                <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                  {featureOptions.map((f) => {
+                    const selected = feature === f.id;
+                    return (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setFeature(f.id)}
+                        className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
+                          selected
+                            ? "border-sage bg-sage/10 font-semibold text-sage-dark"
+                            : "border-ink/10 text-ink hover:border-sage/40"
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="mt-4 text-sm text-ink-muted">
+                  Outfit try-on (upload selfie + reference photo)
+                </p>
+              )}
+
+            </div>
+
+            <div className="card rounded-2xl p-5 sm:rounded-3xl sm:p-8">
+              <SectionHead
+                n={2}
+                title={uploadCopy.stepTitle || "Upload your photos"}
+                desc={uploadCopy.desc}
               />
               <div
                 className={`mt-5 grid gap-3 sm:mt-6 sm:gap-4 ${
-                  targetCount > 1
+                  needsReferenceImage && targetCount > 1
                     ? "grid-cols-2 sm:grid-cols-4"
-                    : "mx-auto max-w-md grid-cols-2"
+                    : needsReferenceImage
+                      ? "mx-auto max-w-md grid-cols-2"
+                      : "mx-auto max-w-xs grid-cols-1"
                 }`}
               >
                 <UploadBox
@@ -613,33 +858,77 @@ export default function B2cTryOnStudio() {
                   hint="Clear, front-facing photo"
                   file={source}
                   onPick={setSource}
-                  compact={targetCount > 1}
+                  compact={needsReferenceImage && targetCount > 1}
                   showGuide
                 />
-                {targets.map((t, i) => (
-                  <UploadBox
-                    key={i}
-                    label={
-                      targetCount > 1 ? `Outfit ${i + 1}` : "Outfit / hairstyle"
-                    }
-                    hint="Dress, braids…"
-                    file={t}
-                    onPick={(f) =>
-                      setTargets((prev) =>
-                        prev.map((x, idx) => (idx === i ? f : x))
-                      )
-                    }
-                    compact={targetCount > 1}
-                  />
-                ))}
+                {needsReferenceImage &&
+                  targets.map((t, i) => (
+                    <UploadBox
+                      key={i}
+                      label={uploadCopy.targetLabel(i)}
+                      hint={uploadCopy.targetHint}
+                      file={t}
+                      onPick={(f) =>
+                        setTargets((prev) =>
+                          prev.map((x, idx) => (idx === i ? f : x))
+                        )
+                      }
+                      compact={targetCount > 1}
+                    />
+                  ))}
               </div>
+
+              {feature === "haircolor" && hairColorOptions.length > 0 && (
+                <div className="mt-6 space-y-4">
+                  {Array.from({ length: targetCount }, (_, i) => (
+                    <HairColorPicker
+                      key={i}
+                      label={
+                        targetCount > 1
+                          ? uploadCopy.targetLabel(i)
+                          : undefined
+                      }
+                      options={hairColorOptions}
+                      value={hairColorSelections[i] || defaultHairColor}
+                      onChange={(name) =>
+                        setHairColorSelections((prev) =>
+                          prev.map((x, idx) => (idx === i ? name : x))
+                        )
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+
+              {feature === "beard" && beardTemplates.length > 0 && (
+                <div className="mt-6 space-y-4">
+                  {Array.from({ length: targetCount }, (_, i) => (
+                    <BeardStylePicker
+                      key={i}
+                      label={
+                        targetCount > 1
+                          ? uploadCopy.targetLabel(i)
+                          : undefined
+                      }
+                      templates={beardTemplates}
+                      value={beardSelections[i] || defaultBeardTemplate}
+                      onChange={(id) =>
+                        setBeardSelections((prev) =>
+                          prev.map((x, idx) => (idx === i ? id : x))
+                        )
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+
               <p className="mt-4 text-center text-xs text-ink-muted">
                 PNG, JPG or WEBP · up to 10 MB each
               </p>
             </div>
 
             <div className="card rounded-2xl p-5 sm:rounded-3xl sm:p-8">
-              <SectionHead n={2} title="Choose your pack" />
+              <SectionHead n={3} title="Choose your pack" />
               <div className="mt-5 grid gap-3 sm:mt-6 sm:gap-4 sm:grid-cols-2">
                 {packs.length === 0 && (
                   <>
@@ -668,12 +957,12 @@ export default function B2cTryOnStudio() {
                       <span className="text-xs font-semibold uppercase tracking-[0.15em] text-sage">
                         {p.label}
                       </span>
-                      <span className="mt-3 font-display text-3xl font-semibold text-ink">
-                        {p.currency} {p.amount}
+                      <span className="mt-3 font-display text-2xl font-semibold text-ink sm:text-3xl">
+                        KES {p.amountKes ?? p.amount} · ₹{p.amountInr ?? "—"}
                       </span>
                       <span className="mt-1 text-sm text-ink-muted">
-                        {p.images} outfit{p.images > 1 ? "s" : ""} →{" "}
-                        {p.images} styled result{p.images > 1 ? "s" : ""}
+                        {p.images} look{p.images > 1 ? "s" : ""} → {p.images}{" "}
+                        styled result{p.images > 1 ? "s" : ""}
                       </span>
                     </button>
                   );
@@ -712,7 +1001,7 @@ export default function B2cTryOnStudio() {
                 </span>
                 <span className="font-display text-2xl font-semibold text-ink">
                   {selectedPack
-                    ? `${selectedPack.currency} ${selectedPack.amount}`
+                    ? `${displayCurrency} ${displayAmount}`
                     : "—"}
                 </span>
               </div>
@@ -736,6 +1025,49 @@ export default function B2cTryOnStudio() {
               {paymentNotice && (
                 <div className="mt-4 rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-100">
                   {paymentNotice}
+                </div>
+              )}
+
+              {(allowGatewayChoice ||
+                (mpesaEnabled && razorpayEnabled)) && (
+                <div className="mt-4 space-y-2">
+                  <span className="text-sm font-medium text-ink">
+                    Pay with
+                  </span>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {mpesaEnabled && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedGateway("mpesa")}
+                        className={`rounded-xl border px-3 py-2.5 text-left text-sm transition ${
+                          payGateway === "mpesa"
+                            ? "border-sage bg-sage/10 font-semibold text-sage-dark"
+                            : "border-ink/15 text-ink hover:border-sage/40"
+                        }`}
+                      >
+                        M-Pesa
+                        <span className="mt-0.5 block text-xs font-normal text-ink-muted">
+                          Kenya · KES
+                        </span>
+                      </button>
+                    )}
+                    {razorpayEnabled && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedGateway("razorpay")}
+                        className={`rounded-xl border px-3 py-2.5 text-left text-sm transition ${
+                          payGateway === "razorpay"
+                            ? "border-sage bg-sage/10 font-semibold text-sage-dark"
+                            : "border-ink/15 text-ink hover:border-sage/40"
+                        }`}
+                      >
+                        Razorpay
+                        <span className="mt-0.5 block text-xs font-normal text-ink-muted">
+                          India · INR · UPI / card
+                        </span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -767,10 +1099,10 @@ export default function B2cTryOnStudio() {
                   ? "Processing…"
                   : selectedPack
                     ? needsMpesaPhone
-                      ? `Pay with M-Pesa · ${selectedPack.currency} ${selectedPack.amount}`
+                      ? `Pay with M-Pesa · ${displayCurrency} ${displayAmount}`
                       : payWithRazorpay
-                        ? `Pay with Razorpay · ${selectedPack.currency} ${selectedPack.amount}`
-                        : `Pay ${selectedPack.currency} ${selectedPack.amount}`
+                        ? `Pay with Razorpay · ${displayCurrency} ${displayAmount}`
+                        : `Pay ${displayCurrency} ${displayAmount}`
                     : "Pay & Render"}
               </button>
 
@@ -786,12 +1118,16 @@ export default function B2cTryOnStudio() {
               )}
               {!canSubmit && stage !== "working" && (
                 <p className="mt-2 text-center text-xs text-ink-muted">
-                  Add your selfie and all outfit photos to continue.
+                  Add your selfie and all {uploadCopy.targetWord} photos to
+                  continue.
                 </p>
               )}
-              <p className="mt-3 text-center text-[11px] text-ink-muted/80">
-                Demo payment completes instantly on this device. Photos used only for this render.
-              </p>
+              {defaultGateway === "stub" && (
+                <p className="mt-3 text-center text-[11px] text-ink-muted/80">
+                  Demo payment completes instantly on this device. Photos used only
+                  for this render.
+                </p>
+              )}
             </div>
 
             <div className="card rounded-3xl p-6">
@@ -801,7 +1137,7 @@ export default function B2cTryOnStudio() {
               <ul className="mt-4 space-y-3 text-sm text-ink">
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 text-sage">✓</span>
-                  High-resolution AI renders
+                  High-resolution renders
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 text-sage">✓</span>
@@ -824,7 +1160,7 @@ export default function B2cTryOnStudio() {
             Rendering your look…
           </h3>
           <p className="mt-2 text-ink-muted">
-            Our AI is styling your try-on. This takes a few seconds.
+            We&apos;re styling your try-on. This takes a few seconds.
           </p>
         </div>
       )}

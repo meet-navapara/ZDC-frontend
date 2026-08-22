@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CustomSelect } from "@/components/CustomSelect";
+import { PhoneInput } from "@/components/PhoneInput";
 import { AddressAutocomplete, type AddressParts } from "@/components/AddressAutocomplete";
 import {
   listBranches,
@@ -11,7 +12,7 @@ import {
   type Branch,
 } from "@/lib/b2b";
 import { LIMITS } from "@/lib/limits";
-import { COUNTRIES, matchCountry } from "@/lib/countries";
+import { countrySelectOptions, getCountryByName, matchCountry } from "@/lib/countries";
 import { toast } from "@/lib/toast";
 
 type FormState = {
@@ -278,12 +279,15 @@ export function BranchManager({ compact = false, refreshKey = 0 }: Props) {
             <label className="mb-1 block text-sm font-medium text-ink-700">
               Phone
             </label>
-            <input
-              maxLength={LIMITS.phone}
+            <PhoneInput
               value={form.phone}
-              onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-              className={inputClass}
-              placeholder="+254…"
+              onChange={(v) => setForm((f) => ({ ...f, phone: v }))}
+              country={form.country || "Kenya"}
+              onCountryDetected={(name) =>
+                setForm((f) => ({ ...f, country: name }))
+              }
+              placeholder="712 345 678"
+              aria-label="Branch phone"
             />
           </div>
 
@@ -326,12 +330,13 @@ export function BranchManager({ compact = false, refreshKey = 0 }: Props) {
                 value={form.country}
                 onChange={(v) => setForm((f) => ({ ...f, country: v }))}
                 placeholder="Select country"
-                options={[
-                  ...COUNTRIES.map((c) => ({ value: c, label: c })),
-                  ...(form.country && !(COUNTRIES as readonly string[]).includes(form.country)
+                searchable
+                searchPlaceholder="Type country name…"
+                options={countrySelectOptions(
+                  form.country && !getCountryByName(form.country)
                     ? [{ value: form.country, label: form.country }]
-                    : []),
-                ]}
+                    : undefined
+                )}
               />
             </div>
           </div>

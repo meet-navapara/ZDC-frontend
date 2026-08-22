@@ -81,11 +81,7 @@
   background-color: #14120f !important;
 }
 
-/* Native <select> menus are OS-drawn with a light list — keep option text dark. */
-.dark select option {
-  color: #1c1a16 !important;
-  background-color: #ffffff !important;
-}
+/* Legacy: avoid native <select>; use components/CustomSelect.tsx instead. */
 
 /* Hero secondary button border */
 .dark .border-ink\/15,
@@ -136,6 +132,40 @@ svg {
 }
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+/* CustomSelect dropdown list — slim, easy to grab */
+.custom-select-scroll {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #b9c3bb transparent;
+}
+.custom-select-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-select-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 6px 0;
+}
+.custom-select-scroll::-webkit-scrollbar-thumb {
+  background: #c8d0c9;
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.custom-select-scroll::-webkit-scrollbar-thumb:hover {
+  background: #5c7a68;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.dark .custom-select-scroll {
+  scrollbar-color: #3a3528 transparent;
+}
+.dark .custom-select-scroll::-webkit-scrollbar-thumb {
+  background: #3a3528;
+}
+.dark .custom-select-scroll::-webkit-scrollbar-thumb:hover {
+  background: #5c7a68;
 }
 
 ::selection {

@@ -11,6 +11,12 @@ export type B2cPack = {
   images: number;
   amount: number;
   currency: string;
+  amountKes?: number;
+  amountInr?: number;
+  prices?: {
+    KES?: { amount: number; currency: string };
+    INR?: { amount: number; currency: string };
+  };
 };
 
 export type B2cJob = {
@@ -25,6 +31,7 @@ export type B2cJob = {
   targetImageUrls?: string[];
   resultImageUrls: string[];
   status: "awaiting_payment" | "processing" | "completed" | "failed";
+  error?: string | null;
   createdAt?: string;
 };
 
@@ -57,6 +64,36 @@ export type B2cPayment = {
 
 export function listPricing() {
   return apiGet<{ packs: B2cPack[] }>("/api/tryon/pricing");
+}
+
+export type PerfectCorpFeatureOption = {
+  id: string;
+  label: string;
+  needsReferenceImage: boolean;
+};
+
+export type HairColorOption = {
+  name: string;
+  swatch: { primary: string; secondary?: string };
+};
+
+export type BeardTemplateOption = {
+  id: string;
+  title: string;
+  thumb: string | null;
+  category?: string;
+};
+
+export function listPerfectCorpOptions() {
+  return apiGet<{
+    configured: boolean;
+    defaultFeature: string;
+    defaultHairColorPreset: string;
+    defaultBeardTemplateId: string;
+    features: PerfectCorpFeatureOption[];
+    hairColors: HairColorOption[];
+    beardTemplates: BeardTemplateOption[];
+  }>("/api/tryon/perfectcorp/options");
 }
 
 export function getMyStats() {
@@ -188,9 +225,17 @@ export function listPaymentMethods() {
     plannedGateway?: string | null;
     mpesaEnabled?: boolean;
     razorpayEnabled?: boolean;
+    allowGatewayChoice?: boolean;
+    sandboxAutoPaid?: boolean;
+    mpesaSandbox?: boolean;
     razorpayKeyId?: string | null;
     paymentNotice?: string | null;
-    methods: { id: string; label: string; available: boolean }[];
+    methods: {
+      id: string;
+      label: string;
+      available: boolean;
+      currency?: string;
+    }[];
   }>("/api/payments/methods", tok());
 }
 

@@ -16,6 +16,12 @@ export type CreditPack = {
   credits: number;
   amount: number;
   currency: string;
+  amountKes?: number;
+  amountInr?: number;
+  prices?: {
+    KES?: { amount: number; currency: string };
+    INR?: { amount: number; currency: string };
+  };
 };
 
 export type LedgerEntry = {
@@ -29,13 +35,32 @@ export type LedgerEntry = {
   createdAt: string;
 };
 
+export type TryOnFeature = "cloth" | "hair" | "haircolor" | "beard";
+
 export type Category = {
   id: string;
   name: string;
   description: string | null;
   order: number;
+  tryOnFeature: TryOnFeature;
+  hairColorPreset: string | null;
+  beardTemplateId: string | null;
   createdAt: string;
 };
+
+export const TRY_ON_FEATURE_OPTIONS: { id: TryOnFeature; label: string }[] = [
+  { id: "cloth", label: "Outfit try-on" },
+  { id: "hair", label: "Hairstyle transfer" },
+  { id: "haircolor", label: "Hair color" },
+  { id: "beard", label: "Beard style" },
+];
+
+export function tryOnFeatureLabel(feature: TryOnFeature | string | undefined) {
+  return (
+    TRY_ON_FEATURE_OPTIONS.find((f) => f.id === feature)?.label ||
+    "Outfit try-on"
+  );
+}
 
 export type Product = {
   id: string;
@@ -60,6 +85,7 @@ export type B2BJob = {
   targetImageUrl: string;
   resultImageUrls: string[];
   status: "awaiting_payment" | "processing" | "completed" | "failed";
+  error?: string | null;
   createdAt: string;
 };
 
@@ -221,12 +247,31 @@ export function getBalance() {
 }
 
 export function getCreditPacks() {
-  return apiGet<{ packs: CreditPack[] }>("/api/b2b/credits/packs");
+  return apiGet<{ packs: CreditPack[]; dualPrices?: boolean }>(
+    "/api/b2b/credits/packs",
+    tok()
+  );
 }
 
-export function getLedger(limit = 50) {
-  return apiGet<{ ledger: LedgerEntry[] }>(
-    `/api/b2b/credits/ledger?limit=${limit}`,
+export type LedgerPage = {
+  ledger: LedgerEntry[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export function getLedger(opts?: { page?: number; limit?: number } | number) {
+  let page = 1;
+  let limit = 10;
+  if (typeof opts === "number") {
+    limit = opts;
+  } else if (opts) {
+    page = opts.page ?? 1;
+    limit = opts.limit ?? 10;
+  }
+  return apiGet<LedgerPage>(
+    `/api/b2b/credits/ledger?limit=${limit}&page=${page}`,
     tok()
   );
 }
@@ -333,13 +378,26 @@ export function listCategories() {
   return apiGet<{ categories: Category[] }>("/api/b2b/categories", tok());
 }
 
-export function createCategory(body: { name: string; description?: string }) {
+export function createCategory(body: {
+  name: string;
+  description?: string;
+  tryOnFeature?: TryOnFeature;
+  hairColorPreset?: string;
+  beardTemplateId?: string;
+}) {
   return apiPost<{ category: Category }>("/api/b2b/categories", body, tok());
 }
 
 export function updateCategory(
   id: string,
-  body: { name?: string; description?: string; order?: number }
+  body: {
+    name?: string;
+    description?: string;
+    order?: number;
+    tryOnFeature?: TryOnFeature;
+    hairColorPreset?: string | null;
+    beardTemplateId?: string | null;
+  }
 ) {
   return apiPatch<{ category: Category }>(
     `/api/b2b/categories/${id}`,

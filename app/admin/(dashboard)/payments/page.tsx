@@ -4,15 +4,19 @@ import { useCallback, useEffect, useState } from "react";
 import { CustomSelect } from "@/components/CustomSelect";
 import {
   listPayments,
+  refundPayment,
   type PaymentRow,
   type PaymentSummary,
 } from "@/lib/admin";
 import { PageLoader } from "@/components/PageLoader";
+import { toast } from "@/lib/toast";
 
 const STATUS_TONE: Record<string, string> = {
   paid: "bg-sage/10 text-sage-dark border-sage/30",
   pending: "bg-amber-50 text-amber-700 border-amber-200",
   failed: "bg-red-50 text-red-700 border-red-200",
+  cancelled: "bg-ink/5 text-ink-muted border-ink/15",
+  refunded: "bg-violet-50 text-violet-700 border-violet-200",
 };
 
 const PURPOSE_LABEL: Record<string, string> = {
@@ -32,7 +36,17 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function money(amount: number, currency = "KES") {
+  if (currency === "INR") {
+    return `₹${amount.toLocaleString("en-IN")}`;
+  }
   return `${currency} ${amount.toLocaleString()}`;
+}
+
+function collectedSubline(kes: number, inr: number, kesCount: number, inrCount: number) {
+  const parts: string[] = [];
+  if (kesCount > 0) parts.push(`KES ${kes.toLocaleString()} (${kesCount})`);
+  if (inrCount > 0) parts.push(`₹${inr.toLocaleString("en-IN")} (${inrCount})`);
+  return parts.length ? parts.join(" · ") : "No payments";
 }
 
 function fmtTime(iso: string) {
@@ -79,6 +93,10 @@ export default function AdminPaymentsPage() {
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refundingId, setRefundingId] = useState<string | null>(null);
+  const [refundTarget, setRefundTarget] = useState<PaymentRow | null>(null);
+  const [refundReason, setRefundReason] = useState("");
+  const [refundBusy, setRefundBusy] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -108,6 +126,27 @@ export default function AdminPaymentsPage() {
     load();
   }, [load]);
 
+  async function confirmRefund() {
+    if (!refundTarget) return;
+    setRefundBusy(true);
+    setRefundingId(refundTarget.id);
+    try {
+      await refundPayment(refundTarget.id, {
+        reason: refundReason.trim() || undefined,
+        reverseCredits: refundTarget.purpose === "b2b_credits",
+      });
+      toast.success("Payment marked as refunded");
+      setRefundTarget(null);
+      setRefundReason("");
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Refund failed");
+    } finally {
+      setRefundBusy(false);
+      setRefundingId(null);
+    }
+  }
+
   if (loading && rows.length === 0 && !summary) {
     return <PageLoader label="Loading payments…" />;
   }
@@ -122,25 +161,72 @@ export default function AdminPaymentsPage() {
 
       {/* Summary */}
       {summary && (
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <SummaryCard
-            label="Collected"
-            value={money(summary.paid.amount, summary.currency)}
-            sub={`${summary.paid.count} paid`}
-            tone="text-sage-dark"
-          />
-          <SummaryCard
-            label="Pending"
-            value={money(summary.pending.amount, summary.currency)}
-            sub={`${summary.pending.count} awaiting`}
-            tone="text-amber-600"
-          />
-          <SummaryCard
-            label="Failed"
-            value={money(summary.failed.amount, summary.currency)}
-            sub={`${summary.failed.count} failed`}
-            tone="text-red-600"
-          />
+        <div className="mt-6 space-y-4">
+          <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">
+            Revenue by currency (current filters)
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            <SummaryCard
+              label="Collected (KES)"
+              value={money(summary.paid.kes.amount, "KES")}
+              sub={`${summary.paid.kes.count} paid via M-Pesa / KES`}
+              tone="text-sage-dark"
+            />
+            <SummaryCard
+              label="Collected (INR)"
+              value={money(summary.paid.inr.amount, "INR")}
+              sub={`${summary.paid.inr.count} paid via Razorpay / INR`}
+              tone="text-sage-dark"
+            />
+            <SummaryCard
+              label="Total collected"
+              value={String(summary.paid.totalCount)}
+              sub={collectedSubline(
+                summary.paid.kes.amount,
+                summary.paid.inr.amount,
+                summary.paid.kes.count,
+                summary.paid.inr.count
+              )}
+              tone="text-ink"
+            />
+            <SummaryCard
+              label="Pending"
+              value={`${summary.pending.totalCount}`}
+              sub={collectedSubline(
+                summary.pending.kes.amount,
+                summary.pending.inr.amount,
+                summary.pending.kes.count,
+                summary.pending.inr.count
+              )}
+              tone="text-amber-600"
+            />
+            <SummaryCard
+              label="Failed"
+              value={`${summary.failed.totalCount}`}
+              sub={collectedSubline(
+                summary.failed.kes.amount,
+                summary.failed.inr.amount,
+                summary.failed.kes.count,
+                summary.failed.inr.count
+              )}
+              tone="text-red-600"
+            />
+          </div>
+          {summary.refunded && summary.refunded.totalCount > 0 && (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <SummaryCard
+                label="Refunded"
+                value={`${summary.refunded.totalCount}`}
+                sub={collectedSubline(
+                  summary.refunded.kes.amount,
+                  summary.refunded.inr.amount,
+                  summary.refunded.kes.count,
+                  summary.refunded.inr.count
+                )}
+                tone="text-violet-700"
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -234,12 +320,13 @@ export default function AdminPaymentsPage() {
               <th className="px-4 py-3 text-right">Amount</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Reference</th>
+              <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-ink-muted">
+                <td colSpan={8} className="px-4 py-10 text-center text-ink-muted">
                   No payments match these filters.
                 </td>
               </tr>
@@ -278,6 +365,21 @@ export default function AdminPaymentsPage() {
                   <td className="px-4 py-3 font-mono text-xs text-ink-muted">
                     {p.reference || "—"}
                   </td>
+                  <td className="px-4 py-3">
+                    {p.status === "paid" && (
+                      <button
+                        type="button"
+                        disabled={refundingId === p.id}
+                        onClick={() => {
+                          setRefundTarget(p);
+                          setRefundReason("");
+                        }}
+                        className="rounded-lg border border-violet-200 px-2.5 py-1 text-xs font-semibold text-violet-700 transition hover:bg-violet-50 disabled:opacity-50"
+                      >
+                        Refund
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))
             )}
@@ -310,6 +412,58 @@ export default function AdminPaymentsPage() {
           </button>
         </div>
       </div>
+
+      {refundTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="font-display text-xl font-semibold text-ink">
+              Refund payment
+            </h3>
+            <p className="mt-2 text-sm text-ink-muted">
+              {money(refundTarget.amount, refundTarget.currency)} ·{" "}
+              {PURPOSE_LABEL[refundTarget.purpose] || refundTarget.purpose} ·{" "}
+              {refundTarget.gateway}
+            </p>
+            {refundTarget.purpose === "b2b_credits" && (
+              <p className="mt-2 text-xs text-amber-700">
+                Credits from this purchase will be deducted if the business still
+                has enough balance.
+              </p>
+            )}
+            <label className="mt-4 block">
+              <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-ink-muted">
+                Reason (optional)
+              </span>
+              <textarea
+                value={refundReason}
+                onChange={(e) => setRefundReason(e.target.value)}
+                rows={3}
+                maxLength={500}
+                className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm text-ink outline-none focus:border-sage"
+                placeholder="Customer request, duplicate charge…"
+              />
+            </label>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={refundBusy}
+                onClick={() => setRefundTarget(null)}
+                className="rounded-lg border border-ink/15 px-4 py-2 text-sm font-semibold text-ink"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={refundBusy}
+                onClick={confirmRefund}
+                className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-60"
+              >
+                {refundBusy ? "Refunding…" : "Confirm refund"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

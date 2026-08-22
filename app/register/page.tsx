@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CustomSelect } from "@/components/CustomSelect";
+import { PhoneInput } from "@/components/PhoneInput";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { AddressAutocomplete, type AddressParts } from "@/components/AddressAutocomplete";
@@ -12,11 +13,13 @@ import { track } from "@/lib/analytics";
 import { LIMITS } from "@/lib/limits";
 import { toast } from "@/lib/toast";
 import {
-  COUNTRIES,
   CURRENCIES,
+  countrySelectOptions,
   matchCountry,
   currencyForCountry,
   paymentHintForCurrency,
+  parsePhoneNumber,
+  dialCodeForCountry,
 } from "@/lib/countries";
 
 type AccountKind = "b2c" | "b2b";
@@ -121,13 +124,26 @@ export default function RegisterPage() {
     window.history.replaceState({}, "", url.pathname + url.search);
   }
 
+  function applyCountry(name: string) {
+    setCountry(name);
+    setCurrency(currencyForCountry(name));
+    const dial = dialCodeForCountry(name);
+    setPhone((prev) => {
+      const { national } = parsePhoneNumber(prev, name);
+      return national ? `${dial}${national}` : prev;
+    });
+    setWhatsapp((prev) => {
+      const { national } = parsePhoneNumber(prev, name);
+      return national ? `${dial}${national}` : prev;
+    });
+  }
+
   function onAddress(parts: Partial<AddressParts>) {
     if (parts.line1 !== undefined) setLine1(parts.line1);
     if (parts.city) setCity(parts.city);
     if (parts.country) {
       const nextCountry = matchCountry(parts.country) || country;
-      setCountry(nextCountry);
-      setCurrency(currencyForCountry(nextCountry));
+      applyCountry(nextCountry);
     }
     if (parts.lat != null && parts.lng != null) {
       setCoords({ lat: parts.lat, lng: parts.lng });
@@ -458,52 +474,53 @@ export default function RegisterPage() {
                     </>
                   )}
 
-                  <div className={isBusiness ? "grid grid-cols-2 gap-3" : ""}>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-ink-700">
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      maxLength={LIMITS.email}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={inputClass}
+                      placeholder={
+                        isBusiness ? "studio@example.com" : "you@example.com"
+                      }
+                    />
+                  </div>
+
+                  {isBusiness && (
                     <div>
                       <label className="mb-1 block text-sm font-medium text-ink-700">
-                        Email <span className="text-red-500">*</span>
+                        Phone <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="email"
+                      <PhoneInput
                         required
-                        maxLength={LIMITS.email}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className={inputClass}
-                        placeholder={
-                          isBusiness ? "studio@example.com" : "you@example.com"
-                        }
+                        value={phone}
+                        onChange={setPhone}
+                        country={country}
+                        onCountryDetected={applyCountry}
+                        placeholder="712 345 678"
+                        aria-label="Business phone"
                       />
                     </div>
-                    {isBusiness && (
-                      <div>
-                        <label className="mb-1 block text-sm font-medium text-ink-700">
-                          Phone <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          required
-                          maxLength={LIMITS.phone}
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          className={inputClass}
-                          placeholder="+254…"
-                        />
-                      </div>
-                    )}
-                  </div>
+                  )}
 
                   {isBusiness && (
                     <div>
                       <label className="mb-1 block text-sm font-medium text-ink-700">
                         WhatsApp number <span className="text-red-500">*</span>
                       </label>
-                      <input
+                      <PhoneInput
                         required
-                        maxLength={LIMITS.phone}
                         value={whatsapp}
-                        onChange={(e) => setWhatsapp(e.target.value)}
-                        className={inputClass}
-                        placeholder="+254…"
+                        onChange={setWhatsapp}
+                        country={country}
+                        onCountryDetected={applyCountry}
+                        placeholder="712 345 678"
+                        aria-label="WhatsApp number"
                       />
                     </div>
                   )}
@@ -563,12 +580,11 @@ export default function RegisterPage() {
                           <CustomSelect
                             required
                             value={country}
-                            onChange={(v) => {
-                              setCountry(v);
-                              setCurrency(currencyForCountry(v));
-                            }}
+                            onChange={applyCountry}
                             placeholder="Select country"
-                            options={COUNTRIES.map((c) => ({ value: c, label: c }))}
+                            searchable
+                            searchPlaceholder="Type country name…"
+                            options={countrySelectOptions()}
                           />
                         </div>
                       </div>

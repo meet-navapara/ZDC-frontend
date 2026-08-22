@@ -2,18 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { CustomSelect } from "@/components/CustomSelect";
+import { PhoneInput } from "@/components/PhoneInput";
 import { AddressAutocomplete, type AddressParts } from "@/components/AddressAutocomplete";
 import { BranchManager } from "@/components/BranchManager";
 import { getProfile, updateProfile } from "@/lib/b2b";
 import { getUser, saveAuth, getToken } from "@/lib/auth";
 import { LIMITS } from "@/lib/limits";
 import {
-  COUNTRIES,
   CURRENCIES,
   CURRENCY_CODES,
+  countrySelectOptions,
+  getCountryByName,
   matchCountry,
   currencyForCountry,
   paymentHintForCurrency,
+  parsePhoneNumber,
+  dialCodeForCountry,
 } from "@/lib/countries";
 import { toast } from "@/lib/toast";
 import { PageLoader } from "@/components/PageLoader";
@@ -85,10 +89,15 @@ export default function SettingsPage() {
   function set<K extends keyof typeof form>(key: K, value: string) {
     setForm((f) => {
       if (key === "country") {
+        const dial = dialCodeForCountry(value);
+        const phoneParsed = parsePhoneNumber(f.phone, value);
+        const waParsed = parsePhoneNumber(f.whatsapp, value);
         return {
           ...f,
           country: value,
           currency: currencyForCountry(value),
+          phone: phoneParsed.national ? `${dial}${phoneParsed.national}` : f.phone,
+          whatsapp: waParsed.national ? `${dial}${waParsed.national}` : f.whatsapp,
         };
       }
       return { ...f, [key]: value };
@@ -211,12 +220,19 @@ export default function SettingsPage() {
               <label className="mb-1 block text-sm font-medium text-ink-700">
                 Phone
               </label>
-            <input
-              maxLength={LIMITS.phone}
+            <PhoneInput
               value={form.phone}
-              onChange={(e) => set("phone", e.target.value)}
-              className={inputClass}
-              placeholder="+254…"
+              onChange={(v) => set("phone", v)}
+              country={form.country || "Kenya"}
+              onCountryDetected={(name) => {
+                setForm((f) => ({
+                  ...f,
+                  country: name,
+                  currency: currencyForCountry(name),
+                }));
+              }}
+              placeholder="712 345 678"
+              aria-label="Business phone"
             />
           </div>
 
@@ -224,12 +240,19 @@ export default function SettingsPage() {
             <label className="mb-1 block text-sm font-medium text-ink-700">
               WhatsApp number
             </label>
-            <input
-              maxLength={LIMITS.phone}
+            <PhoneInput
               value={form.whatsapp}
-              onChange={(e) => set("whatsapp", e.target.value)}
-              className={inputClass}
-              placeholder="+254…"
+              onChange={(v) => set("whatsapp", v)}
+              country={form.country || "Kenya"}
+              onCountryDetected={(name) => {
+                setForm((f) => ({
+                  ...f,
+                  country: name,
+                  currency: currencyForCountry(name),
+                }));
+              }}
+              placeholder="712 345 678"
+              aria-label="WhatsApp number"
             />
           </div>
 
@@ -280,12 +303,13 @@ export default function SettingsPage() {
                 value={form.country}
                 onChange={(v) => set("country", v)}
                 placeholder="Select country"
-                options={[
-                  ...COUNTRIES.map((c) => ({ value: c, label: c })),
-                  ...(form.country && !(COUNTRIES as readonly string[]).includes(form.country)
+                searchable
+                searchPlaceholder="Type country name…"
+                options={countrySelectOptions(
+                  form.country && !getCountryByName(form.country)
                     ? [{ value: form.country, label: form.country }]
-                    : []),
-                ]}
+                    : undefined
+                )}
               />
             </div>
           </div>

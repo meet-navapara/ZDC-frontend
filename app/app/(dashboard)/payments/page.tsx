@@ -33,10 +33,14 @@ export default function ConsumerPaymentsPage() {
     return <PageLoader label="Loading payments…" />;
   }
 
-  const spent = payments
+  const spentByCurrency = payments
     .filter((p) => p.status === "paid")
-    .reduce((s, p) => s + p.amount, 0);
-  const currency = payments[0]?.currency || "KES";
+    .reduce<Record<string, number>>((acc, p) => {
+      const cur = p.currency || "KES";
+      acc[cur] = (acc[cur] || 0) + p.amount;
+      return acc;
+    }, {});
+  const spentLines = Object.entries(spentByCurrency);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -61,7 +65,15 @@ export default function ConsumerPaymentsPage() {
             Total spent
           </div>
           <div className="mt-2 font-display text-3xl font-semibold text-ink">
-            {money(spent, currency)}
+            {spentLines.length === 0 ? (
+              "—"
+            ) : spentLines.length === 1 ? (
+              money(spentLines[0][1], spentLines[0][0])
+            ) : (
+              <span className="text-2xl">
+                {spentLines.map(([cur, amt]) => money(amt, cur)).join(" · ")}
+              </span>
+            )}
           </div>
         </div>
         <div className="card rounded-2xl border-sage/30 bg-sage/10 p-5">
