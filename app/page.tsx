@@ -4,10 +4,15 @@ import { Reveal } from "@/components/Reveal";
 import { Spotlight } from "@/components/Spotlight";
 import { LandingNav } from "@/components/LandingNav";
 import { BrandLogo } from "@/components/BrandLogo";
+import { TransformationShowcase } from "@/components/TransformationShowcase";
 import { getSiteContent } from "@/lib/content";
 import { formatDualPrice, getPublicPricing } from "@/lib/pricing";
 
 const categories = [
+  "AI Outfit Try-On",
+  "AI Hairstyle Try-On",
+  "Hair Color Try-On",
+  "Beard Try-On",
   "Braids",
   "Cornrows",
   "Locs",
@@ -23,71 +28,79 @@ const categories = [
   "Sherwani",
   "Kitenge",
   "Dashiki",
-  "Pleats",
   "Box Braids",
   "Afro",
-  "Updo",
-  "Menswear",
   "Salon Looks",
+  "Boutique Catalog",
+  "Virtual Fitting Room",
 ];
 
 const features = [
   {
-    eyebrow: "Virtual Try-On",
-    title: "Try it on, instantly.",
-    desc: "Upload a selfie and any outfit — zimji renders a photorealistic try-on in seconds, so you see the fit, drape and colour before you buy.",
-    // Woman in outfit with shopping bags — apparel try-on
+    eyebrow: "AI Outfit Try-On",
+    title: "See the outfit on you — before you buy.",
+    desc: "Upload a selfie and any clothing reference. zimji’s AI virtual try-on renders a photorealistic preview of fit, drape, and colour in seconds so shoppers stop guessing and start buying with confidence.",
     img: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80",
-    alt: "Woman in outfit trying on apparel",
+    alt: "AI virtual outfit try-on preview on a fashion shopper",
     pos: "object-center",
-    cta: "Try apparel",
+    cta: "Try AI outfit try-on",
     reverse: false,
   },
   {
-    eyebrow: "Hair Studio",
-    title: "Every hairstyle, previewed.",
-    desc: "Braids, cornrows, locs, pleats and wigs — visualize any style on yourself before your appointment. No more guesswork at the salon.",
-    // African man with locs — hairstyle clearly the focus
+    eyebrow: "AI Hairstyle & Color Try-On",
+    title: "Preview braids, locs, color & beards.",
+    desc: "From cornrows and wigs to AI hair color try-on and beard styles — visualize the full look on your face before you book the salon chair. Less risk, more wow.",
     img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80",
-    alt: "African man with locs hairstyle",
+    alt: "AI hairstyle try-on preview with locs",
     pos: "object-top",
-    cta: "Try hairstyles",
+    cta: "Try AI hairstyle try-on",
     reverse: true,
   },
   {
-    eyebrow: "For Business",
-    title: "A fitting room for your catalog.",
-    desc: "Boutiques and salons upload their catalog, and customers try everything on. Cut returns, lift conversion, and see which styles win.",
-    // Fashion clothing store interior — boutique/salon context
+    eyebrow: "For Boutiques & Salons",
+    title: "A virtual fitting room for your catalog.",
+    desc: "Fashion boutiques and hair salons upload products once. Customers run AI try-on from your catalog, you cut returns, lift conversion, and see which styles win — all on prepaid credits.",
     img: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
-    alt: "Fashion boutique store interior",
+    alt: "Fashion boutique using virtual try-on for catalog",
     pos: "object-center",
-    cta: "Explore B2B",
+    cta: "Explore business try-on",
     reverse: false,
   },
 ];
 
 const steps = [
-  { n: "01", title: "Upload", desc: "Add a selfie and the outfit or hairstyle you want to try." },
-  { n: "02", title: "Pay", desc: "M-Pesa (Kenya) or Razorpay (India) — pay only for what you render." },
-  { n: "03", title: "Reveal", desc: "Your try-on lands instantly in WhatsApp or email." },
+  {
+    n: "01",
+    title: "Upload your selfie",
+    desc: "Add a clear photo plus the outfit, hairstyle, hair color, or beard look you want to try.",
+  },
+  {
+    n: "02",
+    title: "Pay in a tap",
+    desc: "M-Pesa in Kenya or Razorpay in India — pay only for the AI try-on renders you run.",
+  },
+  {
+    n: "03",
+    title: "Get your AI look",
+    desc: "Photorealistic results appear in seconds — download, share, then buy or book with confidence.",
+  },
 ];
 
 const b2bSteps = [
   {
     n: "01",
     title: "Upload customer photo",
-    desc: "Add one customer selfie from the studio floor, WhatsApp, or your device.",
+    desc: "Capture a selfie on the shop floor, WhatsApp, or device — one photo powers the try-on.",
   },
   {
     n: "02",
-    title: "Pick a catalog product",
-    desc: "Choose any active outfit or hairstyle from your uploaded business catalog.",
+    title: "Pick from your catalog",
+    desc: "Choose an active outfit or hairstyle product from your boutique or salon catalog.",
   },
   {
     n: "03",
     title: "Render with credits",
-    desc: "1 credit = 1 styled render, ready to download and share instantly.",
+    desc: "1 credit = 1 AI try-on render — ready to download, share, and close the sale.",
   },
 ];
 
@@ -139,6 +152,29 @@ export default async function Home() {
 
   return (
     <main className="relative">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: "zimji",
+            applicationCategory: "LifestyleApplication",
+            operatingSystem: "Web",
+            description:
+              "AI virtual try-on platform for outfits, hairstyles, hair color, and beards. Photorealistic previews for shoppers, boutiques, and salons.",
+            offers: {
+              "@type": "Offer",
+              priceCurrency: "KES",
+              price: String(singlePack?.amount ?? 20),
+              description: "AI virtual try-on packs and business credits",
+            },
+            keywords:
+              "AI virtual try-on, virtual outfit try-on, AI hairstyle try-on, hair color try-on, beard try-on, boutique, salon",
+            url: "https://zimji.app",
+          }),
+        }}
+      />
       {/* ============ NAV ============ */}
       <LandingNav />
 
@@ -152,16 +188,14 @@ export default async function Home() {
               <span className="truncate">{hero.badge}</span>
             </div>
 
-            <h1 className="mt-5 font-display text-[2.6rem] font-semibold leading-[1.05] tracking-tight text-ink sm:mt-6 sm:text-5xl md:text-[3.75rem]">
-              <span className="italic text-sage">Try-On</span>
-              {" "}that fits{" "}
-              <span className="italic text-sage">you.</span>
+            <h1 className="mt-5 font-display text-[2.4rem] font-semibold leading-[1.08] tracking-tight text-ink sm:mt-6 sm:text-5xl md:text-[3.5rem]">
+              <span className="italic text-sage">AI Virtual Try-On</span>
+              {" "}for outfits &amp; hair.
             </h1>
 
             <p className="mt-5 max-w-md text-base text-ink-muted sm:mt-6 sm:text-lg">
-              Try it in seconds — no guesswork, no regrets, just instant
-              results. See any outfit or hairstyle on yourself before you buy
-              or book.
+              {hero.subtitle ||
+                "Upload a selfie and preview photorealistic outfits, hairstyles, hair color, or beard looks in seconds — try before you buy or book."}
             </p>
 
             <div className="mt-7 flex w-full flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-4">
@@ -175,7 +209,7 @@ export default async function Home() {
                 href="#lookbook"
                 className="w-full rounded-full border border-ink/15 px-8 py-3.5 text-center text-base font-semibold text-ink transition hover:border-ink/30 hover:bg-white/40 sm:w-auto"
               >
-                View the lookbook
+                View AI lookbook
               </a>
             </div>
 
@@ -191,72 +225,92 @@ export default async function Home() {
             </div>
           </Reveal>
 
-          {/* Hero collage */}
-          <Reveal delay={140} className="relative z-10">
+          {/* Hero collage — entrance animations via CSS classes */}
+          <div className="relative z-10">
             <div className="grid grid-cols-2 grid-rows-[auto_auto] gap-3 sm:gap-4">
-              {/* Box 1 — top left (before / short hair) */}
-              <div className="card overflow-hidden rounded-[1.25rem] bg-white sm:rounded-[1.6rem]">
-                <div className="relative aspect-square">
+
+              {/* Top-left: Upload */}
+              <div className="hero-card-1 img-card card group overflow-hidden rounded-[1.25rem] bg-white sm:rounded-[1.7rem]">
+                <div className="relative aspect-[4/5]">
                   <Image
-                    src="/images/hero-1.png"
-                    alt="Woman in a patterned blue top with short natural hair"
+                    src="/images/braids-light.png"
+                    alt="Customer portrait before AI virtual try-on"
                     fill
+                    priority
                     sizes="(max-width: 768px) 45vw, 260px"
-                    className="object-contain object-bottom p-1 sm:p-2"
+                    className="object-cover object-top transition duration-700 group-hover:scale-[1.04]"
                   />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/25 to-transparent" />
                 </div>
               </div>
-              {/* Box 2 — tall right (after / try-on result) */}
-              <div className="card row-span-2 overflow-hidden rounded-[1.25rem] bg-white sm:rounded-[1.6rem]">
-                <div className="relative aspect-[3/4.4]">
+
+              {/* Tall-right: AI Result */}
+              <div
+                className="hero-card-2 img-card card group row-span-2 overflow-hidden rounded-[1.25rem] bg-white sm:rounded-[1.7rem]"
+                style={{ boxShadow: "0 28px 60px -18px rgba(92,122,104,0.4)" }}
+              >
+                <div className="relative h-full min-h-[260px]">
                   <Image
-                    src="/images/hero-3.png"
-                    alt="Woman with cornrow curls in a patterned top — try-on result"
+                    src="/images/apparel.png"
+                    alt="AI generated outfit try-on result on zimji"
                     fill
                     priority
                     sizes="(max-width: 768px) 45vw, 300px"
-                    className="object-contain object-bottom p-1 sm:p-2"
+                    className="object-cover object-top transition duration-700 group-hover:scale-[1.04]"
                   />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/0 to-transparent opacity-0 transition duration-700 group-hover:via-white/8 group-hover:opacity-100" />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/85 via-ink/30 to-transparent p-3.5 sm:p-4">
+                    <div className="text-[9px] font-bold uppercase tracking-[0.22em] text-paper/70">
+                      AI Virtual Try-On
+                    </div>
+                    <div className="mt-0.5 font-display text-base font-semibold leading-tight text-paper sm:text-lg">
+                      Photorealistic look in seconds
+                    </div>
+                  </div>
                 </div>
               </div>
-              {/* Box 3 — bottom left (unchanged) */}
-              <div className="card overflow-hidden rounded-[1.25rem] bg-white sm:rounded-[1.6rem]">
-                <div className="relative aspect-square">
+
+              {/* Bottom-left: Transform */}
+              <div className="hero-card-3 img-card card group overflow-hidden rounded-[1.25rem] bg-white sm:rounded-[1.7rem]">
+                <div className="relative aspect-[4/5]">
                   <Image
-                    src="/images/hero-2.jpg"
-                    alt="Woman with two-tone curls in a yellow top"
+                    src="/images/hairstyle.png"
+                    alt="AI hairstyle transformation preview"
                     fill
                     sizes="(max-width: 768px) 45vw, 260px"
-                    className="object-cover object-top"
+                    className="object-cover object-top transition duration-700 group-hover:scale-[1.04]"
                   />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/25 to-transparent" />
                 </div>
               </div>
             </div>
-            <div className="absolute bottom-3 right-2 flex max-w-[calc(100%-1rem)] items-center gap-2 rounded-2xl glass-strong px-3 py-2.5 sm:bottom-6 sm:-right-4 sm:gap-3 sm:px-4 sm:py-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sage text-sm text-paper sm:h-9 sm:w-9">
+
+            {/* Confidence badge */}
+            <div className="hero-badge absolute -bottom-1 right-2 flex max-w-[calc(100%-1rem)] items-center gap-2.5 rounded-2xl glass-strong px-3.5 py-3 shadow-xl sm:-bottom-3 sm:-right-5 sm:gap-3 sm:px-4 sm:py-3.5">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sage text-base text-paper shadow-md shadow-sage/35 sm:h-10 sm:w-10">
                 ✓
               </span>
               <div className="min-w-0">
-                <div className="truncate text-xs font-semibold text-ink sm:text-sm">
+                <div className="truncate text-xs font-bold text-ink sm:text-sm">
                   Rendered in 8s
                 </div>
-                <div className="truncate text-[10px] text-ink-muted sm:text-xs">
+                <div className="truncate text-[10px] text-ink-muted sm:text-[11px]">
                   98% match confidence
                 </div>
               </div>
             </div>
-          </Reveal>
+          </div>
         </section>
       </Spotlight>
 
       {/* ============ CATEGORY STRIP ============ */}
-      <section className="overflow-hidden border-y border-ink/10 bg-white/40">
+      <section className="overflow-hidden border-y border-ink/10 bg-white/50 backdrop-blur-sm">
         <div className="flex w-max animate-marquee gap-x-10 py-5 hover:[animation-play-state:paused] sm:gap-x-14 sm:py-6">
           {[...categories, ...categories].map((c, i) => (
             <span
               key={`${c}-${i}`}
               aria-hidden={i >= categories.length}
-              className="shrink-0 font-display text-base italic text-ink-muted sm:text-lg"
+              className="marquee-tag shrink-0 font-display text-base italic text-ink sm:text-lg"
             >
               {c}
             </span>
@@ -299,15 +353,16 @@ export default async function Home() {
                 </div>
               </div>
 
-              <div className="card overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
-                <div className="relative aspect-[4/3]">
+              <div className="img-card feat-img-wrap card overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
+                <div className="relative aspect-[4/3] overflow-hidden">
                   <Image
                     src={f.img}
                     alt={f.alt ?? f.title}
                     fill
                     sizes="(max-width: 768px) 90vw, 520px"
-                    className={`object-cover ${f.pos ?? "object-center"}`}
+                    className={`object-cover transition duration-700 ease-out group-hover:scale-[1.05] ${f.pos ?? "object-center"}`}
                   />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/20 to-transparent" />
                 </div>
               </div>
             </div>
@@ -321,46 +376,41 @@ export default async function Home() {
           <Reveal className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end sm:gap-6">
             <div className="max-w-xl">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sage">
-                The Lookbook
+                AI Try-On Lookbook
               </p>
               <h2 className="mt-3 font-display text-3xl font-semibold leading-tight text-ink sm:mt-4 sm:text-4xl md:text-5xl">
-                Real renders. Runway-ready results.
+                Photorealistic virtual try-on results.
               </h2>
             </div>
             <p className="max-w-xs text-sm text-ink-muted">
-              A glimpse of the photorealistic output zimji delivers — apparel,
-              hairstyles and accessories.
+              Real AI outfit and hairstyle renders from zimji — the virtual
+              fitting room for fashion and beauty.
             </p>
           </Reveal>
 
           <div className="mt-10 grid auto-rows-[160px] grid-cols-2 gap-3 sm:mt-14 sm:auto-rows-[240px] sm:gap-4 md:grid-cols-4">
             {[
-              // African woman — natural afro portrait (tall card)
-              { src: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=600&q=80", tag: "Natural Afro", kind: "Hairstyle", cls: "row-span-2" },
-              // Indian woman — long hair portrait
-              { src: "https://images.unsplash.com/photo-1559599101-f09722fb4948?w=600&q=80", tag: "Indian Style", kind: "Hairstyle", cls: "" },
-              // Indian man — portrait styled hair
-              { src: "https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=600&q=80", tag: "Men's Look", kind: "Apparel", cls: "" },
-              // African woman — colourful outfit portrait (tall card)
-              { src: "https://images.unsplash.com/photo-1523824921871-d6f1a15151f1?w=600&q=80", tag: "Kenyan Outfit", kind: "Apparel", cls: "row-span-2" },
-              // African man — locs hairstyle portrait
-              { src: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80", tag: "Locs Style", kind: "Hairstyle", cls: "" },
+              { src: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=600&q=80", tag: "Natural Afro", kind: "AI Hairstyle Try-On", cls: "row-span-2" },
+              { src: "https://images.unsplash.com/photo-1559599101-f09722fb4948?w=600&q=80", tag: "Indian Style", kind: "AI Hair Try-On", cls: "" },
+              { src: "https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=600&q=80", tag: "Men's Look", kind: "AI Outfit Try-On", cls: "" },
+              { src: "https://images.unsplash.com/photo-1523824921871-d6f1a15151f1?w=600&q=80", tag: "Kenyan Outfit", kind: "AI Outfit Try-On", cls: "row-span-2" },
+              { src: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80", tag: "Locs Style", kind: "AI Hairstyle Try-On", cls: "" },
             ].map((item, i) => (
-              <Reveal key={item.src} delay={i * 80} className={item.cls}>
-                <div className="card group relative h-full w-full overflow-hidden rounded-2xl sm:rounded-3xl">
+              <Reveal key={item.src} delay={i * 100} className={item.cls}>
+                <div className="lookbook-card img-card card group relative h-full w-full overflow-hidden rounded-2xl sm:rounded-3xl">
                   <Image
                     src={item.src}
-                    alt={item.tag}
+                    alt={`${item.tag} — ${item.kind} on zimji`}
                     fill
                     sizes="(max-width: 768px) 50vw, 25vw"
-                    className="object-cover transition duration-700 group-hover:scale-105"
+                    className="object-cover transition duration-700 group-hover:scale-[1.07]"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100" />
-                  <div className="absolute inset-x-3 bottom-3 translate-y-0 opacity-100 transition sm:inset-x-4 sm:bottom-4 sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">
-                    <span className="text-[10px] uppercase tracking-widest text-paper/80">
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/60 via-transparent to-transparent" />
+                  <div className="lk-overlay absolute inset-x-0 bottom-0 p-3 sm:p-4">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-paper/75 sm:text-[10px]">
                       {item.kind}
                     </span>
-                    <div className="font-display text-base font-semibold text-paper sm:text-xl">
+                    <div className="mt-0.5 font-display text-sm font-semibold text-paper sm:text-xl">
                       {item.tag}
                     </div>
                   </div>
@@ -373,24 +423,27 @@ export default async function Home() {
 
       {/* ============ HOW IT WORKS ============ */}
       <section id="how" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 md:py-28">
-        <Reveal className="text-center">
+        <TransformationShowcase />
+
+        <Reveal className="mt-16 text-center sm:mt-20">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sage">
-            Three taps
+            How AI try-on works
           </p>
           <h2 className="mx-auto mt-3 max-w-2xl font-display text-3xl font-semibold text-ink sm:mt-4 sm:text-4xl md:text-5xl">
-            From selfie to showstopper.
+            From selfie to showstopper in seconds.
           </h2>
         </Reveal>
 
         <p className="mt-10 text-center text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted sm:mt-16">
-          For customers
+          For shoppers
         </p>
         <div className="relative mt-4 grid gap-4 sm:gap-6 md:grid-cols-3">
-          <div className="pointer-events-none absolute left-0 right-0 top-14 hidden h-px bg-ink/10 md:block" />
+          {/* connector line */}
+          <div className="pointer-events-none absolute left-[3.25rem] right-[3.25rem] top-[1.35rem] hidden h-px bg-gradient-to-r from-sage/20 via-sage/40 to-sage/20 md:block" />
           {steps.map((s, i) => (
-            <Reveal key={`b2c-${s.n}`} delay={i * 120}>
-              <div className="card relative flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sage font-display text-base font-semibold text-paper sm:h-12 sm:w-12 sm:text-lg">
+            <Reveal key={`b2c-${s.n}`} delay={i * 130}>
+              <div className="step-card card relative flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
+                <div className="step-ring flex h-11 w-11 items-center justify-center rounded-full bg-sage font-display text-base font-semibold text-paper sm:h-12 sm:w-12 sm:text-lg">
                   {s.n}
                 </div>
                 <h3 className="mt-5 font-display text-xl font-semibold text-ink sm:mt-6 sm:text-2xl">
@@ -407,15 +460,15 @@ export default async function Home() {
             For boutiques &amp; salons
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-base font-medium text-ink-muted sm:mt-4 sm:text-lg md:text-xl">
-            Customer should not feel like a Gamble while selecting Style.
+            Style should never feel like a gamble — let customers try on your catalog with AI first.
           </p>
         </div>
         <div className="relative mt-6 grid gap-4 sm:mt-8 sm:gap-6 md:grid-cols-3">
-          <div className="pointer-events-none absolute left-0 right-0 top-14 hidden h-px bg-ink/10 md:block" />
+          <div className="pointer-events-none absolute left-[3.25rem] right-[3.25rem] top-[1.35rem] hidden h-px bg-gradient-to-r from-sage/20 via-sage/40 to-sage/20 md:block" />
           {b2bSteps.map((s, i) => (
-            <Reveal key={`b2b-${s.n}`} delay={i * 120}>
-              <div className="card relative flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sage font-display text-base font-semibold text-paper sm:h-12 sm:w-12 sm:text-lg">
+            <Reveal key={`b2b-${s.n}`} delay={i * 130}>
+              <div className="step-card card relative flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
+                <div className="step-ring flex h-11 w-11 items-center justify-center rounded-full bg-sage font-display text-base font-semibold text-paper sm:h-12 sm:w-12 sm:text-lg">
                   {s.n}
                 </div>
                 <h3 className="mt-5 font-display text-xl font-semibold text-ink sm:mt-6 sm:text-2xl">
@@ -432,15 +485,16 @@ export default async function Home() {
       <section id="business" className="border-y border-ink/10 bg-white/40">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 pb-20 sm:gap-12 sm:px-6 sm:py-20 sm:pb-24 md:grid-cols-2 md:py-28 md:pb-28">
           <Reveal className="relative order-2 md:order-1">
-            <div className="card overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
+            <div className="img-card feat-img-wrap card overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
               <div className="relative aspect-[4/3]">
                 <Image
                   src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&q=80"
-                    alt="Women shopping in fashion boutique"
+                  alt="Women shopping in fashion boutique"
                   fill
                   sizes="(max-width: 768px) 90vw, 520px"
-                  className="object-cover"
+                  className="object-cover transition duration-700 hover:scale-[1.03]"
                 />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/20 to-transparent" />
               </div>
             </div>
             <div className="absolute -bottom-5 right-3 w-[min(14rem,70%)] rounded-2xl glass-strong p-4 sm:-bottom-6 sm:right-4 sm:w-56 sm:p-5 md:-right-4 lg:-right-8">
@@ -480,22 +534,22 @@ export default async function Home() {
 
           <Reveal delay={120} className="order-1 md:order-2">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sage">
-              For Boutiques &amp; Salons
+              Business AI Try-On
             </p>
             <h2 className="mt-3 font-display text-3xl font-semibold leading-tight text-ink sm:mt-4 sm:text-4xl md:text-5xl">
-              Turn browsers into buyers.
+              Turn browsers into buyers with virtual try-on.
             </h2>
             <p className="mt-4 text-sm text-ink-muted sm:mt-5 sm:text-base">
-              Give every customer a fitting room in their pocket. Showcase your
-              catalog, cut return rates, and see exactly which styles convert —
-              all from a dashboard that carries your brand.
+              Give every customer a pocket fitting room. Showcase outfits and
+              hairstyles, cut return rates, and track which looks convert — from
+              a branded dashboard powered by prepaid AI try-on credits.
             </p>
             <ul className="mt-6 space-y-3 sm:mt-8">
               {[
-                "Multi-branch catalogs with up to 10 categories",
-                "Prepaid credits — 1 credit = 1 render",
-                "Analytics: popular styles, conversion, engagement",
-                "Excel exports & credit top-ups in a tap",
+                "Boutique & salon catalogs with AI outfit and hairstyle try-on",
+                "Prepaid credits — 1 credit = 1 photorealistic render",
+                "Analytics on popular styles, conversion & engagement",
+                "Excel exports and instant credit top-ups",
               ].map((t) => (
                 <li
                   key={t}
@@ -522,16 +576,16 @@ export default async function Home() {
       <section id="pricing" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 md:py-28">
         <Reveal className="text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sage">
-            Simple, fair pricing
+            Try-on pricing
           </p>
           <h2 className="mx-auto mt-3 max-w-2xl font-display text-3xl font-semibold text-ink sm:mt-4 sm:text-4xl md:text-5xl">
-            Pay only for the looks you love.
+            Pay only for the AI looks you love.
           </h2>
         </Reveal>
 
         <div className="mt-10 grid gap-4 sm:mt-14 sm:gap-6 md:grid-cols-3">
           <Reveal>
-            <div className="card flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
+            <div className="pricing-card card flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
               <span className="text-sm text-ink-muted">
                 {singlePack?.label || "Single"}
               </span>
@@ -558,7 +612,7 @@ export default async function Home() {
           </Reveal>
 
           <Reveal delay={100}>
-            <div className="flex h-full flex-col rounded-2xl bg-sage p-6 text-paper shadow-xl shadow-sage/25 sm:rounded-3xl sm:p-8">
+            <div className="pricing-card pricing-card-featured flex h-full flex-col rounded-2xl bg-sage p-6 text-paper shadow-xl shadow-sage/30 sm:rounded-3xl sm:p-8">
               <span className="text-sm text-paper/80">
                 {trioPack?.label || "Trio"}
               </span>
@@ -587,7 +641,7 @@ export default async function Home() {
           </Reveal>
 
           <Reveal delay={200}>
-            <div className="card flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
+            <div className="pricing-card card flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
               <span className="text-sm text-ink-muted">Business</span>
               <div className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">
                 {creditPrice?.primary || "Credits"}
@@ -623,10 +677,10 @@ export default async function Home() {
           <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
             <Reveal className="text-center">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sage">
-                Loved by our community
+                Loved by try-on fans
               </p>
               <h2 className="mx-auto mt-4 max-w-2xl font-display text-4xl font-semibold text-ink sm:text-5xl">
-                What people are saying.
+                What people say about zimji AI try-on.
               </h2>
             </Reveal>
 
@@ -660,17 +714,17 @@ export default async function Home() {
             <div className="aurora animate-aurora left-[8%] top-[-30%] h-[26vw] w-[26vw] bg-sage/40" />
             <div className="aurora animate-floatSlow right-[6%] bottom-[-30%] h-[22vw] w-[22vw] bg-[#e7d8c4]/30" />
             <h2 className="relative z-10 mx-auto max-w-2xl font-display text-3xl font-semibold sm:text-4xl md:text-5xl">
-              Your next look is one tap away.
+              Your next AI try-on is one tap away.
             </h2>
             <p className="relative z-10 mx-auto mt-4 max-w-md text-sm text-paper/70 sm:text-base">
-              Join the try-before-you-buy revolution reshaping fashion and beauty
-              across Africa.
+              Join shoppers, boutiques, and salons using zimji virtual try-on
+              for outfits, hairstyles, hair color, and beards — try before you buy.
             </p>
             <Link
               href="/try-on"
               className="relative z-10 mt-7 inline-flex w-full max-w-xs items-center justify-center rounded-full bg-sage px-9 py-3.5 text-base font-semibold text-paper transition hover:bg-sage-dark sm:mt-8 sm:w-auto sm:py-4"
             >
-              Try On Instantly
+              Start AI Virtual Try-On
             </Link>
           </div>
         </Reveal>
@@ -683,7 +737,8 @@ export default async function Home() {
             <div>
               <BrandLogo href="/" size="lg" />
               <p className="mt-3 max-w-xs text-sm text-ink-muted">
-                Style, smarter. AI virtual try-on for apparel and hairstyles.
+                Style, smarter. AI virtual try-on for outfits, hairstyles, hair
+                color, and beards — for shoppers, boutiques, and salons.
               </p>
               <div className="mt-5 flex items-center gap-2.5">
                 {SOCIAL_LINKS.map((s) => (
@@ -717,7 +772,7 @@ export default async function Home() {
             </nav>
           </div>
           <div className="mt-8 border-t border-ink/10 pt-5 text-center text-xs text-ink-muted sm:mt-10 sm:pt-6">
-            © {new Date().getFullYear()} zimji — Style, Smarter!
+            © {new Date().getFullYear()} zimji — AI Virtual Try-On · Style, Smarter!
           </div>
         </div>
       </footer>

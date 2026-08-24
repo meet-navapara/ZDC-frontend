@@ -26,6 +26,8 @@ import {
 } from "@/lib/b2c";
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { toast } from "@/lib/toast";
+import { CheckoutCoupon } from "@/components/CheckoutCoupon";
+import type { CouponQuote } from "@/lib/coupons";
 import {
   friendlyTryOnError,
   readImageDimensions,
@@ -37,6 +39,10 @@ import {
   HairColorPicker,
 } from "@/components/PerfectCorpPickers";
 import type { BeardTemplateOption, HairColorOption } from "@/lib/b2c";
+import {
+  tryOnFeatureLabel,
+  tryOnFeatureShortLabel,
+} from "@/lib/tryOnFeatures";
 
 type Pack = B2cPack;
 type Job = B2cJob;
@@ -94,9 +100,9 @@ function getTryonUploadCopy(feature: string, targetCount: number) {
           targetCount > 1
             ? `Your selfie, then pick ${targetCount} hair colors — one result each.`
             : "Your selfie and the hair color you want to try.",
-        stepTitle: "Choose hair color",
+        stepTitle: `Choose ${tryOnFeatureShortLabel("haircolor").toLowerCase()}`,
         targetLabel: (i: number) =>
-          targetCount > 1 ? `Color ${i + 1}` : "Hair color",
+          targetCount > 1 ? `Color ${i + 1}` : tryOnFeatureShortLabel("haircolor"),
         targetHint: "Pick a shade",
         targetWord: "hair color",
       };
@@ -106,9 +112,9 @@ function getTryonUploadCopy(feature: string, targetCount: number) {
           targetCount > 1
             ? `Your selfie, then pick ${targetCount} beard styles — one result each.`
             : "Your selfie and the beard style you want to try.",
-        stepTitle: "Choose beard style",
+        stepTitle: `Choose ${tryOnFeatureShortLabel("beard").toLowerCase()}`,
         targetLabel: (i: number) =>
-          targetCount > 1 ? `Style ${i + 1}` : "Beard style",
+          targetCount > 1 ? `Style ${i + 1}` : tryOnFeatureShortLabel("beard"),
         targetHint: "Pick a style",
         targetWord: "beard style",
       };
@@ -368,6 +374,8 @@ export default function B2cTryOnStudio() {
     () => getUser()?.phone || ""
   );
   const [mpesaHint, setMpesaHint] = useState("");
+  const [couponQuote, setCouponQuote] = useState<CouponQuote | null>(null);
+  const [couponCode, setCouponCode] = useState("");
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -530,6 +538,17 @@ export default function B2cTryOnStudio() {
       : payGateway === "mpesa"
         ? "KES"
         : selectedPack?.currency || "KES";
+  const payableAmount =
+    couponQuote &&
+    couponQuote.currency === displayCurrency &&
+    couponQuote.subtotal === Number(displayAmount)
+      ? couponQuote.finalAmount
+      : displayAmount;
+
+  useEffect(() => {
+    setCouponQuote(null);
+    setCouponCode("");
+  }, [packId, displayCurrency, displayAmount]);
 
   useEffect(() => {
     setTargets((prev) => {
@@ -624,6 +643,7 @@ export default function B2cTryOnStudio() {
             ? "auto"
             : payGateway,
         phone: useFreeTryon ? undefined : mpesaPhone.trim() || undefined,
+        couponCode: useFreeTryon ? undefined : couponCode || undefined,
       });
 
       if (paid.pending && paid.payment?.id) {
@@ -825,14 +845,14 @@ export default function B2cTryOnStudio() {
                             : "border-ink/10 text-ink hover:border-sage/40"
                         }`}
                       >
-                        {f.label}
+                        {tryOnFeatureLabel(f.id)}
                       </button>
                     );
                   })}
                 </div>
               ) : (
                 <p className="mt-4 text-sm text-ink-muted">
-                  Outfit try-on (upload selfie + reference photo)
+                  {tryOnFeatureLabel("cloth")} (upload selfie + reference photo)
                 </p>
               )}
 
@@ -995,16 +1015,41 @@ export default function B2cTryOnStudio() {
                 </div>
               </dl>
               <div className="my-4 h-px bg-ink/10" />
+              {couponQuote && payableAmount !== displayAmount && (
+                <div className="mb-3 space-y-2 text-sm">
+                  <div className="flex items-center justify-between text-ink-muted">
+                    <span>Subtotal</span>
+                    <span>
+                      {displayCurrency} {displayAmount}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sage-dark">
+                    <span>Coupon: {couponQuote.coupon.code}</span>
+                    <span>−{displayCurrency} {couponQuote.discountAmount}</span>
+                  </div>
+                </div>
+              )}
               <div className="flex items-end justify-between">
                 <span className="text-sm font-semibold text-ink">
                   Total payable
                 </span>
                 <span className="font-display text-2xl font-semibold text-ink">
                   {selectedPack
-                    ? `${displayCurrency} ${displayAmount}`
+                    ? `${displayCurrency} ${payableAmount}`
                     : "—"}
                 </span>
               </div>
+
+              <CheckoutCoupon
+                packId={packId}
+                amount={typeof displayAmount === "number" ? displayAmount : Number(displayAmount)}
+                currency={displayCurrency}
+                quote={couponQuote}
+                onQuote={(q, code) => {
+                  setCouponQuote(q);
+                  setCouponCode(code);
+                }}
+              />
 
               {freeTryons > 0 && (
                 <p className="mt-3 rounded-xl bg-sage/10 px-3 py-2 text-xs font-medium text-sage-dark">
@@ -1099,10 +1144,10 @@ export default function B2cTryOnStudio() {
                   ? "Processing…"
                   : selectedPack
                     ? needsMpesaPhone
-                      ? `Pay with M-Pesa · ${displayCurrency} ${displayAmount}`
+                      ? `Pay with M-Pesa · ${displayCurrency} ${payableAmount}`
                       : payWithRazorpay
-                        ? `Pay with Razorpay · ${displayCurrency} ${displayAmount}`
-                        : `Pay ${displayCurrency} ${displayAmount}`
+                        ? `Pay with Razorpay · ${displayCurrency} ${payableAmount}`
+                        : `Pay ${displayCurrency} ${payableAmount}`
                     : "Pay & Render"}
               </button>
 

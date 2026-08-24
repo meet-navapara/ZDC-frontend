@@ -60,21 +60,25 @@ export function TryOnResultReady({
         ) : null}
       </header>
 
-      <div className="relative z-10 mt-3 flex min-h-0 flex-1 items-center justify-center gap-3 sm:mt-4 sm:gap-5">
-        <div className="flex max-h-full flex-col items-center justify-center">
-          <div className="group relative animate-lookReveal">
+      {/* ── Two-column layout: large image left, actions right ── */}
+      <div className="relative z-10 mt-3 flex min-h-0 flex-1 flex-col items-center gap-4 sm:mt-5 sm:flex-row sm:items-start sm:justify-center sm:gap-6 md:gap-8">
+
+        {/* Image card — fills as much vertical space as available */}
+        <div className="flex w-full flex-col items-center sm:w-auto">
+          <div className="group relative animate-lookReveal w-full max-w-sm sm:max-w-none">
             <div
               aria-hidden
-              className="absolute -inset-3 rounded-[1.75rem] bg-sage/15 blur-2xl dark:bg-sage/20"
+              className="absolute -inset-4 rounded-[2rem] bg-sage/15 blur-3xl dark:bg-sage/20"
             />
-            <figure className="relative overflow-hidden rounded-2xl bg-paper shadow-[0_22px_48px_-26px_rgba(0,0,0,0.55)] ring-1 ring-ink/10 dark:bg-[#0c0b09] dark:ring-white/12">
-              <div className="relative aspect-[3/4] h-[min(42dvh,16.5rem)] w-[min(38vw,11rem)] sm:h-[min(48dvh,19rem)] sm:w-[12.75rem]">
+            <figure className="relative overflow-hidden rounded-2xl bg-[#f0ece4] shadow-[0_28px_56px_-24px_rgba(0,0,0,0.5)] ring-1 ring-ink/10 dark:bg-[#18150f] dark:ring-white/12">
+              {/* Portrait that fills most of the viewport height */}
+              <div className="relative aspect-[3/4] w-full sm:h-[min(62dvh,30rem)] sm:w-[min(46vw,22rem)] md:h-[min(68dvh,34rem)] md:w-[min(38vw,24rem)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   key={current}
                   src={apiUrl(current)}
                   alt="Your generated try-on"
-                  className="absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.03]"
+                  className="absolute inset-0 h-full w-full object-contain transition duration-700 ease-out group-hover:scale-[1.02]"
                 />
                 <div
                   aria-hidden
@@ -89,7 +93,7 @@ export function TryOnResultReady({
           </div>
 
           {urls.length > 1 && (
-            <div className="mt-2 flex gap-1.5">
+            <div className="mt-3 flex gap-2">
               {urls.map((url, i) => (
                 <button
                   key={`${url}-${i}`}
@@ -97,9 +101,9 @@ export function TryOnResultReady({
                   onClick={() => setActive(i)}
                   aria-label={`Look ${i + 1}`}
                   aria-pressed={active === i}
-                  className={`relative h-9 w-7 overflow-hidden rounded-md transition ${
+                  className={`relative h-11 w-8 overflow-hidden rounded-lg transition ${
                     active === i
-                      ? "ring-2 ring-sage ring-offset-1 ring-offset-paper dark:ring-offset-[#0c0b09]"
+                      ? "ring-2 ring-sage ring-offset-2 ring-offset-paper dark:ring-offset-[#0c0b09]"
                       : "opacity-45 hover:opacity-90"
                   }`}
                 >
@@ -111,11 +115,12 @@ export function TryOnResultReady({
           )}
         </div>
 
+        {/* Action panel */}
         <div
-          className="w-[10.5rem] shrink-0 animate-softRise sm:w-[12rem]"
+          className="w-full max-w-[13rem] shrink-0 animate-softRise sm:mt-4 sm:w-[13rem]"
           style={{ animationDelay: "380ms" }}
         >
-          <div className="rounded-2xl border border-ink/10 bg-paper/80 p-2.5 backdrop-blur-sm dark:border-white/10 dark:bg-[#0c0b09]/90 sm:p-3">
+          <div className="rounded-2xl border border-ink/10 bg-paper/80 p-3 backdrop-blur-sm dark:border-white/10 dark:bg-[#0c0b09]/90 sm:p-3.5">
             <TryOnShareActions
               imageUrl={current}
               filename={`${filenamePrefix}-${active + 1}.png`}

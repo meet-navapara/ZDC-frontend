@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { CustomSelect } from "@/components/CustomSelect";
-import { apiUrl } from "@/lib/api";
+import { apiUrl, apiGet } from "@/lib/api";
 import {
   listCategories,
   createCategory,
@@ -12,32 +13,23 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  tryOnFeatureLabel,
+  tryOnFeatureShortLabel,
+  tryOnFeatureTagline,
   type Category,
   type Product,
-  TRY_ON_FEATURE_OPTIONS,
+  catalogTryOnFeatureOptionsForBusiness,
+  defaultTryOnFeatureForBusinessCategory,
   type TryOnFeature,
 } from "@/lib/b2b";
+import { getUser, getToken, saveAuth } from "@/lib/auth";
+import { currencyForCountry } from "@/lib/countries";
 import { LIMITS } from "@/lib/limits";
 import BulkUploadModal from "@/components/BulkUploadModal";
 import { toast } from "@/lib/toast";
 import { PageLoader } from "@/components/PageLoader";
-import { listPerfectCorpOptions } from "@/lib/b2c";
-import type { BeardTemplateOption, HairColorOption } from "@/lib/b2c";
 
 const MAX_CATEGORIES = 10;
-
-const TRY_ON_FEATURE_SELECT_OPTIONS = TRY_ON_FEATURE_OPTIONS.map((opt) => ({
-  value: opt.id,
-  label: opt.label,
-}));
-
-function hairColorSelectOptions(colors: HairColorOption[]) {
-  return colors.map((c) => ({ value: c.name, label: c.name }));
-}
-
-function beardSelectOptions(templates: BeardTemplateOption[]) {
-  return templates.map((t) => ({ value: t.id, label: t.title || t.id }));
-}
 
 type ProductForm = {
   name: string;
@@ -55,7 +47,195 @@ const emptyForm: ProductForm = {
   status: "active",
 };
 
+const fieldClass =
+  "w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage focus:ring-2 focus:ring-sage/15 dark:border-white/12 dark:bg-[#1b1713] dark:text-[#f4efe7] dark:focus:ring-sage/25";
+
+const labelClass = "mb-1.5 block text-sm font-medium text-ink-700 dark:text-[#d6cec2]";
+
+type PlatformFeature = {
+  title: string;
+  desc: string;
+  badge?: string;
+};
+
+function CatalogPlatformGuide({
+  isSalon,
+  businessCurrency,
+}: {
+  isSalon: boolean;
+  businessCurrency: string;
+}) {
+  const features: PlatformFeature[] = isSalon
+    ? [
+        {
+          title: tryOnFeatureLabel("hair"),
+          desc: tryOnFeatureTagline("hair"),
+          badge: "You upload",
+        },
+        {
+          title: tryOnFeatureLabel("haircolor"),
+          desc: `${tryOnFeatureTagline("haircolor")} — no catalog upload needed.`,
+          badge: "Built-in",
+        },
+        {
+          title: tryOnFeatureLabel("beard"),
+          desc: `${tryOnFeatureTagline("beard")} — pick a look instantly.`,
+          badge: "Built-in",
+        },
+        {
+          title: "Live Try-On",
+          desc: "Run demos in-store: photo → pick look → generate in seconds.",
+        },
+        {
+          title: "Credits",
+          desc: `1 credit = 1 render. Top up in ${businessCurrency} when you need more.`,
+        },
+        {
+          title: "Branches",
+          desc: "Add salon locations so staff can manage try-ons per branch.",
+        },
+      ]
+    : [
+        {
+          title: tryOnFeatureLabel("cloth"),
+          desc: tryOnFeatureTagline("cloth"),
+          badge: "Your catalog",
+        },
+        {
+          title: "Categories",
+          desc: "Group items (shirts, dresses, sets) so staff find products fast.",
+        },
+        {
+          title: "Live Try-On",
+          desc: "Customer photo + catalog item → realistic outfit preview.",
+        },
+        {
+          title: "Bulk upload",
+          desc: "Add many products with images in one batch.",
+        },
+        {
+          title: "Credits",
+          desc: `1 credit = 1 render. Buy packs in ${businessCurrency}.`,
+        },
+        {
+          title: "Branches",
+          desc: "Multiple boutique locations under one account.",
+        },
+      ];
+
+  const steps = [
+    {
+      n: "1",
+      title: "Build catalog",
+      desc: isSalon
+        ? "Categories + hairstyle photos (colors & beards are automatic)."
+        : "Categories + outfit photos with prices.",
+    },
+    {
+      n: "2",
+      title: "Open Try-On",
+      desc: isSalon
+        ? `Choose ${tryOnFeatureShortLabel("hair").toLowerCase()}, ${tryOnFeatureShortLabel("haircolor").toLowerCase()}, or ${tryOnFeatureShortLabel("beard").toLowerCase()} — upload customer photo.`
+        : `Pick an outfit and upload the customer photo.`,
+    },
+    {
+      n: "3",
+      title: "Generate & share",
+      desc: "One credit per image. Show the result or send to the customer.",
+    },
+  ];
+
+  return (
+    <section className="card mb-6 overflow-hidden rounded-2xl border border-sage/20 bg-gradient-to-br from-sage/[0.07] via-white to-paper-100 p-5 dark:from-sage/10 dark:via-[#14120f] dark:to-[#14120f]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sage-dark">
+            How it works
+          </p>
+          <h2 className="mt-1 font-display text-xl font-semibold text-ink">
+            {isSalon ? "Your salon toolkit" : "Your boutique toolkit"}
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-muted">
+            {isSalon
+              ? `Upload hairstyles here. ${tryOnFeatureLabel("haircolor")} and ${tryOnFeatureLabel("beard")} are ready on Try-On — customers pick from built-in libraries.`
+              : `Upload outfits here, then run ${tryOnFeatureLabel("cloth").toLowerCase()} with customer photos on the Try-On page.`}
+          </p>
+        </div>
+        <Link
+          href="/business/try-on"
+          className="shrink-0 rounded-full bg-sage px-4 py-2 text-sm font-semibold text-paper transition hover:bg-sage-dark"
+        >
+          Open Try-On →
+        </Link>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {features.map((f) => (
+          <div
+            key={f.title}
+            className="rounded-xl border border-ink/8 bg-white/70 p-3.5 dark:border-white/10 dark:bg-white/[0.04]"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold text-ink">{f.title}</p>
+              {f.badge ? (
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                    f.badge === "You upload" || f.badge === "Your catalog"
+                      ? "bg-sage/15 text-sage-dark"
+                      : "bg-ink/5 text-ink-muted"
+                  }`}
+                >
+                  {f.badge}
+                </span>
+              ) : null}
+            </div>
+            <p className="mt-1.5 text-xs leading-relaxed text-ink-muted">
+              {f.desc}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 grid gap-3 border-t border-ink/10 pt-5 sm:grid-cols-3 dark:border-white/10">
+        {steps.map((s) => (
+          <div key={s.n} className="flex gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sage/15 text-sm font-bold text-sage-dark">
+              {s.n}
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-ink">{s.title}</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-ink-muted">
+                {s.desc}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function CatalogPage() {
+  const [businessCategory, setBusinessCategory] = useState<string>("boutique");
+  const [businessCurrency, setBusinessCurrency] = useState(() => {
+    const u = getUser();
+    return (
+      u?.business?.currency ||
+      currencyForCountry(u?.business?.address?.country || "") ||
+      "KES"
+    );
+  });
+  const featureOptions = useMemo(
+    () =>
+      catalogTryOnFeatureOptionsForBusiness(businessCategory).map((opt) => ({
+        value: opt.id,
+        label: opt.label,
+      })),
+    [businessCategory]
+  );
+  const defaultFeature = defaultTryOnFeatureForBusinessCategory(businessCategory);
+  const isSalon = businessCategory === "salon";
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,10 +244,6 @@ export default function CatalogPage() {
   const [newCategory, setNewCategory] = useState("");
   const [newCategoryFeature, setNewCategoryFeature] =
     useState<TryOnFeature>("cloth");
-  const [newCategoryHairPreset, setNewCategoryHairPreset] = useState("");
-  const [newCategoryBeardTemplate, setNewCategoryBeardTemplate] = useState("");
-  const [hairColorOptions, setHairColorOptions] = useState<HairColorOption[]>([]);
-  const [beardTemplates, setBeardTemplates] = useState<BeardTemplateOption[]>([]);
   const [addingCat, setAddingCat] = useState(false);
   const [filter, setFilter] = useState<string>("all");
 
@@ -90,6 +266,51 @@ export default function CatalogPage() {
     () => files.map((f) => ({ url: URL.createObjectURL(f), name: f.name })),
     [files]
   );
+
+  useEffect(() => {
+    const local = getUser();
+    if (local?.business?.category) setBusinessCategory(local.business.category);
+    if (local?.business?.currency) {
+      setBusinessCurrency(local.business.currency);
+    } else if (local?.business?.address?.country) {
+      setBusinessCurrency(currencyForCountry(local.business.address.country));
+    }
+    const token = getToken();
+    if (!token) return;
+    apiGet<{
+      user: {
+        business?: {
+          category?: "boutique" | "salon" | "other";
+          currency?: string;
+          address?: { country?: string | null };
+        };
+      };
+    }>("/api/auth/me", token)
+      .then((r) => {
+        const cat = r.user?.business?.category;
+        const cur =
+          r.user?.business?.currency ||
+          currencyForCountry(r.user?.business?.address?.country || "");
+        if (cat) setBusinessCategory(cat);
+        if (cur) setBusinessCurrency(cur);
+        const current = getUser();
+        if (current) {
+          saveAuth(token, {
+            ...current,
+            business: {
+              ...current.business,
+              ...(cat ? { category: cat } : {}),
+              ...(cur ? { currency: cur } : {}),
+            },
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setNewCategoryFeature(defaultFeature);
+  }, [defaultFeature]);
   useEffect(() => {
     return () => {
       previews.forEach((p) => URL.revokeObjectURL(p.url));
@@ -111,18 +332,6 @@ export default function CatalogPage() {
 
   useEffect(() => {
     load();
-    listPerfectCorpOptions()
-      .then((r) => {
-        setHairColorOptions(r.hairColors || []);
-        setBeardTemplates(r.beardTemplates || []);
-        setNewCategoryHairPreset(
-          r.defaultHairColorPreset || r.hairColors?.[0]?.name || ""
-        );
-        setNewCategoryBeardTemplate(
-          r.defaultBeardTemplateId || r.beardTemplates?.[0]?.id || ""
-        );
-      })
-      .catch(() => {});
   }, []);
 
   const categoryName = (id: string | null) =>
@@ -134,26 +343,24 @@ export default function CatalogPage() {
       : products.filter((p) => (p.category || "none") === filter);
 
   const modalCategory = categories.find((c) => c.id === form.categoryId);
-  const modalTryOnFeature = modalCategory?.tryOnFeature || "cloth";
+  const modalTryOnFeature = modalCategory?.tryOnFeature || defaultFeature;
 
   async function addCategory(e: React.FormEvent) {
     e.preventDefault();
     if (!newCategory.trim()) return;
     setError("");
     setAddingCat(true);
+    const feature = featureOptions.some((o) => o.value === newCategoryFeature)
+      ? newCategoryFeature
+      : defaultFeature;
     try {
       const res = await createCategory({
         name: newCategory.trim(),
-        tryOnFeature: newCategoryFeature,
-        ...(newCategoryFeature === "haircolor"
-          ? { hairColorPreset: newCategoryHairPreset }
-          : {}),
-        ...(newCategoryFeature === "beard"
-          ? { beardTemplateId: newCategoryBeardTemplate }
-          : {}),
+        tryOnFeature: feature,
       });
       setCategories((cs) => [...cs, res.category]);
       setNewCategory("");
+      setNewCategoryFeature(defaultFeature);
       toast.success("Category added");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Could not add category";
@@ -171,30 +378,6 @@ export default function CatalogPage() {
         prev.map((c) => (c.id === id ? res.category : c))
       );
       toast.success("Try-on type updated");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Update failed");
-    }
-  }
-
-  async function setCategoryHairPreset(id: string, hairColorPreset: string) {
-    try {
-      const res = await updateCategory(id, { hairColorPreset });
-      setCategories((prev) =>
-        prev.map((c) => (c.id === id ? res.category : c))
-      );
-      toast.success("Hair color updated");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Update failed");
-    }
-  }
-
-  async function setCategoryBeardTemplate(id: string, beardTemplateId: string) {
-    try {
-      const res = await updateCategory(id, { beardTemplateId });
-      setCategories((prev) =>
-        prev.map((c) => (c.id === id ? res.category : c))
-      );
-      toast.success("Beard style updated");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Update failed");
     }
@@ -289,6 +472,7 @@ export default function CatalogPage() {
       if (form.price) fd.append("price", form.price);
       fd.append("categoryId", form.categoryId);
       fd.append("status", form.status);
+      fd.append("currency", businessCurrency);
       files.forEach((f) => fd.append("images", f));
 
       if (editing) {
@@ -340,6 +524,11 @@ export default function CatalogPage() {
           {error}
         </div>
       )}
+
+      <CatalogPlatformGuide
+        isSalon={isSalon}
+        businessCurrency={businessCurrency}
+      />
 
       {/* Categories */}
       <section className="card rounded-2xl p-5">
@@ -404,7 +593,7 @@ export default function CatalogPage() {
             ) : (
               <span
                 key={c.id}
-                className="group inline-flex max-w-full flex-col gap-1 rounded-2xl border border-ink/15 bg-white px-3 py-2 text-sm text-ink sm:inline-flex sm:flex-row sm:items-center sm:gap-2 sm:rounded-full sm:py-1.5"
+                className="group inline-flex max-w-full items-center gap-2 rounded-full border border-ink/15 bg-white px-3 py-1.5 text-sm text-ink"
               >
                 <button
                   onClick={() => setRenamingCat({ id: c.id, name: c.name })}
@@ -413,43 +602,27 @@ export default function CatalogPage() {
                 >
                   {c.name}
                 </button>
-                <CustomSelect
-                  size="xs"
-                  className="max-w-[11rem]"
-                  value={c.tryOnFeature || "cloth"}
-                  onChange={(v) => setCategoryFeature(c.id, v as TryOnFeature)}
-                  options={TRY_ON_FEATURE_SELECT_OPTIONS}
-                  aria-label={`Try-on type for ${c.name}`}
-                />
-                {(c.tryOnFeature || "cloth") === "haircolor" &&
-                  hairColorOptions.length > 0 && (
-                    <CustomSelect
-                      size="xs"
-                      className="max-w-[11rem]"
-                      value={
-                        c.hairColorPreset || hairColorOptions[0]?.name || ""
-                      }
-                      onChange={(v) => setCategoryHairPreset(c.id, v)}
-                      options={hairColorSelectOptions(hairColorOptions)}
-                      aria-label={`Hair color for ${c.name}`}
-                    />
-                  )}
-                {(c.tryOnFeature || "cloth") === "beard" &&
-                  beardTemplates.length > 0 && (
-                    <CustomSelect
-                      size="xs"
-                      className="max-w-[11rem]"
-                      value={
-                        c.beardTemplateId || beardTemplates[0]?.id || ""
-                      }
-                      onChange={(v) => setCategoryBeardTemplate(c.id, v)}
-                      options={beardSelectOptions(beardTemplates)}
-                      aria-label={`Beard style for ${c.name}`}
-                    />
-                  )}
+                {featureOptions.length > 1 ? (
+                  <CustomSelect
+                    size="xs"
+                    className="max-w-[11rem]"
+                    value={
+                      featureOptions.some((o) => o.value === (c.tryOnFeature || ""))
+                        ? c.tryOnFeature || defaultFeature
+                        : defaultFeature
+                    }
+                    onChange={(v) => setCategoryFeature(c.id, v as TryOnFeature)}
+                    options={featureOptions}
+                    aria-label={`Try-on type for ${c.name}`}
+                  />
+                ) : (
+                  <span className="text-[11px] font-medium text-ink-muted">
+                    {tryOnFeatureShortLabel(isSalon ? "hair" : "cloth")}
+                  </span>
+                )}
                 <button
                   onClick={() => removeCategory(c.id)}
-                  className="self-end text-ink-muted transition hover:text-red-600 sm:self-auto"
+                  className="text-ink-muted transition hover:text-red-600"
                   aria-label={`Delete ${c.name}`}
                 >
                   ×
@@ -458,14 +631,19 @@ export default function CatalogPage() {
             )
           )}
           {categories.length === 0 && (
-            <span className="text-sm text-ink-muted">No categories yet.</span>
+            <span className="text-sm text-ink-muted">
+              {isSalon
+                ? "No hairstyle categories yet — add one below."
+                : "No categories yet."}
+            </span>
           )}
         </div>
         {categories.length > 0 && (
           <p className="mt-2 text-xs text-ink-muted">
-            Click a category name to rename. Set try-on type per category. For
-            hair color / beard categories, also pick the color or style applied
-            to every product in that category.
+            Click a category name to rename.
+            {isSalon
+              ? " Upload hairstyle reference photos as products in these categories."
+              : ` Boutique categories use ${tryOnFeatureLabel("cloth").toLowerCase()}.`}
           </p>
         )}
 
@@ -478,34 +656,20 @@ export default function CatalogPage() {
               maxLength={LIMITS.categoryName}
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
-              placeholder="New category name"
+              placeholder={
+                isSalon ? "New hairstyle category (e.g. Braids)" : "New category name"
+              }
               className="w-full max-w-xs rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage"
             />
-            <CustomSelect
-              className="w-full max-w-xs sm:w-auto"
-              value={newCategoryFeature}
-              onChange={(v) => setNewCategoryFeature(v as TryOnFeature)}
-              options={TRY_ON_FEATURE_SELECT_OPTIONS}
-              aria-label="Try-on type for new category"
-            />
-            {newCategoryFeature === "haircolor" && hairColorOptions.length > 0 && (
+            {featureOptions.length > 1 ? (
               <CustomSelect
                 className="w-full max-w-xs sm:w-auto"
-                value={newCategoryHairPreset || hairColorOptions[0]?.name}
-                onChange={setNewCategoryHairPreset}
-                options={hairColorSelectOptions(hairColorOptions)}
-                aria-label="Hair color for new category"
+                value={newCategoryFeature}
+                onChange={(v) => setNewCategoryFeature(v as TryOnFeature)}
+                options={featureOptions}
+                aria-label="Try-on type for new category"
               />
-            )}
-            {newCategoryFeature === "beard" && beardTemplates.length > 0 && (
-              <CustomSelect
-                className="w-full max-w-xs sm:w-auto"
-                value={newCategoryBeardTemplate || beardTemplates[0]?.id}
-                onChange={setNewCategoryBeardTemplate}
-                options={beardSelectOptions(beardTemplates)}
-                aria-label="Beard style for new category"
-              />
-            )}
+            ) : null}
             <button
               type="submit"
               disabled={addingCat || !newCategory.trim()}
@@ -585,7 +749,10 @@ export default function CatalogPage() {
                   {categoryName(p.category)}
                 </div>
                 <div className="mt-2 text-xl font-bold text-ink">
-                  {p.currency} {p.price}
+                  {p.currency}{" "}
+                  {Number(p.price).toLocaleString(undefined, {
+                    maximumFractionDigits: 0,
+                  })}
                 </div>
 
                 <button
@@ -613,65 +780,113 @@ export default function CatalogPage() {
           onClick={() => !saving && setModalOpen(false)}
         >
           <div
-            className="my-auto max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-ink/10 bg-paper-100 p-6 shadow-2xl dark:border-white/10 dark:bg-[#14120f]"
+            className="my-auto max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-ink/10 bg-paper-100 shadow-2xl dark:border-white/10 dark:bg-[#14120f]"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="font-display text-xl font-semibold text-ink">
-              {editing ? "Edit product" : "Add product"}
-            </h3>
+            <div className="flex items-start justify-between gap-3 border-b border-ink/10 px-6 py-5 dark:border-white/10">
+              <div>
+                <h3 className="font-display text-xl font-semibold text-ink">
+                  {editing ? "Edit product" : "Add product"}
+                </h3>
+                <p className="mt-1 text-sm text-ink-muted">
+                  {isSalon
+                    ? "Hairstyle catalog item — shown on Try-On."
+                    : "Outfit catalog item — shown on Try-On."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => !saving && setModalOpen(false)}
+                disabled={saving}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/10 text-lg text-ink-muted transition hover:border-ink/20 hover:text-ink disabled:opacity-50 dark:border-white/10"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
 
-            <form onSubmit={saveProduct} className="mt-4 space-y-4">
+            <form onSubmit={saveProduct} className="space-y-5 px-6 py-5">
               {modalError && (
                 <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {modalError}
                 </div>
               )}
 
-              <div className="space-y-3">
-                <input
-                  maxLength={LIMITS.productName}
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Product name"
-                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage dark:border-white/12 dark:bg-[#1b1713] dark:text-[#f4efe7]"
-                />
-                <input
-                  maxLength={LIMITS.sku}
-                  value={form.sku}
-                  onChange={(e) => setForm({ ...form, sku: e.target.value })}
-                  placeholder="SKU (optional)"
-                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage dark:border-white/12 dark:bg-[#1b1713] dark:text-[#f4efe7]"
-                />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label htmlFor="product-name" className={labelClass}>
+                    Product name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="product-name"
+                    maxLength={LIMITS.productName}
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="e.g. Box braids, Linen shirt"
+                    className={fieldClass}
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="product-sku" className={labelClass}>
+                    SKU
+                  </label>
+                  <input
+                    id="product-sku"
+                    maxLength={LIMITS.sku}
+                    value={form.sku}
+                    onChange={(e) => setForm({ ...form, sku: e.target.value })}
+                    placeholder="Optional code"
+                    className={fieldClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="product-category" className={labelClass}>
+                    Category
+                  </label>
+                  <CustomSelect
+                    value={form.categoryId}
+                    onChange={(v) => setForm({ ...form, categoryId: v })}
+                    options={[
+                      { value: "", label: "Uncategorized" },
+                      ...categories.map((c) => ({
+                        value: c.id,
+                        label: c.name,
+                      })),
+                    ]}
+                    aria-label="Product category"
+                  />
+                </div>
               </div>
 
-              {/* Images (up to 5) */}
-              <div>
-                <div className="mb-1.5 flex items-center justify-between">
-                  <label className="text-sm font-medium text-ink-700 dark:text-[#d6cec2]">
-                    Image
+              {/* Image */}
+              <div className="rounded-xl border border-ink/10 bg-white/60 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                <div className="mb-3 flex items-center justify-between">
+                  <label className={labelClass.replace("mb-1.5 ", "")}>
+                    Photo <span className="text-red-500">*</span>
                   </label>
-                  <span className="text-xs text-ink-muted">
+                  <span className="text-xs font-medium text-ink-muted">
                     {keptImages.length + files.length}/1
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-start gap-3">
                   {keptImages.map((url) => (
                     <div
                       key={url}
-                      className="relative h-20 w-16 overflow-hidden rounded-lg border border-ink/10 dark:border-white/10"
+                      className="relative h-28 w-24 overflow-hidden rounded-xl border border-ink/10 shadow-sm dark:border-white/10"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={apiUrl(url)}
-                        alt="product"
-                        className="absolute inset-0 h-full w-full object-cover"
+                        alt="Product"
+                        className="h-full w-full object-cover"
                       />
                       <button
                         type="button"
                         onClick={() =>
                           setKeptImages((imgs) => imgs.filter((u) => u !== url))
                         }
-                        className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink/70 text-xs text-paper"
+                        className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink/75 text-sm text-paper"
                         aria-label="Remove image"
                       >
                         ×
@@ -681,20 +896,20 @@ export default function CatalogPage() {
                   {previews.map((p, i) => (
                     <div
                       key={p.url}
-                      className="relative h-20 w-16 overflow-hidden rounded-lg border border-sage dark:bg-[#1b1713]"
+                      className="relative h-28 w-24 overflow-hidden rounded-xl border border-sage shadow-sm"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={p.url}
                         alt={p.name}
-                        className="absolute inset-0 h-full w-full object-cover"
+                        className="h-full w-full object-cover"
                       />
                       <button
                         type="button"
                         onClick={() =>
                           setFiles((fs) => fs.filter((_, idx) => idx !== i))
                         }
-                        className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink/70 text-xs text-paper"
+                        className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink/75 text-sm text-paper"
                         aria-label="Remove image"
                       >
                         ×
@@ -705,9 +920,10 @@ export default function CatalogPage() {
                     <button
                       type="button"
                       onClick={() => fileRef.current?.click()}
-                      className="flex h-20 w-16 flex-col items-center justify-center rounded-lg border-2 border-dashed border-ink/15 text-xs text-ink-muted transition hover:border-sage dark:border-white/12 dark:text-[#b1a99c]"
+                      className="flex h-28 w-24 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-ink/15 text-xs font-medium text-ink-muted transition hover:border-sage hover:text-sage dark:border-white/12"
                     >
-                      + Add
+                      <span className="text-lg leading-none">+</span>
+                      Upload
                     </button>
                   )}
                 </div>
@@ -721,40 +937,47 @@ export default function CatalogPage() {
                     e.target.value = "";
                   }}
                 />
-                {modalTryOnFeature === "beard" && (
-                  <p className="mt-2 text-xs leading-relaxed text-ink-muted">
-                    Upload a clear photo showing this beard style on a face — staff
-                    and customers use it to preview the look in your catalog.
+                {modalTryOnFeature === "hair" && (
+                  <p className="mt-3 text-xs leading-relaxed text-ink-muted">
+                    Clear hairstyle reference — customers try this on their selfie.
                   </p>
                 )}
-                {modalTryOnFeature === "haircolor" && (
-                  <p className="mt-2 text-xs leading-relaxed text-ink-muted">
-                    Upload a swatch or model photo with this hair color so your
-                    team can recognize the shade in the catalog.
+                {modalTryOnFeature === "cloth" && (
+                  <p className="mt-3 text-xs leading-relaxed text-ink-muted">
+                    Clear garment photo (flat lay or on model).
                   </p>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  type="number"
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  placeholder="Price"
-                  className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-sage dark:border-white/12 dark:bg-[#1b1713] dark:text-[#f4efe7]"
-                />
-                <CustomSelect
-                  value={form.categoryId}
-                  onChange={(v) => setForm({ ...form, categoryId: v })}
-                  options={[
-                    { value: "", label: "Uncategorized" },
-                    ...categories.map((c) => ({ value: c.id, label: c.name })),
-                  ]}
-                />
+              <div>
+                <label htmlFor="product-price" className={labelClass}>
+                  Price
+                </label>
+                <div className="relative max-w-xs">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-ink-muted">
+                    {businessCurrency}
+                  </span>
+                  <input
+                    id="product-price"
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={form.price}
+                    onChange={(e) =>
+                      setForm({ ...form, price: e.target.value })
+                    }
+                    placeholder="0"
+                    className={`${fieldClass} pl-[4.25rem] tabular-nums`}
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-ink-muted">
+                  Saved in {businessCurrency}. Update currency in Settings if
+                  needed.
+                </p>
               </div>
 
               {editing && (
-                <label className="flex items-center gap-2 text-sm text-ink-muted dark:text-[#b1a99c]">
+                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-ink/10 bg-ink/[0.02] px-4 py-3 dark:border-white/10 dark:bg-white/[0.03]">
                   <input
                     type="checkbox"
                     checked={form.status === "archived"}
@@ -764,12 +987,20 @@ export default function CatalogPage() {
                         status: e.target.checked ? "archived" : "active",
                       })
                     }
+                    className="mt-0.5"
                   />
-                  Archived (hidden from try-on)
+                  <span>
+                    <span className="block text-sm font-medium text-ink">
+                      Archive product
+                    </span>
+                    <span className="mt-0.5 block text-xs text-ink-muted">
+                      Hidden from Try-On but kept in your catalog.
+                    </span>
+                  </span>
                 </label>
               )}
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-2 border-t border-ink/10 pt-4 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
@@ -783,7 +1014,11 @@ export default function CatalogPage() {
                   disabled={saving}
                   className="rounded-full bg-sage px-5 py-2.5 text-sm font-semibold text-paper transition hover:bg-sage-dark disabled:opacity-60"
                 >
-                  {saving ? "Saving…" : editing ? "Save changes" : "Create product"}
+                  {saving
+                    ? "Saving…"
+                    : editing
+                      ? "Save changes"
+                      : "Create product"}
                 </button>
               </div>
             </form>
@@ -794,7 +1029,7 @@ export default function CatalogPage() {
       <BulkUploadModal
         open={bulkOpen}
         categories={categories}
-        currency={products[0]?.currency || "KES"}
+        currency={businessCurrency}
         onClose={() => setBulkOpen(false)}
         onCreated={(created) => {
           if (created.length) {

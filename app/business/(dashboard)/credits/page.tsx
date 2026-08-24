@@ -20,6 +20,8 @@ import { getUser } from "@/lib/auth";
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { toast } from "@/lib/toast";
 import { PageLoader } from "@/components/PageLoader";
+import { CheckoutCoupon } from "@/components/CheckoutCoupon";
+import type { CouponQuote } from "@/lib/coupons";
 
 const LEDGER_LABEL: Record<LedgerEntry["type"], string> = {
   purchase: "Purchase",
@@ -78,6 +80,8 @@ export default function CreditsPage() {
   >(null);
   const [payHint, setPayHint] = useState("");
   const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
+  const [couponQuote, setCouponQuote] = useState<CouponQuote | null>(null);
+  const [couponCode, setCouponCode] = useState("");
 
   const selectedPack =
     packs.find((p) => p.id === selectedPackId) ?? packs[1] ?? packs[0] ?? null;
@@ -108,6 +112,17 @@ export default function CreditsPage() {
   const selectedDisplay = selectedPack ? packDisplay(selectedPack) : null;
   const displayAmount = selectedDisplay?.amount ?? 0;
   const displayCurrency = selectedDisplay?.currency ?? "KES";
+  const payableAmount =
+    couponQuote &&
+    couponQuote.currency === displayCurrency &&
+    couponQuote.subtotal === Number(displayAmount)
+      ? couponQuote.finalAmount
+      : displayAmount;
+
+  useEffect(() => {
+    setCouponQuote(null);
+    setCouponCode("");
+  }, [selectedPack?.id, displayCurrency, displayAmount]);
   const perCredit =
     selectedPack && selectedDisplay
       ? (selectedDisplay.amount / selectedPack.credits).toFixed(1)
@@ -125,16 +140,16 @@ export default function CreditsPage() {
         : "Processing…"
     : selectedPack
       ? payWithMpesa
-        ? `Pay with M-Pesa · ${displayCurrency} ${displayAmount}`
+        ? `Pay with M-Pesa · ${displayCurrency} ${payableAmount}`
         : payWithRazorpay
-          ? `Pay with Razorpay · ${displayCurrency} ${displayAmount}`
-          : `Pay ${displayCurrency} ${displayAmount}`
+          ? `Pay with Razorpay · ${displayCurrency} ${payableAmount}`
+          : `Pay ${displayCurrency} ${payableAmount}`
       : "Select a pack";
 
   const shortPayLabel = buying
     ? "Processing…"
     : selectedPack
-      ? `Pay · ${displayCurrency} ${displayAmount}`
+      ? `Pay · ${displayCurrency} ${payableAmount}`
       : "Select pack";
 
   const showGatewayPicker =
@@ -268,6 +283,7 @@ export default function CreditsPage() {
             ? payGateway
             : "auto",
         phone: mpesaPhone.trim() || undefined,
+        couponCode: couponCode || undefined,
       });
 
       const { currency: chargeCurrency } = packDisplay(pack);
@@ -690,10 +706,36 @@ export default function CreditsPage() {
                 </span>
                 <span className="font-display text-2xl font-semibold text-ink sm:text-3xl">
                   {selectedPack
-                    ? `${displayCurrency} ${displayAmount}`
+                    ? `${displayCurrency} ${payableAmount}`
                     : "—"}
                 </span>
               </div>
+              {couponQuote && payableAmount !== displayAmount && (
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between text-ink-muted">
+                    <span>Subtotal</span>
+                    <span>
+                      {displayCurrency} {displayAmount}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sage-dark">
+                    <span>Coupon: {couponQuote.coupon.code}</span>
+                    <span>
+                      −{displayCurrency} {couponQuote.discountAmount}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <CheckoutCoupon
+                packId={selectedPack?.id}
+                amount={displayAmount}
+                currency={displayCurrency}
+                quote={couponQuote}
+                onQuote={(q, code) => {
+                  setCouponQuote(q);
+                  setCouponCode(code);
+                }}
+              />
 
               <p className="text-center text-xs leading-relaxed text-ink-muted lg:text-left">
                 {allowGatewayChoice
@@ -790,7 +832,7 @@ export default function CreditsPage() {
               </p>
               <p className="font-display text-lg font-semibold text-ink">
                 {selectedPack
-                  ? `${displayCurrency} ${displayAmount}`
+                  ? `${displayCurrency} ${payableAmount}`
                   : "—"}
               </p>
             </div>

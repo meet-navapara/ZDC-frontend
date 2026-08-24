@@ -19,20 +19,51 @@ const sans = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "zimji — Style, Smarter!",
+  title: {
+    default: "zimji — AI Virtual Try-On for Outfits, Hairstyles & Hair Color",
+    template: "%s | zimji",
+  },
   description:
-    "The AI virtual try-on atelier for apparel and hairstyles. See it on you before you buy — powered by AI, delivered via WhatsApp.",
+    "zimji is the AI virtual try-on platform for apparel, hairstyles, hair color, and beards. Upload a selfie, preview photorealistic looks in seconds, and pay with M-Pesa or Razorpay — built for shoppers, boutiques, and salons.",
+  keywords: [
+    "AI virtual try-on",
+    "virtual outfit try-on",
+    "AI hairstyle try-on",
+    "AI hair color try-on",
+    "AI beard try-on",
+    "virtual fitting room",
+    "try before you buy",
+    "photorealistic try-on",
+    "fashion boutique try-on",
+    "salon hairstyle preview",
+    "online clothing try-on",
+    "zimji",
+    "M-Pesa try-on",
+    "Razorpay try-on",
+  ],
   metadataBase: new URL("https://zimji.app"),
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: [{ url: "/icon", type: "image/png" }],
     apple: [{ url: "/icon", type: "image/png" }],
   },
   openGraph: {
-    title: "zimji — Style, Smarter!",
+    title: "zimji — AI Virtual Try-On for Outfits & Hairstyles",
     description:
-      "AI virtual try-on for apparel and hairstyles. Try before you buy.",
+      "See any outfit, hairstyle, hair color, or beard on you in seconds. Photorealistic AI try-on for shoppers, boutiques, and salons.",
     type: "website",
-    images: [{ url: "/images/zimji-logo-og.png" }],
+    url: "https://zimji.app",
+    siteName: "zimji",
+    images: [{ url: "/images/zimji-logo-og.png", alt: "zimji AI virtual try-on" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "zimji — AI Virtual Try-On for Outfits & Hairstyles",
+    description:
+      "Photorealistic AI outfit and hairstyle try-on. Try before you buy — pay with M-Pesa or Razorpay.",
+    images: ["/images/zimji-logo-og.png"],
   },
 };
 

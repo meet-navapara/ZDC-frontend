@@ -9,6 +9,14 @@ import {
   API_BASE,
 } from "./api";
 import { getToken, type AuthUser } from "./auth";
+import { TRY_ON_FEATURE_OPTIONS } from "./tryOnFeatures";
+
+export {
+  TRY_ON_FEATURE_OPTIONS,
+  tryOnFeatureLabel,
+  tryOnFeatureShortLabel,
+  tryOnFeatureTagline,
+} from "./tryOnFeatures";
 
 export type CreditPack = {
   id: string;
@@ -48,18 +56,42 @@ export type Category = {
   createdAt: string;
 };
 
-export const TRY_ON_FEATURE_OPTIONS: { id: TryOnFeature; label: string }[] = [
-  { id: "cloth", label: "Outfit try-on" },
-  { id: "hair", label: "Hairstyle transfer" },
-  { id: "haircolor", label: "Hair color" },
-  { id: "beard", label: "Beard style" },
-];
+/** Features available on the Try-On page for this business type. */
+export function tryOnFeaturesForBusinessCategory(
+  category?: string | null
+): TryOnFeature[] {
+  const cat = String(category || "boutique").trim().toLowerCase();
+  if (cat === "salon") return ["hair", "haircolor", "beard"];
+  return ["cloth"];
+}
 
-export function tryOnFeatureLabel(feature: TryOnFeature | string | undefined) {
-  return (
-    TRY_ON_FEATURE_OPTIONS.find((f) => f.id === feature)?.label ||
-    "Outfit try-on"
-  );
+/**
+ * Features admins manage in Catalog.
+ * Salon uploads hairstyles only — hair color & beard are PerfectCorp built-ins.
+ */
+export function catalogTryOnFeaturesForBusinessCategory(
+  category?: string | null
+): TryOnFeature[] {
+  const cat = String(category || "boutique").trim().toLowerCase();
+  if (cat === "salon") return ["hair"];
+  return ["cloth"];
+}
+
+export function defaultTryOnFeatureForBusinessCategory(
+  category?: string | null
+): TryOnFeature {
+  const cat = String(category || "boutique").trim().toLowerCase();
+  return cat === "salon" ? "hair" : "cloth";
+}
+
+export function tryOnFeatureOptionsForBusiness(category?: string | null) {
+  const allowed = new Set(tryOnFeaturesForBusinessCategory(category));
+  return TRY_ON_FEATURE_OPTIONS.filter((o) => allowed.has(o.id));
+}
+
+export function catalogTryOnFeatureOptionsForBusiness(category?: string | null) {
+  const allowed = new Set(catalogTryOnFeaturesForBusinessCategory(category));
+  return TRY_ON_FEATURE_OPTIONS.filter((o) => allowed.has(o.id));
 }
 
 export type Product = {
@@ -292,7 +324,7 @@ export type CreditPurchasePayment = {
 
 export async function purchaseCredits(
   packId: string,
-  opts?: { gateway?: string; phone?: string }
+  opts?: { gateway?: string; phone?: string; couponCode?: string }
 ) {
   try {
     const res = await apiPost<{
@@ -308,6 +340,7 @@ export async function purchaseCredits(
         pack: packId,
         gateway: opts?.gateway || "auto",
         phone: opts?.phone,
+        couponCode: opts?.couponCode || undefined,
       },
       tok()
     );

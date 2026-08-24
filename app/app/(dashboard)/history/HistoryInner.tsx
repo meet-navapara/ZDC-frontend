@@ -143,13 +143,13 @@ export default function HistoryInner() {
                 }}
                 className="card group overflow-hidden rounded-2xl text-left transition hover:border-sage/40"
               >
-                <div className="relative aspect-[3/4] bg-ink/5">
+                <div className="relative aspect-[3/4] bg-[#f0ece4] dark:bg-[#18150f]">
                   {thumb ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={apiUrl(thumb)}
                       alt=""
-                      className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                      className="absolute inset-0 h-full w-full object-contain transition duration-500 group-hover:scale-[1.03]"
                     />
                   ) : null}
                   <span
@@ -240,16 +240,18 @@ export default function HistoryInner() {
                   key={url}
                   type="button"
                   onClick={() => setActiveIdx(i)}
-                  className={`w-36 sm:w-40 ${
-                    activeIdx === i ? "rounded-xl ring-2 ring-sage" : ""
+                  className={`group w-36 overflow-hidden rounded-xl transition sm:w-44 ${
+                    activeIdx === i
+                      ? "shadow-[0_12px_28px_-16px_rgba(47,93,80,0.5)] ring-2 ring-sage"
+                      : "hover:ring-1 hover:ring-sage/40"
                   }`}
                 >
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-ink/10">
+                  <div className="relative aspect-[3/4] rounded-xl border border-ink/10 bg-[#f0ece4] dark:bg-[#18150f]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={apiUrl(url)}
                       alt={`Result ${i + 1}`}
-                      className="absolute inset-0 h-full w-full object-cover"
+                      className="absolute inset-0 h-full w-full object-contain transition duration-700 group-hover:scale-[1.02]"
                     />
                   </div>
                   <p className="mt-1.5 text-center text-[11px] font-semibold uppercase tracking-wider text-sage-dark">

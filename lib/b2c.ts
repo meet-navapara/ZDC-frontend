@@ -127,7 +127,7 @@ export function createTryon(form: FormData) {
 
 export async function payForTryon(
   jobId: string,
-  opts?: { useFreeTryon?: boolean; gateway?: string; phone?: string }
+  opts?: { useFreeTryon?: boolean; gateway?: string; phone?: string; couponCode?: string }
 ): Promise<{
   job?: B2cJob;
   payment: {
@@ -186,6 +186,7 @@ export async function payForTryon(
         gateway: opts?.useFreeTryon ? "referral" : opts?.gateway || "auto",
         phone: opts?.phone,
         useFreeTryon: Boolean(opts?.useFreeTryon),
+        couponCode: opts?.useFreeTryon ? undefined : opts?.couponCode || undefined,
       },
       tok()
     );

@@ -16,11 +16,23 @@ import {
   getJob,
   getBalance,
   tryOnFeatureLabel,
+  tryOnFeatureOptionsForBusiness,
+  tryOnFeatureShortLabel,
+  tryOnFeatureTagline,
+  defaultTryOnFeatureForBusinessCategory,
   type TryOnFeature,
   type Product,
   type Category,
   type B2BJob,
 } from "@/lib/b2b";
+import { getUser } from "@/lib/auth";
+import { listPerfectCorpOptions } from "@/lib/b2c";
+import {
+  BeardStylePicker,
+  HairColorPicker,
+  type BeardTemplateOption,
+  type HairColorOption,
+} from "@/components/PerfectCorpPickers";
 import { toast } from "@/lib/toast";
 import {
   friendlyTryOnError,
@@ -62,37 +74,38 @@ const LOOK_LINES_BY_FEATURE: Record<TryOnFeature, string[]> = {
 };
 
 function getB2bTryOnCopy(feature: TryOnFeature) {
+  const short = tryOnFeatureShortLabel(feature).toLowerCase();
   switch (feature) {
     case "hair":
       return {
-        selectedTitle: "Selected hairstyle",
-        selectedEmpty: "Select a hairstyle",
-        catalogTitle: "Choose hairstyle",
-        catalogDesc: "Pick a catalog item to try on the customer",
+        selectedTitle: `Selected ${short}`,
+        selectedEmpty: `Select a ${short}`,
+        catalogTitle: tryOnFeatureLabel(feature),
+        catalogDesc: "Styles you uploaded in Catalog",
         lookLines: LOOK_LINES_BY_FEATURE.hair,
       };
     case "haircolor":
       return {
-        selectedTitle: "Selected hair color",
-        selectedEmpty: "Select a hair color look",
-        catalogTitle: "Choose hair color",
-        catalogDesc: "Pick a swatch or reference from your catalog",
+        selectedTitle: `Selected ${short}`,
+        selectedEmpty: "Pick a shade",
+        catalogTitle: tryOnFeatureLabel(feature),
+        catalogDesc: "Built-in Perfect Corp shades — no catalog upload needed",
         lookLines: LOOK_LINES_BY_FEATURE.haircolor,
       };
     case "beard":
       return {
-        selectedTitle: "Selected beard style",
-        selectedEmpty: "Select a beard style",
-        catalogTitle: "Choose beard style",
-        catalogDesc: "Pick a product — photo shows the beard style for your customer",
+        selectedTitle: `Selected ${short}`,
+        selectedEmpty: "Pick a beard style",
+        catalogTitle: tryOnFeatureLabel(feature),
+        catalogDesc: "Built-in Perfect Corp styles — no catalog upload needed",
         lookLines: LOOK_LINES_BY_FEATURE.beard,
       };
     default:
       return {
-        selectedTitle: "Selected outfit",
-        selectedEmpty: "Select an outfit",
-        catalogTitle: "Choose your outfit",
-        catalogDesc: "Select the pieces you want to try on",
+        selectedTitle: `Selected ${short}`,
+        selectedEmpty: `Select an ${short}`,
+        catalogTitle: tryOnFeatureLabel(feature),
+        catalogDesc: tryOnFeatureTagline(feature),
         lookLines: LOOK_LINES_BY_FEATURE.cloth,
       };
   }
@@ -124,11 +137,29 @@ function formatPrice(p: Product) {
 }
 
 export default function B2BTryOnPage() {
+  const businessCategory = getUser()?.business?.category || "boutique";
+  const isSalon = businessCategory === "salon";
+  const modeOptions = useMemo(
+    () => tryOnFeatureOptionsForBusiness(businessCategory),
+    [businessCategory]
+  );
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [balance, setBalance] = useState<number | null>(null);
   const [productId, setProductId] = useState("");
   const [filter, setFilter] = useState("all");
+  const [sessionFeature, setSessionFeature] = useState<TryOnFeature>(() =>
+    defaultTryOnFeatureForBusinessCategory(businessCategory)
+  );
+  const [hairColorOptions, setHairColorOptions] = useState<HairColorOption[]>(
+    []
+  );
+  const [beardTemplates, setBeardTemplates] = useState<BeardTemplateOption[]>(
+    []
+  );
+  const [hairColorPreset, setHairColorPreset] = useState("");
+  const [beardTemplateId, setBeardTemplateId] = useState("");
   const [source, setSource] = useState<File | null>(null);
   const [stage, setStage] = useState<Stage>("form");
   const [job, setJob] = useState<B2BJob | null>(null);
@@ -162,6 +193,30 @@ export default function B2BTryOnPage() {
   }, []);
 
   useEffect(() => {
+    if (!isSalon) return;
+    listPerfectCorpOptions()
+      .then((r) => {
+        setHairColorOptions(r.hairColors || []);
+        setBeardTemplates(r.beardTemplates || []);
+        setHairColorPreset(
+          (prev) =>
+            prev ||
+            r.defaultHairColorPreset ||
+            r.hairColors?.[0]?.name ||
+            "Honey Blonde"
+        );
+        setBeardTemplateId(
+          (prev) =>
+            prev ||
+            r.defaultBeardTemplateId ||
+            r.beardTemplates?.[0]?.id ||
+            "all_anchor"
+        );
+      })
+      .catch(() => {});
+  }, [isSalon]);
+
+  useEffect(() => {
     if (stage !== "processing" || !job) return;
     const interval = setInterval(async () => {
       try {
@@ -190,8 +245,13 @@ export default function B2BTryOnPage() {
   const selectedCategory = selectedProduct?.category
     ? categories.find((c) => c.id === selectedProduct.category)
     : null;
-  const tryOnFeature: TryOnFeature =
-    selectedCategory?.tryOnFeature || "cloth";
+
+  // Boutique: feature from product category. Salon: explicit mode tab.
+  const tryOnFeature: TryOnFeature = isSalon
+    ? sessionFeature
+    : selectedCategory?.tryOnFeature || "cloth";
+  const needsCatalogProduct =
+    tryOnFeature === "cloth" || tryOnFeature === "hair";
   const copy = useMemo(
     () => getB2bTryOnCopy(tryOnFeature),
     [tryOnFeature]
@@ -211,17 +271,40 @@ export default function B2BTryOnPage() {
   const categoryName = (id: string | null) =>
     categories.find((c) => c.id === id)?.name || "";
   const busy = stage === "working";
-  const canGenerate = Boolean(source && productId) && !busy;
+  const selectionReady = needsCatalogProduct
+    ? Boolean(productId)
+    : tryOnFeature === "haircolor"
+      ? Boolean(hairColorPreset)
+      : tryOnFeature === "beard"
+        ? Boolean(beardTemplateId)
+        : false;
+  const canGenerate = Boolean(source && selectionReady) && !busy;
+
+  const catalogProducts = useMemo(() => {
+    if (!isSalon) return products;
+    // Salon hairstyle mode: only products in hair (or unset) categories
+    return products.filter((p) => {
+      const cat = p.category
+        ? categories.find((c) => c.id === p.category)
+        : null;
+      const feat = cat?.tryOnFeature || "hair";
+      return feat === "hair";
+    });
+  }, [products, categories, isSalon]);
 
   const visibleProducts =
     filter === "all"
-      ? products
-      : products.filter((p) => p.category === filter);
+      ? catalogProducts
+      : catalogProducts.filter((p) => p.category === filter);
 
   const filters = [
     { id: "all", label: "All" },
     ...categories
-      .filter((c) => products.some((p) => p.category === c.id))
+      .filter((c) => {
+        if (!catalogProducts.some((p) => p.category === c.id)) return false;
+        if (isSalon && (c.tryOnFeature || "hair") !== "hair") return false;
+        return true;
+      })
       .map((c) => ({ id: c.id, label: c.name })),
   ];
 
@@ -275,27 +358,64 @@ export default function B2BTryOnPage() {
     setProductId((prev) => (prev === id ? "" : id));
   }
 
+  function switchMode(next: TryOnFeature) {
+    setSessionFeature(next);
+    setProductId("");
+    setFilter("all");
+    setError("");
+  }
+
   async function submit() {
     setError("");
     if (!source) {
-      setError("Upload a customer photo first.");
+      const msg = "Upload a customer photo first.";
+      setError(msg);
+      toast.error(msg);
       return;
     }
-    if (!productId) {
-      setError("Select a product to try on.");
+    if (needsCatalogProduct && !productId) {
+      const msg =
+        tryOnFeature === "hair"
+          ? "Select a hairstyle from your catalog."
+          : "Select a product to try on.";
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+    if (tryOnFeature === "haircolor" && !hairColorPreset) {
+      const msg = "Pick a hair color shade.";
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+    if (tryOnFeature === "beard" && !beardTemplateId) {
+      const msg = "Pick a beard style.";
+      setError(msg);
+      toast.error(msg);
       return;
     }
     if (balance != null && balance < 1) {
-      setError("Not enough credits. You need at least 1 credit.");
+      const msg = "Not enough credits. Buy credits to generate a try-on.";
+      setError(msg);
+      toast.error(msg);
       return;
     }
     setStage("working");
-    track("b2b_tryon_started", { count: 1 });
+    track("b2b_tryon_started", { count: 1, feature: tryOnFeature });
     try {
       const fd = new FormData();
-      fd.append("productId", productId);
       fd.append("count", "1");
       fd.append("source", source);
+      fd.append("feature", tryOnFeature);
+      if (needsCatalogProduct && productId) {
+        fd.append("productId", productId);
+      }
+      if (tryOnFeature === "haircolor") {
+        fd.append("hairColorPreset", hairColorPreset);
+      }
+      if (tryOnFeature === "beard") {
+        fd.append("beardTemplateId", beardTemplateId);
+      }
       const res = await createB2BTryon(fd);
       setBalance(res.credits);
       setJob(res.job);
@@ -305,7 +425,7 @@ export default function B2BTryOnPage() {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setError(msg);
       toast.error(msg);
-      setStage("error");
+      setStage("form");
     }
   }
 
@@ -318,12 +438,51 @@ export default function B2BTryOnPage() {
     if (fileRef.current) fileRef.current.value = "";
   }
 
+  const showEmptyCatalogGate =
+    !isSalon && products.length === 0
+      ? true
+      : isSalon && sessionFeature === "hair" && catalogProducts.length === 0;
+
   return (
     <div className="mx-auto max-w-5xl">
-      {products.length === 0 ? (
-        <div className="mt-8 card rounded-2xl px-6 py-12 text-center">
+      {isSalon && modeOptions.length > 1 && (stage === "form" || stage === "working") && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {modeOptions.map((opt) => {
+            const active = sessionFeature === opt.id;
+            const builtIn = opt.id === "haircolor" || opt.id === "beard";
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => switchMode(opt.id)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  active
+                    ? "bg-sage text-paper"
+                    : "border border-ink/12 text-ink-muted hover:border-ink/25 hover:text-ink dark:border-white/12"
+                }`}
+              >
+                {opt.label}
+                {builtIn && (
+                  <span
+                    className={`ml-1.5 text-[10px] font-medium uppercase tracking-wide ${
+                      active ? "text-paper/80" : "text-ink-muted"
+                    }`}
+                  >
+                    built-in
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {showEmptyCatalogGate ? (
+        <div className="mt-2 card rounded-2xl px-6 py-12 text-center">
           <p className="text-ink-muted">
-            You need at least one product with an image to run a try-on.
+            {isSalon
+              ? `Upload hairstyle photos in Catalog for ${tryOnFeatureLabel("hair")}. ${tryOnFeatureLabel("haircolor")} and ${tryOnFeatureLabel("beard")} are ready without uploads.`
+              : "You need at least one product with an image to run a try-on."}
           </p>
           <Link
             href="/business/catalog"
@@ -438,12 +597,12 @@ export default function B2BTryOnPage() {
 
                   <div
                     className={`relative mx-auto mt-3 h-[13.5rem] w-[10.125rem] overflow-hidden rounded-xl border text-center sm:h-[14.5rem] sm:w-[10.875rem] ${
-                      selectedProduct
+                      selectionReady
                         ? "border-ink/10 dark:border-white/10"
                         : "border-dashed border-ink/15 dark:border-white/15"
                     }`}
                   >
-                    {selectedProduct ? (
+                    {needsCatalogProduct && selectedProduct ? (
                       <>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
@@ -469,17 +628,6 @@ export default function B2BTryOnPage() {
                             {[
                               categoryName(selectedProduct.category),
                               tryOnFeatureLabel(tryOnFeature),
-                              tryOnFeature === "haircolor" &&
-                              selectedCategory?.hairColorPreset
-                                ? selectedCategory.hairColorPreset
-                                : null,
-                              tryOnFeature === "beard" &&
-                              selectedCategory?.beardTemplateId
-                                ? selectedCategory.beardTemplateId.replace(
-                                    /^all_/,
-                                    ""
-                                  )
-                                : null,
                               formatPrice(selectedProduct),
                             ]
                               .filter(Boolean)
@@ -487,6 +635,45 @@ export default function B2BTryOnPage() {
                           </p>
                         </div>
                       </>
+                    ) : tryOnFeature === "haircolor" && hairColorPreset ? (
+                      <div className="flex h-full flex-col items-center justify-center gap-3 bg-ink/[0.03] px-3 dark:bg-[#14120f]">
+                        <span
+                          className="h-16 w-16 rounded-full border border-ink/10 shadow-inner"
+                          style={{
+                            background: (() => {
+                              const opt = hairColorOptions.find(
+                                (o) => o.name === hairColorPreset
+                              );
+                              if (!opt) return "#888";
+                              return opt.swatch.secondary
+                                ? `linear-gradient(135deg, ${opt.swatch.primary} 50%, ${opt.swatch.secondary} 50%)`
+                                : opt.swatch.primary;
+                            })(),
+                          }}
+                        />
+                        <p className="text-xs font-semibold text-ink">
+                          {hairColorPreset}
+                        </p>
+                        <p className="text-[10px] text-ink-muted">Built-in shade</p>
+                      </div>
+                    ) : tryOnFeature === "beard" && beardTemplateId ? (
+                      <div className="flex h-full flex-col items-center justify-center gap-2 bg-ink/[0.03] px-3 dark:bg-[#14120f]">
+                        {(() => {
+                          const t = beardTemplates.find(
+                            (b) => b.id === beardTemplateId
+                          );
+                          return (
+                            <>
+                              <p className="text-xs font-semibold text-ink">
+                                {t?.title || beardTemplateId}
+                              </p>
+                              <p className="text-[10px] text-ink-muted">
+                                Built-in beard style
+                              </p>
+                            </>
+                          );
+                        })()}
+                      </div>
                     ) : (
                       <div className="flex h-full flex-col items-center justify-center bg-ink/[0.03] px-3 dark:bg-[#14120f]">
                         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sage/10 text-sage">
@@ -496,7 +683,9 @@ export default function B2BTryOnPage() {
                           {copy.selectedEmpty}
                         </div>
                         <div className="mt-0.5 text-[10px] leading-snug text-ink-muted">
-                          Choose from the catalog below
+                          {needsCatalogProduct
+                            ? "Choose from the catalog below"
+                            : "Choose below"}
                         </div>
                       </div>
                     )}
@@ -509,21 +698,51 @@ export default function B2BTryOnPage() {
                     Each render uses{" "}
                     <span className="font-semibold text-ink">1 credit</span> and
                     produces 1 image.
+                    {balance != null && (
+                      <>
+                        {" "}
+                        Balance:{" "}
+                        <span className="font-semibold text-ink">
+                          {balance}
+                        </span>
+                      </>
+                    )}
                   </p>
+                  {balance != null && balance < 1 && (
+                    <p className="mt-2 max-w-[16rem] text-center text-xs text-red-600">
+                      No credits left.{" "}
+                      <Link
+                        href="/business/credits"
+                        className="font-semibold underline underline-offset-2"
+                      >
+                        Buy credits
+                      </Link>{" "}
+                      to generate.
+                    </p>
+                  )}
+                  {error && (
+                    <p className="mt-2 max-w-[16rem] text-center text-xs text-red-600">
+                      {error}
+                    </p>
+                  )}
                   <button
                     onClick={submit}
-                    disabled={!canGenerate}
+                    disabled={!canGenerate || (balance != null && balance < 1)}
                     className="mt-4 flex w-full max-w-xs items-center justify-center gap-2 rounded-full bg-sage px-6 py-3 font-semibold text-paper transition hover:bg-sage-dark disabled:opacity-50"
                   >
                     {busy && (
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-paper/40 border-t-paper" />
                     )}
-                    {busy ? "Submitting…" : "Generate Try-On"}
+                    {busy
+                      ? "Submitting…"
+                      : balance != null && balance < 1
+                        ? "Need credits"
+                        : "Generate Try-On"}
                   </button>
                 </section>
               </div>
 
-              {/* Horizontal catalog */}
+              {/* Catalog product carousel OR PerfectCorp built-in pickers */}
               <section className="mt-6">
                 <div className="flex items-end justify-between gap-3">
                   <div>
@@ -536,111 +755,135 @@ export default function B2BTryOnPage() {
                   </div>
                 </div>
 
-                {filters.length > 1 && (
-                  <div className="mt-3 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {filters.map((f) => (
-                      <button
-                        key={f.id}
-                        type="button"
-                        onClick={() => setFilter(f.id)}
-                        className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                          filter === f.id
-                            ? "bg-sage text-paper"
-                            : "border border-ink/12 text-ink-muted hover:border-ink/25 hover:text-ink dark:border-white/12"
-                        }`}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                <div className="relative mt-4">
-                  <button
-                    type="button"
-                    aria-label="Scroll catalog left"
-                    onClick={() => scrollCatalog(-1)}
-                    className="absolute -left-2 top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-ink/12 bg-paper text-lg text-ink shadow-sm transition hover:border-sage hover:text-sage dark:border-white/15 dark:bg-[#14120f] dark:text-[#f4efe7] sm:flex"
-                  >
-                    ‹
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Scroll catalog right"
-                    onClick={() => scrollCatalog(1)}
-                    className="absolute -right-2 top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-ink/12 bg-paper text-lg text-ink shadow-sm transition hover:border-sage hover:text-sage dark:border-white/15 dark:bg-[#14120f] dark:text-[#f4efe7] sm:flex"
-                  >
-                    ›
-                  </button>
-
-                  <div
-                    ref={catalogRef}
-                    className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                  >
-                    {visibleProducts.length === 0 ? (
-                      <p className="py-8 text-sm text-ink-muted">
-                        No products in this category.
-                      </p>
+                {tryOnFeature === "haircolor" ? (
+                  <div className="mt-4 rounded-2xl border border-ink/10 bg-white/50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                    {hairColorOptions.length === 0 ? (
+                      <p className="text-sm text-ink-muted">Loading shades…</p>
                     ) : (
-                      visibleProducts.map((p) => {
-                        const selected = productId === p.id;
-                        const cat = categoryName(p.category);
-                        const productCategory = p.category
-                          ? categories.find((c) => c.id === p.category)
-                          : null;
-                        return (
-                          <button
-                            key={p.id}
-                            type="button"
-                            disabled={busy}
-                            onClick={() => selectProduct(p.id)}
-                            className={`w-[11.5rem] shrink-0 snap-start overflow-hidden rounded-2xl border text-left transition ${
-                              selected
-                                ? "border-sage ring-1 ring-sage/40"
-                                : "border-ink/10 hover:border-ink/25 dark:border-white/10 dark:hover:border-white/25"
-                            } disabled:opacity-60`}
-                          >
-                            <div className="relative h-36 bg-ink/5 dark:bg-[#14120f]">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={apiUrl(p.imageUrls[0])}
-                                alt={p.name}
-                                className="h-full w-full object-cover"
-                              />
-                              <span
-                                className={`absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-semibold ${
-                                  selected
-                                    ? "border-sage bg-sage text-paper"
-                                    : "border-white/40 bg-black/30 text-transparent"
-                                }`}
-                              >
-                                ✓
-                              </span>
-                            </div>
-                            <div className="px-3 py-2.5">
-                              <div className="truncate text-sm font-semibold text-ink">
-                                {p.name}
-                              </div>
-                              {cat && (
-                                <div className="truncate text-[11px] text-ink-muted">
-                                  {cat}
-                                  {productCategory?.tryOnFeature
-                                    ? ` · ${tryOnFeatureLabel(productCategory.tryOnFeature)}`
-                                    : ""}
-                                </div>
-                              )}
-                              {formatPrice(p) && (
-                                <div className="mt-0.5 text-[11px] text-ink-muted">
-                                  {formatPrice(p)}
-                                </div>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })
+                      <HairColorPicker
+                        options={hairColorOptions}
+                        value={hairColorPreset}
+                        onChange={setHairColorPreset}
+                        label="Tap a shade"
+                      />
                     )}
                   </div>
-                </div>
+                ) : tryOnFeature === "beard" ? (
+                  <div className="mt-4 rounded-2xl border border-ink/10 bg-white/50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                    {beardTemplates.length === 0 ? (
+                      <p className="text-sm text-ink-muted">Loading styles…</p>
+                    ) : (
+                      <BeardStylePicker
+                        templates={beardTemplates}
+                        value={beardTemplateId}
+                        onChange={setBeardTemplateId}
+                        label="Tap a style"
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    {filters.length > 1 && (
+                      <div className="mt-3 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        {filters.map((f) => (
+                          <button
+                            key={f.id}
+                            type="button"
+                            onClick={() => setFilter(f.id)}
+                            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                              filter === f.id
+                                ? "bg-sage text-paper"
+                                : "border border-ink/12 text-ink-muted hover:border-ink/25 hover:text-ink dark:border-white/12"
+                            }`}
+                          >
+                            {f.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="relative mt-4">
+                      <button
+                        type="button"
+                        aria-label="Scroll catalog left"
+                        onClick={() => scrollCatalog(-1)}
+                        className="absolute -left-2 top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-ink/12 bg-paper text-lg text-ink shadow-sm transition hover:border-sage hover:text-sage dark:border-white/15 dark:bg-[#14120f] dark:text-[#f4efe7] sm:flex"
+                      >
+                        ‹
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Scroll catalog right"
+                        onClick={() => scrollCatalog(1)}
+                        className="absolute -right-2 top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-ink/12 bg-paper text-lg text-ink shadow-sm transition hover:border-sage hover:text-sage dark:border-white/15 dark:bg-[#14120f] dark:text-[#f4efe7] sm:flex"
+                      >
+                        ›
+                      </button>
+
+                      <div
+                        ref={catalogRef}
+                        className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                      >
+                        {visibleProducts.length === 0 ? (
+                          <p className="py-8 text-sm text-ink-muted">
+                            No products in this category.
+                          </p>
+                        ) : (
+                          visibleProducts.map((p) => {
+                            const selected = productId === p.id;
+                            const cat = categoryName(p.category);
+                            return (
+                              <button
+                                key={p.id}
+                                type="button"
+                                disabled={busy}
+                                onClick={() => selectProduct(p.id)}
+                                className={`w-[11.5rem] shrink-0 snap-start overflow-hidden rounded-2xl border text-left transition ${
+                                  selected
+                                    ? "border-sage ring-1 ring-sage/40"
+                                    : "border-ink/10 hover:border-ink/25 dark:border-white/10 dark:hover:border-white/25"
+                                } disabled:opacity-60`}
+                              >
+                                <div className="relative h-36 bg-ink/5 dark:bg-[#14120f]">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={apiUrl(p.imageUrls[0])}
+                                    alt={p.name}
+                                    className="h-full w-full object-cover"
+                                  />
+                                  <span
+                                    className={`absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-semibold ${
+                                      selected
+                                        ? "border-sage bg-sage text-paper"
+                                        : "border-white/40 bg-black/30 text-transparent"
+                                    }`}
+                                  >
+                                    ✓
+                                  </span>
+                                </div>
+                                <div className="px-3 py-2.5">
+                                  <div className="truncate text-sm font-semibold text-ink">
+                                    {p.name}
+                                  </div>
+                                  {cat && (
+                                    <div className="truncate text-[11px] text-ink-muted">
+                                      {cat}
+                                    </div>
+                                  )}
+                                  {formatPrice(p) && (
+                                    <div className="mt-0.5 text-[11px] text-ink-muted">
+                                      {formatPrice(p)}
+                                    </div>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </section>
 
               {error && (

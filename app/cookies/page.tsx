@@ -1,9 +1,10 @@
+import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 
 export const metadata = {
-  title: "B2C Cookies Policy | zimji",
+  title: "Cookie Policy | zimji",
   description:
-    "zimji B2C Consumers Cookies Policy — how we use cookies on the virtual try-on platform.",
+    "How zimji uses cookies and similar technologies on https://www.zimji.com.",
 };
 
 function Section({
@@ -25,6 +26,14 @@ function Section({
   );
 }
 
+function Subhead({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="pt-2 font-display text-base font-semibold text-ink sm:text-lg">
+      {children}
+    </h3>
+  );
+}
+
 export default function CookiesPolicyPage() {
   return (
     <main className="flex min-h-screen flex-col bg-paper dark:bg-[#0c0b09]">
@@ -34,98 +43,470 @@ export default function CookiesPolicyPage() {
           Legal
         </p>
         <h1 className="mt-2 font-display text-3xl font-semibold text-ink sm:text-4xl">
-          B2C Consumers Cookies Policy
+          Cookie Policy
         </h1>
         <p className="mt-2 text-sm text-ink-muted">
-          zimji B2C – Cookies Policy
+          zimji — cookies and similar technologies
         </p>
-        <p className="mt-1 text-xs text-ink-muted">Last Updated: August 2026</p>
+        <p className="mt-1 text-xs text-ink-muted">Effective date: August 2026</p>
+
+        <div className="mt-8 rounded-2xl border border-ink/10 bg-white p-4 text-sm leading-relaxed text-ink dark:border-white/10 dark:bg-[#14120f] sm:p-5">
+          <p>
+            Zimji uses cookies and similar technologies on its website (
+            <a
+              href="https://www.zimji.com"
+              className="font-semibold text-sage hover:text-sage-dark"
+            >
+              https://www.zimji.com
+            </a>
+            ), which constitute the “Platform.” We and our partners use cookies,
+            pixels, SDKs, APIs, and server-to-server integrations. Zimji does
+            not use these technologies to sell third-party ads on our services.
+            Zimji uses them to measure our ad performance on third-party partner
+            websites and to improve our services. If you continue using Zimji
+            without adjusting your settings, you are consenting to these
+            technologies.
+          </p>
+        </div>
+
+        <p className="mt-4 text-sm text-ink-muted">
+          For information about the processing of your personal data and your
+          rights, please read our general{" "}
+          <Link href="/privacy" className="font-semibold text-sage hover:text-sage-dark">
+            Privacy Policy
+          </Link>{" "}
+          &amp;{" "}
+          <Link href="/terms" className="font-semibold text-sage hover:text-sage-dark">
+            Terms
+          </Link>
+          .
+        </p>
 
         <div className="mt-10 space-y-10">
-          <Section title="1. What Are Cookies?">
+          <Section title="1. What are cookies and similar technologies?">
             <p>
-              Cookies are small text files stored on your device when you visit a
-              website. They help us understand how you use our site and improve
-              your experience.
-            </p>
-          </Section>
-
-          <Section title="2. Cookies We Use">
-            <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-white dark:border-white/10 dark:bg-[#14120f]">
-              <table className="w-full min-w-[520px] text-left text-sm">
-                <thead className="border-b border-ink/10 bg-ink/[0.03] text-xs uppercase tracking-wider text-ink-muted dark:border-white/10 dark:bg-white/5">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold">Type</th>
-                    <th className="px-4 py-3 font-semibold">Purpose</th>
-                    <th className="px-4 py-3 font-semibold">Example</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-ink/10 text-ink">
-                  <tr>
-                    <td className="px-4 py-3 font-medium">Essential Cookies</td>
-                    <td className="px-4 py-3 text-ink-muted">
-                      Enable basic website functionality (navigation, page
-                      loading)
-                    </td>
-                    <td className="px-4 py-3 text-ink-muted">Session cookies</td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-medium">Functional Cookies</td>
-                    <td className="px-4 py-3 text-ink-muted">
-                      Remember your preferences and settings
-                    </td>
-                    <td className="px-4 py-3 text-ink-muted">
-                      Language preference
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-medium">Analytical Cookies</td>
-                    <td className="px-4 py-3 text-ink-muted">
-                      Understand how visitors use our site to improve it
-                    </td>
-                    <td className="px-4 py-3 text-ink-muted">
-                      Google Analytics (anonymized)
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </Section>
-
-          <Section title="3. Your Choice">
-            <p>
-              You can control cookies through your browser settings. You may
-              refuse all non-essential cookies. However, essential cookies are
-              required for the website to function properly.
+              While traditionally referring to small text files in web browsers,
+              the term “cookie” in this policy and under applicable regulations
+              refers more broadly to any tracking technology that stores or
+              accesses information on your device when you visit our website.
+              This includes traditional cookies, web beacons, pixels, and
+              similar technologies that can operate on any internet-connected
+              device.
             </p>
             <p>
-              We do{" "}
-              <span className="font-semibold text-ink">NOT</span> use
-              advertising/tracking cookies for B2C users without explicit
-              consent.
+              The term “cookies” therefore includes the following trackers in
+              particular:
             </p>
-          </Section>
-
-          <Section title="4. Third-Party Cookies">
-            <p>We use minimal third-party services:</p>
             <ul className="list-disc space-y-2 pl-5">
+              <li>HTTP cookies</li>
+              <li>Flash cookies</li>
               <li>
-                <span className="font-semibold text-ink">PerfectCorp.com:</span>{" "}
-                For AI rendering (no cookies stored)
+                The result of the calculation of a unique fingerprint of the
+                terminal in the case of “fingerprinting” (calculation of a
+                unique identifier of the terminal based on elements of its
+                configuration for tracking purposes)
               </li>
+              <li>Invisible pixels or “web bugs”</li>
               <li>
-                <span className="font-semibold text-ink">
-                  M-Pesa / UPI / Card — Visa / Mastercard:
-                </span>{" "}
-                For payment processing (governed by their own policy)
+                Any other identifier generated by software or an operating
+                system (serial number, MAC address, unique terminal identifier
+                (UTI), or any set of data used to calculate a unique fingerprint
+                of the terminal, for example via a “fingerprinting” method)
+              </li>
+              <li>SDKs (Software Development Kits) used for tracking or analytics</li>
+            </ul>
+            <p>
+              In general, cookies enable us to track your browsing habits, i.e.,
+              the different websites and mobile applications you visit and how
+              you interact with them. These cookies also allow us to know which
+              advertisements are shown to you and whether you consult them or
+              make a subsequent purchase.
+            </p>
+            <p>
+              Data stored by cookies include the pages viewed, the type of
+              browser used, your IP address, some identifiers, and sometimes the
+              information you entered on a website.
+            </p>
+          </Section>
+
+          <Section title="2. Why do we use cookies and other technologies?">
+            <Subhead>Cookies necessary for the operation of the Platform</Subhead>
+            <p>
+              Necessary cookies allow you to use the main features of our
+              Platform (such as access to your account, and implement security
+              measures).
+            </p>
+            <p>
+              We do not need your consent for these cookies, but we need it for
+              all the other cookies listed below.
+            </p>
+            <Subhead>Analytical cookies for audience measurement</Subhead>
+            <p>
+              Analytical cookies allow Zimji to establish usage statistics about
+              how users interact with the Platform (sections and content
+              visited, journeys), to improve the user’s experience.
+            </p>
+            <Subhead>Advertising cookies</Subhead>
+            <p>
+              Advertising cookies are used to profile your browsing on Zimji and
+              to display personalized advertising on other sites.
+            </p>
+            <Subhead>Social media cookies</Subhead>
+            <p>
+              Social media cookies are used to enable you to share content on
+              the social media present on our Platform.
+            </p>
+            <p>
+              For more information on the use of your personal data by these
+              social media, we invite you to read the privacy policies of the
+              third-party social media concerned.
+            </p>
+          </Section>
+
+          <Section title="3. How cookie settings impact your visit">
+            <p>
+              Disabling analytical, social network and advertisement cookies has
+              no consequence on your use of the Platform.
+            </p>
+            <p>
+              Disabling necessary cookies could prevent you from using the
+              Platform under normal conditions.
+            </p>
+          </Section>
+
+          <Section title="4. How do I configure cookies and other technologies on the Platform?">
+            <p>
+              This section only applies if you are using Zimji from a country of
+              origin or a country with equivalent regulations requiring consent
+              for the deposit of cookies and similar technologies.
+            </p>
+            <p>
+              Cookie deposit on your device is subject to your consent unless
+              they are used solely to provide the Platform.
+            </p>
+            <p>
+              When you visit Zimji’s Application, our website, or our web-based
+              application for the first time, Zimji will inform you and ask you
+              if you accept the deposit of cookies on your device.
+            </p>
+            <p>
+              You may consent to the deposit of cookies by clicking on the
+              “Accept all” button on the banner.
+            </p>
+            <p>You can refuse the deposit of cookies on your device by:</p>
+            <ul className="list-disc space-y-2 pl-5">
+              <li>Clicking on the “Reject all” button in the banner, or</li>
+              <li>
+                Setting your choices in the cookie manager accessible from the
+                “Customize” button.
               </li>
             </ul>
+            <p>
+              Your choice will be kept for 6 months from the date of your first
+              visit.
+            </p>
+            <p>
+              You can withdraw your consent to the deposit of cookies at any
+              time. You can review your cookie settings anytime by using our
+              Cookies manager.
+            </p>
           </Section>
 
-          <Section title="5. Updates to This Policy">
+          <Section title="5. Data collection technologies used">
             <p>
-              We may update this policy periodically. Continued use of the
-              website constitutes acceptance of any changes.
+              The following section details the tracking technologies, SDKs, and
+              data collection mechanisms implemented across our Mobile and Web
+              applications, and website. Their deployment and use comply with
+              applicable privacy regulations and are subject to appropriate
+              consent mechanisms.
+            </p>
+
+            <Subhead>Analytics and Engagement</Subhead>
+            <ul className="list-disc space-y-2 pl-5">
+              <li>
+                <span className="font-semibold text-ink">Google Analytics for Firebase:</span>{" "}
+                Tracks user interactions and engagement within the app.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Amplitude Analytics:</span>{" "}
+                Provides insights into user behavior and in-app events.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Facebook Analytics for Apps:</span>{" "}
+                Captures user engagement data for analysis.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Intercom:</span> Tracks
+                user interactions for engagement and customer support.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Braze:</span> Used for
+                personalized messaging and engagement tracking.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Perfectcorp:</span>{" "}
+                Collects, processes, and routes user pictures to Virtual Try-On
+                platforms, potentially requiring disclosure if it shares data
+                with third-party destinations.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">AISDR:</span> Collects
+                technical and behavioral data to analyze service usage and
+                improve application performance.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Microsoft Clarity:</span>{" "}
+                Analyzes website usage, stores user identifiers and
+                site-specific preferences, and combines page views into a single
+                session record.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Fathom:</span> Measures
+                audience and analyzes website traffic for statistical purposes.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Identify:</span>{" "}
+                Identifies visitors in order to analyze platform usage and
+                improve services.
+              </li>
+            </ul>
+
+            <Subhead>Advertising and Targeting</Subhead>
+            <ul className="list-disc space-y-2 pl-5">
+              <li>
+                <span className="font-semibold text-ink">Google Ad Manager:</span>{" "}
+                Manages and serves personalized ads based on user behavior.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Facebook Analytics for Apps:</span>{" "}
+                Often integrates with advertising, enabling user data to serve
+                ads. Google Ad Manager and Facebook Analytics are trackers,
+                collecting data for ad targeting beyond the app itself.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Google Conversion Linker:</span>{" "}
+                Measures conversions from Google Ads campaigns and optimizes
+                advertising performance.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Adjust:</span> Measures
+                the performance of advertising campaigns, attributes installs
+                and in-app events, and tracks the user lifecycle.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">LinkedIn Corporation:</span>{" "}
+                Tracks visitors, measures LinkedIn Ads campaign performance, and
+                serves targeted advertising.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">TikTok:</span> Measures
+                advertising performance, tracks conversions, and optimizes ad
+                targeting.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Referly:</span> Analyzes
+                referrals and acquisition sources (affiliate or partner links).
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Snitcher:</span>{" "}
+                Identifies companies visiting the site, enriches company data,
+                analyzes browsing behavior, and converts traffic into B2B leads.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">ZoomInfo:</span>{" "}
+                Identifies B2B visitors, enriches company data, and supports
+                commercial analysis of visits.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Awin:</span> Used to
+                track partner referrals, attribute conversions, and measure the
+                performance of affiliate marketing campaigns.
+              </li>
+            </ul>
+
+            <Subhead>Location and Geolocation</Subhead>
+            <ul className="list-disc space-y-2 pl-5">
+              <li>
+                <span className="font-semibold text-ink">
+                  Device Permissions for Personal Data Access:
+                </span>{" "}
+                Used to request user permission for accessing location data,
+                necessary for any geolocation features in the app. This also
+                governs access to other device data that may impact user
+                privacy.
+              </li>
+            </ul>
+
+            <Subhead>
+              Crash Reporting and Diagnostics, Device and Performance Monitoring
+            </Subhead>
+            <ul className="list-disc space-y-2 pl-5">
+              <li>
+                <span className="font-semibold text-ink">Firebase:</span>{" "}
+                Provides tools for real-time app monitoring, crash reporting,
+                and performance tracking to improve app stability and user
+                experience.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Crashlytics:</span>{" "}
+                Monitors app crashes, providing error reports and diagnostics.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Datadog:</span> Tracks
+                app performance and stability metrics, including error
+                reporting.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">HubSpot:</span> Used as
+                a technical infrastructure provider. The associated cookie is
+                used to enforce rate limiting policies and protect the platform
+                against abuse.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Cloudflare:</span> Used
+                to ensure the security and availability of the platform,
+                including traffic filtering, abuse prevention, and
+                distinguishing legitimate users from malicious traffic.
+              </li>
+            </ul>
+
+            <Subhead>Behavioral and Personalization Trackers</Subhead>
+            <ul className="list-disc space-y-2 pl-5">
+              <li>
+                <span className="font-semibold text-ink">Braze:</span> Tracks
+                user behavior to personalize in-app messaging and notifications.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Superwall:</span>{" "}
+                Manages paywall personalization and optimizes subscription
+                offers based on user engagement.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Purchasers (RevenueCat):</span>{" "}
+                Tracks in-app purchases and subscriptions, helping personalize
+                offers. Purchasers and Superwall can also act as trackers when
+                they collect behavioral data for personalization or profiling.
+              </li>
+            </ul>
+
+            <Subhead>Social Media Integration</Subhead>
+            <ul className="list-disc space-y-2 pl-5">
+              <li>
+                <span className="font-semibold text-ink">Facebook Analytics for Apps:</span>{" "}
+                Enables social sharing and login through Facebook, while also
+                tracking engagement.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">YouTube:</span> Stores
+                video preferences and recognizes users when viewing embedded
+                videos.
+              </li>
+            </ul>
+
+            <Subhead>User Authentication and Permissions</Subhead>
+            <ul className="list-disc space-y-2 pl-5">
+              <li>
+                <span className="font-semibold text-ink">
+                  Device Permissions for Personal Data Access:
+                </span>{" "}
+                Requests and manages permissions for accessing personal data
+                (e.g., contacts, location).
+              </li>
+              <li>
+                <span className="font-semibold text-ink">TestFlight:</span>{" "}
+                Though primarily a beta testing tool, it involves managing
+                access to app versions for user testing.
+              </li>
+              <li>
+                Device Permissions for Personal Data Access may also act as
+                trackers for monitoring and controlling access to personal data
+                within the app.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Didomi:</span> Collects
+                and stores users’ cookie consent preferences.
+              </li>
+            </ul>
+
+            <Subhead>Content and Asset Loading</Subhead>
+            <ul className="list-disc space-y-2 pl-5">
+              <li>
+                <span className="font-semibold text-ink">Google Fonts:</span>{" "}
+                Loads font assets from Google’s servers; could require
+                disclosure if it shares data with Google’s servers.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Google Cloud Storage:</span>{" "}
+                Manages app data storage, potentially storing user-uploaded
+                content or assets.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Storyblock:</span>{" "}
+                Manages, delivers, and displays website content, including
+                preview and editing features.
+              </li>
+            </ul>
+
+            <Subhead>Search and Discovery</Subhead>
+            <ul className="list-disc space-y-2 pl-5">
+              <li>
+                <span className="font-semibold text-ink">Algolia:</span> Provides
+                real-time search and recommendation capabilities, enabling users
+                to find and discover content quickly. It may collect and process
+                query data to optimize search results and user experience.
+              </li>
+            </ul>
+            <p>
+              We implement various types of cookies and tracking technologies on
+              our website. The list above is a detailed overview of the cookies
+              and similar technologies that may be placed during your website
+              visit.
+            </p>
+          </Section>
+
+          <Section title="6. Transfers of personal data outside the European Economic Area">
+            <p>
+              Please note that some of our cookies providers are located outside
+              Africa.
+            </p>
+            <p>
+              Therefore, Zimji transfers cookies outside Africa with appropriate
+              safeguards in place, including the signing of standard contractual
+              clauses. A document listing the data transfers and guarantees
+              implemented by Zimji will be sent to you if you request it by
+              e-mail at{" "}
+              <a
+                href="mailto:care@zimji.com"
+                className="font-semibold text-sage hover:text-sage-dark"
+              >
+                care@zimji.com
+              </a>
+              .
+            </p>
+          </Section>
+
+          <Section title="7. Changes to this Policy">
+            <p>
+              The effective date of each version is identified at the top of
+              this document. If we make changes to this Cookies Policy, we will
+              use reasonable means to inform you.
+            </p>
+          </Section>
+
+          <Section title="8. Contact">
+            <p>
+              Should you have any claims, questions, or recommendations, please
+              contact us by email at{" "}
+              <a
+                href="mailto:care@zimji.com"
+                className="font-semibold text-sage hover:text-sage-dark"
+              >
+                care@zimji.com
+              </a>
+              .
+            </p>
+            <p className="text-xs uppercase tracking-wider text-ink-muted">
+              End of document
             </p>
           </Section>
         </div>

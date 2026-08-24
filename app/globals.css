@@ -258,17 +258,28 @@ svg {
   transition: background 0.15s ease;
 }
 
-/* Scroll reveal */
+/* ── Scroll reveal ───────────────────────────────────────────────────────── */
 .reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translateY(28px);
+  transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: opacity, transform;
 }
 .reveal.in-view {
   opacity: 1;
-  transform: none;
+  transform: translateY(0);
+}
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.94) translateY(14px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal-scale.in-view {
+  opacity: 1;
+  transform: scale(1) translateY(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -279,8 +290,126 @@ svg {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  .reveal {
+  .reveal,
+  .reveal-scale {
     opacity: 1;
     transform: none;
   }
+}
+
+/* ── Hero collage entrance ───────────────────────────────────────────────── */
+@keyframes heroCardIn {
+  0%   { opacity: 0; transform: translateY(32px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.hero-card-1 { animation: heroCardIn 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both; }
+.hero-card-2 { animation: heroCardIn 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.50s both; }
+.hero-card-3 { animation: heroCardIn 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.65s both; }
+.hero-badge  { animation: heroCardIn 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.90s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-card-1, .hero-card-2, .hero-card-3, .hero-badge {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Image card — premium hover lift ────────────────────────────────────── */
+.img-card {
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.img-card:hover {
+  transform: translateY(-5px) scale(1.006);
+  box-shadow: 0 36px 72px -24px rgba(28, 26, 22, 0.3);
+}
+@media (prefers-reduced-motion: reduce) {
+  .img-card:hover { transform: none; }
+}
+
+/* ── Feature image shimmer on hover ─────────────────────────────────────── */
+.feat-img-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.feat-img-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    108deg,
+    transparent 38%,
+    rgba(255,255,255,0.16) 50%,
+    transparent 62%
+  );
+  transform: translateX(-130%) skewX(-10deg);
+  pointer-events: none;
+}
+.feat-img-wrap:hover::after {
+  transform: translateX(130%) skewX(-10deg);
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) { .feat-img-wrap::after { display: none; } }
+
+/* ── Lookbook card ───────────────────────────────────────────────────────── */
+.lookbook-card .lk-overlay {
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+@media (min-width: 640px) {
+  .lookbook-card .lk-overlay { opacity: 0; }
+  .lookbook-card:hover .lk-overlay { opacity: 1; }
+}
+
+/* ── Step card hover ─────────────────────────────────────────────────────── */
+.step-card {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.step-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 52px -20px rgba(92, 122, 104, 0.32);
+}
+@media (prefers-reduced-motion: reduce) { .step-card:hover { transform: none; } }
+
+/* ── Step number ring ────────────────────────────────────────────────────── */
+.step-ring {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.step-card:hover .step-ring {
+  box-shadow: 0 0 0 7px rgba(92, 122, 104, 0.2);
+  transform: scale(1.08);
+}
+
+/* ── Pricing card hover ──────────────────────────────────────────────────── */
+.pricing-card {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pricing-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 28px 56px -20px rgba(28, 26, 22, 0.22);
+}
+.pricing-card-featured:hover {
+  box-shadow: 0 32px 64px -20px rgba(47, 93, 80, 0.48);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pricing-card:hover { transform: none; }
+}
+
+/* ── Category strip hover ────────────────────────────────────────────────── */
+.marquee-tag {
+  transition: color 0.3s ease, opacity 0.3s ease;
+  opacity: 0.55;
+}
+.marquee-tag:hover {
+  color: #5c7a68;
+  opacity: 1;
+}
+
+/* ── glowPulse keyframe (also used inline) ───────────────────────────────── */
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
 }

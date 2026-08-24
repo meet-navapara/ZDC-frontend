@@ -13,6 +13,11 @@ import { track } from "@/lib/analytics";
 import { LIMITS } from "@/lib/limits";
 import { toast } from "@/lib/toast";
 import {
+  BUSINESS_TYPE_FIELD_LABEL,
+  businessCategoryDescription,
+  BUSINESS_CATEGORY_SELECT_OPTIONS,
+} from "@/lib/businessCategories";
+import {
   CURRENCIES,
   countrySelectOptions,
   matchCountry,
@@ -28,12 +33,6 @@ type AuthResponse = {
   user: AuthUser;
   referral?: { redeemed?: boolean; rewardReferee?: number };
 };
-
-const CATEGORIES = [
-  { id: "salon", label: "Salon" },
-  { id: "boutique", label: "Boutique" },
-  { id: "other", label: "Others" },
-];
 
 const HAS_MAPS = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
 const inputClass =
@@ -176,7 +175,7 @@ export default function RegisterPage() {
 
   async function requestOtp() {
     if (kind === "b2b") {
-      if (!category) throw new Error("Please select a business category.");
+      if (!category) throw new Error(`Please select a ${BUSINESS_TYPE_FIELD_LABEL.toLowerCase()}.`);
       if (!country) throw new Error("Please select a country.");
       if (!currency) throw new Error("Please select a currency.");
     }
@@ -461,15 +460,21 @@ export default function RegisterPage() {
                       </div>
                       <div>
                         <label className="mb-1 block text-sm font-medium text-ink-700">
-                          Business category <span className="text-red-500">*</span>
+                          {BUSINESS_TYPE_FIELD_LABEL}{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <CustomSelect
                           required
                           value={category}
                           onChange={setCategory}
-                          placeholder="Select category"
-                          options={CATEGORIES.map((c) => ({ value: c.id, label: c.label }))}
+                          placeholder="Select business type"
+                          options={BUSINESS_CATEGORY_SELECT_OPTIONS}
                         />
+                        {category ? (
+                          <p className="mt-1.5 text-xs text-ink-muted">
+                            {businessCategoryDescription(category)}
+                          </p>
+                        ) : null}
                       </div>
                     </>
                   )}

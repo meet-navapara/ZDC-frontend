@@ -5,7 +5,12 @@ import { CustomSelect } from "@/components/CustomSelect";
 import { PhoneInput } from "@/components/PhoneInput";
 import { AddressAutocomplete, type AddressParts } from "@/components/AddressAutocomplete";
 import { BranchManager } from "@/components/BranchManager";
-import { getProfile, updateProfile } from "@/lib/b2b";
+import { getProfile, updateProfile, tryOnFeatureLabel } from "@/lib/b2b";
+import {
+  BUSINESS_TYPE_FIELD_LABEL,
+  businessCategoryLabel,
+  normalizeBusinessCategory,
+} from "@/lib/businessCategories";
 import { getUser, saveAuth, getToken } from "@/lib/auth";
 import { LIMITS } from "@/lib/limits";
 import {
@@ -21,12 +26,6 @@ import {
 } from "@/lib/countries";
 import { toast } from "@/lib/toast";
 import { PageLoader } from "@/components/PageLoader";
-
-const CATEGORIES = [
-  { id: "salon", label: "Salon" },
-  { id: "boutique", label: "Boutique" },
-  { id: "other", label: "Others" },
-];
 
 const HAS_MAPS = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
 
@@ -66,9 +65,10 @@ export default function SettingsPage() {
           matchCountry(u.business?.address?.country) ||
           u.business?.address?.country ||
           "";
+        const rawCategory = normalizeBusinessCategory(u.business?.category);
         setForm({
           businessName: u.business?.name || "",
-          category: u.business?.category || "boutique",
+          category: rawCategory,
           phone: u.phone || "",
           whatsapp: u.business?.whatsapp || "",
           line1: u.business?.address?.line1 || "",
@@ -134,7 +134,6 @@ export default function SettingsPage() {
         phone: form.phone,
         business: {
           name: form.businessName,
-          category: form.category as "boutique" | "salon" | "other",
           whatsapp: form.whatsapp.trim() || null,
           currency: form.currency,
           address: {
@@ -207,13 +206,19 @@ export default function SettingsPage() {
 
           <div>
             <label className="mb-1 block text-sm font-medium text-ink-700">
-              Business category
+              {BUSINESS_TYPE_FIELD_LABEL}
             </label>
-            <CustomSelect
-              value={form.category}
-              onChange={(v) => set("category", v)}
-              options={CATEGORIES.map((c) => ({ value: c.id, label: c.label }))}
+            <input
+              value={businessCategoryLabel(form.category)}
+              disabled
+              className="w-full rounded-xl border border-ink/10 bg-ink/5 px-4 py-3 text-ink-muted"
             />
+            <p className="mt-1.5 text-xs text-ink-muted">
+              {form.category === "salon"
+                ? `Salon Catalog: upload hairstyles only. ${tryOnFeatureLabel("haircolor")} & ${tryOnFeatureLabel("beard")} are built-in on Try-On.`
+                : `Boutique unlocks ${tryOnFeatureLabel("cloth")} in Catalog.`}{" "}
+              Set at signup and cannot be changed here.
+            </p>
             </div>
 
             <div>

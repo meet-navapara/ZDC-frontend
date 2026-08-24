@@ -424,3 +424,112 @@ export function getContent() {
 export function updateContent(body: SiteContent) {
   return apiPut<{ content: SiteContent }>("/api/admin/content", body, tok());
 }
+
+/* -------------------------------- Coupons -------------------------------- */
+
+export type CouponDiscountType = "percentage" | "fixed";
+export type CouponScope = "all" | "selected";
+export type CouponStatus = "active" | "inactive" | "expired";
+
+export type AdminCoupon = {
+  id: string;
+  code: string;
+  discountType: CouponDiscountType;
+  discountValue: number;
+  discountValueInr: number | null;
+  scope: CouponScope;
+  packIds: string[];
+  minimumPurchase: number | null;
+  minimumPurchaseInr: number | null;
+  maximumDiscount: number | null;
+  maximumDiscountInr: number | null;
+  usageLimit: number | null;
+  usageCount: number;
+  reservedCount?: number;
+  perUserLimit: number | null;
+  startsAt: string | null;
+  expiresAt: string | null;
+  isActive: boolean;
+  status: CouponStatus;
+  createdAt: string;
+  totalDiscountKes: number;
+  totalDiscountInr: number;
+  discountByCurrency?: { currency: string; amount: number; uses: number }[];
+};
+
+export type CouponStats = {
+  totalCoupons: number;
+  activeCoupons: number;
+  expiredCoupons: number;
+  totalUses: number;
+  discountByCurrency: { currency: string; amount: number; uses: number }[];
+};
+
+export type CouponListResult = {
+  coupons: AdminCoupon[];
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+  stats: CouponStats;
+};
+
+export type CouponPayload = {
+  code: string;
+  discountType: CouponDiscountType;
+  discountValue: number;
+  discountValueInr?: number | null;
+  scope: CouponScope;
+  packIds?: string[];
+  minimumPurchase?: number | null;
+  minimumPurchaseInr?: number | null;
+  maximumDiscount?: number | null;
+  maximumDiscountInr?: number | null;
+  usageLimit?: number | null;
+  perUserLimit?: number | null;
+  startsAt?: string | null;
+  expiresAt?: string | null;
+  isActive?: boolean;
+};
+
+export function listCoupons(params?: {
+  q?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}) {
+  const q = new URLSearchParams();
+  if (params?.q) q.set("q", params.q);
+  if (params?.status) q.set("status", params.status);
+  if (params?.page) q.set("page", String(params.page));
+  if (params?.limit) q.set("limit", String(params.limit));
+  const qs = q.toString();
+  return apiGet<CouponListResult>(`/api/admin/coupons${qs ? `?${qs}` : ""}`, tok());
+}
+
+export function getCoupon(id: string) {
+  return apiGet<{ coupon: AdminCoupon }>(`/api/admin/coupons/${id}`, tok());
+}
+
+export function createCoupon(body: CouponPayload) {
+  return apiPost<{ coupon: AdminCoupon }>("/api/admin/coupons", body, tok());
+}
+
+export function updateCoupon(id: string, body: CouponPayload) {
+  return apiPatch<{ coupon: AdminCoupon }>(`/api/admin/coupons/${id}`, body, tok());
+}
+
+export function enableCoupon(id: string) {
+  return apiPost<{ coupon: AdminCoupon }>(`/api/admin/coupons/${id}/enable`, {}, tok());
+}
+
+export function disableCoupon(id: string) {
+  return apiPost<{ coupon: AdminCoupon }>(`/api/admin/coupons/${id}/disable`, {}, tok());
+}
+
+export function deleteCoupon(id: string) {
+  return apiDelete<{ ok: boolean; softDeleted?: boolean; message?: string }>(
+    `/api/admin/coupons/${id}`,
+    tok()
+  );
+}

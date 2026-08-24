@@ -100,24 +100,24 @@ export default function B2BTryOnResultPage() {
             {job.resultImageUrls.map((url, i) => {
               const selected = activeResult === i;
               return (
-                <div key={i} className="w-44 sm:w-52">
+                <div key={i} className="w-48 sm:w-60 md:w-72">
                   <button
                     type="button"
                     onClick={() => setActiveResult(i)}
-                    className={`card w-full overflow-hidden rounded-2xl border transition ${
+                    className={`group w-full overflow-hidden rounded-2xl border transition ${
                       selected
-                        ? "border-sage ring-2 ring-sage/40"
-                        : "border-transparent hover:border-sage/40"
+                        ? "border-sage shadow-[0_18px_40px_-20px_rgba(47,93,80,0.45)] ring-2 ring-sage/40"
+                        : "border-ink/10 hover:border-sage/40 hover:shadow-md"
                     }`}
                     aria-pressed={selected}
                     aria-label={`Select look ${i + 1}`}
                   >
-                    <div className="relative aspect-[3/4]">
+                    <div className="relative aspect-[3/4] bg-[#f0ece4] dark:bg-[#18150f]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={apiUrl(url)}
                         alt={`Result ${i + 1}`}
-                        className="absolute inset-0 h-full w-full object-cover"
+                        className="absolute inset-0 h-full w-full object-contain transition duration-700 ease-out group-hover:scale-[1.02]"
                       />
                     </div>
                   </button>

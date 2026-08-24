@@ -8,7 +8,7 @@ const USER_KEY = "zdc_user";
 
 export type BusinessProfile = {
   name?: string;
-  category?: "boutique" | "salon" | "other";
+  category?: "boutique" | "salon" | "other"; // "other" legacy only; new signups are boutique|salon
   logoUrl?: string | null;
   whatsapp?: string | null;
   currency?: string;

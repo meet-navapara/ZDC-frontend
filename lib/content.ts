@@ -21,22 +21,22 @@ export type SiteContent = {
 // API is unreachable at request time.
 export const DEFAULT_CONTENT: SiteContent = {
   hero: {
-    badge: "Hair & Apparel Virtual Try-On • Built for You",
-    titleLine1: "Hair & Apparel,",
+    badge: "AI Virtual Try-On · Outfits, Hair & Beard",
+    titleLine1: "AI Virtual",
     titleHighlight: "Try-On",
-    titleLine2: "in Seconds.",
+    titleLine2: "for outfits & hair.",
     subtitle:
-      "No guesswork, no regrets — just instant results. See exactly how any outfit or hairstyle looks on you before you buy or book.",
-    primaryCta: "Try On Instantly",
+      "Upload a selfie and preview photorealistic outfits, hairstyles, hair color, or beard looks in seconds — try before you buy or book, with M-Pesa and Razorpay.",
+    primaryCta: "Start AI Try-On",
     stats: [
-      { value: "~8s", label: "Render time" },
-      { value: "Hair & Apparel", label: "Categories" },
-      { value: "M-Pesa", label: "Easy payments" },
+      { value: "~8s", label: "AI render time" },
+      { value: "Outfit · Hair", label: "Try-on styles" },
+      { value: "M-Pesa · UPI", label: "Easy payments" },
     ],
   },
   testimonials: [],
   pricingNote:
-    "Payments via M-Pesa. Final pricing configurable — shown for illustration.",
+    "Pay per look with M-Pesa (KES) or Razorpay (INR). Pricing shown for illustration and may be updated by admin.",
 };
 
 // Server-side fetch for the marketing page. Never throws — falls back to

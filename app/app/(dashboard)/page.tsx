@@ -149,13 +149,13 @@ export default function ConsumerOverviewPage() {
                   href={`/app/history?job=${job.id}`}
                   className="card group overflow-hidden rounded-2xl transition hover:border-sage/40"
                 >
-                  <div className="relative aspect-[3/4] bg-ink/5">
+                  <div className="relative aspect-[3/4] bg-[#f0ece4] dark:bg-[#18150f]">
                     {thumb ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={apiUrl(thumb)}
                         alt="Try-on result"
-                        className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                        className="absolute inset-0 h-full w-full object-contain transition duration-500 group-hover:scale-[1.03]"
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center text-sm text-ink-muted">
