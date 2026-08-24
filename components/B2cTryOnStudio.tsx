@@ -27,7 +27,7 @@ import {
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { toast } from "@/lib/toast";
 import { CheckoutCoupon } from "@/components/CheckoutCoupon";
-import type { CouponQuote } from "@/lib/coupons";
+import { fetchWelcomeCoupon, type CouponQuote } from "@/lib/coupons";
 import {
   friendlyTryOnError,
   readImageDimensions,
@@ -376,6 +376,8 @@ export default function B2cTryOnStudio() {
   const [mpesaHint, setMpesaHint] = useState("");
   const [couponQuote, setCouponQuote] = useState<CouponQuote | null>(null);
   const [couponCode, setCouponCode] = useState("");
+  /** Bump to re-fetch welcome eligibility (e.g. after a successful try-on). */
+  const [welcomeRefreshKey, setWelcomeRefreshKey] = useState(0);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -524,7 +526,6 @@ export default function B2cTryOnStudio() {
   }, [targetCount, feature, needsReferenceImage, defaultHairColor, defaultBeardTemplate]);
   const payGateway =
     selectedGateway === "auto" ? defaultGateway : selectedGateway;
-  const needsMpesaPhone = payGateway === "mpesa";
   const payWithRazorpay = payGateway === "razorpay";
   const displayAmount =
     payGateway === "razorpay"
@@ -544,11 +545,38 @@ export default function B2cTryOnStudio() {
     couponQuote.subtotal === Number(displayAmount)
       ? couponQuote.finalAmount
       : displayAmount;
+  const needsMpesaPhone =
+    payGateway === "mpesa" && Number(payableAmount) > 0;
+  const isFreeCheckout = Number(payableAmount) === 0 && Boolean(couponQuote);
 
   useEffect(() => {
     setCouponQuote(null);
     setCouponCode("");
-  }, [packId, displayCurrency, displayAmount]);
+    // Only auto-apply while the checkout form is visible
+    if (stage !== "form") return;
+    if (!packId || displayAmount == null || !Number.isFinite(Number(displayAmount))) {
+      return;
+    }
+    if (!getToken()) return;
+
+    let cancelled = false;
+    fetchWelcomeCoupon({
+      packId,
+      currency: displayCurrency,
+    })
+      .then((r) => {
+        if (cancelled || !r.eligible || !("quote" in r) || !r.quote) return;
+        setCouponQuote(r.quote);
+        setCouponCode(r.quote.coupon.code);
+      })
+      .catch(() => {
+        /* not eligible or offline — ignore */
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [packId, displayCurrency, displayAmount, stage, welcomeRefreshKey]);
 
   useEffect(() => {
     setTargets((prev) => {
@@ -748,6 +776,10 @@ export default function B2cTryOnStudio() {
         free: useFreeTryon,
       });
       if (!useFreeTryon) toast.success("Payment received");
+      // Welcome / coupon is one-shot — clear and re-check on next form visit
+      setCouponQuote(null);
+      setCouponCode("");
+      setWelcomeRefreshKey((k) => k + 1);
       setJob(paid.job);
       setStage("processing");
       if (useFreeTryon) {
@@ -774,6 +806,9 @@ export default function B2cTryOnStudio() {
     setSourcePreview("");
     setJob(null);
     setError("");
+    setCouponQuote(null);
+    setCouponCode("");
+    setWelcomeRefreshKey((k) => k + 1);
     setStage("form");
   }
 
@@ -1051,7 +1086,14 @@ export default function B2cTryOnStudio() {
                 }}
               />
 
-              {freeTryons > 0 && (
+              {isFreeCheckout && (
+                <p className="mt-3 rounded-xl bg-sage/10 px-3 py-2 text-xs font-medium text-sage-dark">
+                  Welcome offer applied — your first Single pack try-on is free
+                  (limited to the first 1,000 shoppers).
+                </p>
+              )}
+
+              {freeTryons > 0 && !isFreeCheckout && (
                 <p className="mt-3 rounded-xl bg-sage/10 px-3 py-2 text-xs font-medium text-sage-dark">
                   You have {freeTryons} free try-on
                   {freeTryons === 1 ? "" : "s"} from referrals
@@ -1143,15 +1185,17 @@ export default function B2cTryOnStudio() {
                 {stage === "working"
                   ? "Processing…"
                   : selectedPack
-                    ? needsMpesaPhone
-                      ? `Pay with M-Pesa · ${displayCurrency} ${payableAmount}`
-                      : payWithRazorpay
-                        ? `Pay with Razorpay · ${displayCurrency} ${payableAmount}`
-                        : `Pay ${displayCurrency} ${payableAmount}`
+                    ? isFreeCheckout
+                      ? "Start free try-on"
+                      : needsMpesaPhone
+                        ? `Pay with M-Pesa · ${displayCurrency} ${payableAmount}`
+                        : payWithRazorpay
+                          ? `Pay with Razorpay · ${displayCurrency} ${payableAmount}`
+                          : `Pay ${displayCurrency} ${payableAmount}`
                     : "Pay & Render"}
               </button>
 
-              {freeTryons > 0 && targetCount === 1 && (
+              {freeTryons > 0 && targetCount === 1 && !isFreeCheckout && (
                 <button
                   type="button"
                   onClick={() => handleSubmit(true)}
@@ -1234,7 +1278,12 @@ export default function B2cTryOnStudio() {
             <p className="mt-2 leading-relaxed">{error || "Something went wrong."}</p>
           </div>
           <button
-            onClick={() => setStage("form")}
+            onClick={() => {
+              setCouponQuote(null);
+              setCouponCode("");
+              setWelcomeRefreshKey((k) => k + 1);
+              setStage("form");
+            }}
             className="mt-6 rounded-full bg-sage px-8 py-3 font-semibold text-paper transition hover:bg-sage-dark"
           >
             Try again

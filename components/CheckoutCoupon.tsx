@@ -62,7 +62,11 @@ export function CheckoutCoupon({ packId, amount, currency, quote, onQuote }: Pro
         <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-sage/25 bg-sage/10 px-3 py-2.5">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-sage-dark">{quote.coupon.code}</p>
-            <p className="text-xs text-ink-muted">Coupon applied successfully.</p>
+            <p className="text-xs text-ink-muted">
+              {quote.finalAmount === 0
+                ? "Welcome offer — your first Single try-on is free."
+                : "Coupon applied successfully."}
+            </p>
           </div>
           <button
             type="button"

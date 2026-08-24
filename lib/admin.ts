@@ -447,6 +447,7 @@ export type AdminCoupon = {
   usageCount: number;
   reservedCount?: number;
   perUserLimit: number | null;
+  newUserOnly?: boolean;
   startsAt: string | null;
   expiresAt: string | null;
   isActive: boolean;
@@ -487,6 +488,7 @@ export type CouponPayload = {
   maximumDiscountInr?: number | null;
   usageLimit?: number | null;
   perUserLimit?: number | null;
+  newUserOnly?: boolean;
   startsAt?: string | null;
   expiresAt?: string | null;
   isActive?: boolean;

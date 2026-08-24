@@ -38,6 +38,7 @@ const emptyForm = (): CouponPayload & { packIds: string[] } => ({
   maximumDiscountInr: null,
   usageLimit: 100,
   perUserLimit: 1,
+  newUserOnly: false,
   startsAt: null,
   expiresAt: null,
   isActive: true,
@@ -150,6 +151,7 @@ export default function AdminCouponsPage() {
       maximumDiscountInr: c.maximumDiscountInr,
       usageLimit: c.usageLimit,
       perUserLimit: c.perUserLimit,
+      newUserOnly: Boolean(c.newUserOnly),
       startsAt: c.startsAt,
       expiresAt: c.expiresAt,
       isActive: c.isActive,
@@ -335,7 +337,14 @@ export default function AdminCouponsPage() {
               )}
               {rows.map((c) => (
                 <tr key={c.id}>
-                  <td className="px-4 py-3 font-semibold tracking-wide text-ink">{c.code}</td>
+                  <td className="px-4 py-3 font-semibold tracking-wide text-ink">
+                    {c.code}
+                    {c.newUserOnly && (
+                      <span className="ml-2 inline-block rounded-full bg-sage/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sage-dark">
+                        Welcome
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-ink">{formatDiscount(c)}</td>
                   <td className="px-4 py-3 capitalize text-ink-muted">{c.discountType}</td>
                   <td className="px-4 py-3 text-ink-muted">
@@ -624,6 +633,23 @@ export default function AdminCouponsPage() {
                     }
                     className={inputCls}
                   />
+                </label>
+                <label className="flex items-start gap-2 text-sm text-ink sm:col-span-2">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={Boolean(form.newUserOnly)}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, newUserOnly: e.target.checked }))
+                    }
+                  />
+                  <span>
+                    <span className="font-medium">New users / first try-on only</span>
+                    <span className="mt-0.5 block text-xs text-ink-muted">
+                      Only B2C shoppers with no prior paid try-on can use this coupon
+                      (welcome offers).
+                    </span>
+                  </span>
                 </label>
                 <label className="flex items-center gap-2 text-sm text-ink sm:col-span-2">
                   <input
