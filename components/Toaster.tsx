@@ -38,14 +38,14 @@ export function Toaster() {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex flex-col items-center gap-2 px-3 pt-3 sm:items-end sm:px-5 sm:pt-5"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex flex-col items-stretch gap-2 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:inset-x-auto sm:right-0 sm:items-end sm:px-5 sm:pt-5"
       aria-live="polite"
       aria-relevant="additions"
     >
       {items.map((t) => (
         <div
           key={t.id}
-          className={`pointer-events-auto flex max-w-md items-start gap-2.5 rounded-2xl border px-4 py-3 text-sm shadow-lg shadow-black/25 animate-fadeUp ${STYLES[t.type]}`}
+          className={`pointer-events-auto flex w-full max-w-md items-start gap-2.5 rounded-2xl border px-4 py-3 text-sm shadow-lg shadow-black/25 animate-fadeUp sm:w-auto ${STYLES[t.type]}`}
           role="status"
         >
           <span
