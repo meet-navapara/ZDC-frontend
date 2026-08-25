@@ -7,7 +7,6 @@ import { getUser, clearAuth, type AuthUser } from "@/lib/auth";
 import { BrandLogo } from "@/components/BrandLogo";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
-import { toast } from "@/lib/toast";
 
 const NAV = [
   { href: "/admin", label: "Overview", exact: true, icon: "◪" },
@@ -65,7 +64,6 @@ export default function AdminLayout({
 
   function logout() {
     clearAuth();
-    toast.success("Signed out");
     router.push("/admin/login");
   }
 

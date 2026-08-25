@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { getUser, clearAuth, type AuthUser } from "@/lib/auth";
 import { BrandLogo } from "@/components/BrandLogo";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
-import { toast } from "@/lib/toast";
 
 export function AppHeader() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -33,7 +32,6 @@ export function AppHeader() {
 
   const logout = () => {
     clearAuth();
-    toast.success("Signed out");
     setOpen(false);
     router.push("/");
   };
