@@ -64,7 +64,7 @@ export async function apiGet<T>(
     // Don't attach AbortSignal to deduped calls — one consumer aborting
     // would cancel the shared request for everyone (e.g. Strict Mode).
     const key =
-      opts.cacheKey ||
+      opts?.cacheKey ||
       `GET:${path}:${token ? token.slice(-12) : "anon"}`;
     return cachedRequest(key, run, ttl);
   }
