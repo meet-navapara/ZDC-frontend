@@ -47,21 +47,30 @@ export default function ConsumerOverviewPage() {
   const firstName = user?.firstName || "there";
 
   useEffect(() => {
+    let cancelled = false;
     Promise.all([
       getMyStats(),
       getMyReferral().catch(() => null),
     ])
       .then(([r, ref]) => {
+        if (cancelled) return;
         setStats(r.stats);
         setRecent(r.recent);
         if (ref) setFreeTryons(ref.referral.freeTryons);
         else setFreeTryons(user?.freeTryons || 0);
         setError(null);
       })
-      .catch((e) =>
-        setError(e instanceof Error ? e.message : "Failed to load overview")
-      )
-      .finally(() => setLoading(false));
+      .catch((e) => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "Failed to load overview");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [user?.freeTryons]);
 
   if (loading) {

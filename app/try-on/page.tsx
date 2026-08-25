@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { getUser, homeForRole } from "@/lib/auth";
 
 /**
- * /try-on is now login-gated. Redirect guests to login,
- * logged-in b2c to their dashboard studio.
+ * /try-on is login-gated. Guests go to login with ?next= so they return
+ * to the studio after signing in.
  */
 export default function TryOnRedirectPage() {
   const router = useRouter();
@@ -14,7 +14,7 @@ export default function TryOnRedirectPage() {
   useEffect(() => {
     const user = getUser();
     if (!user) {
-      router.replace("/login");
+      router.replace("/login?next=/app/try-on");
       return;
     }
     if (user.role === "b2c") {

@@ -39,6 +39,7 @@ export function fetchWelcomeCoupon(params: {
   });
   return apiGet<WelcomeCouponResult>(
     `/api/coupons/welcome?${q}`,
-    getToken() || undefined
+    getToken() || undefined,
+    { cacheTtlMs: 20_000 }
   );
 }

@@ -22,6 +22,7 @@ import { toast } from "@/lib/toast";
 import { PageLoader } from "@/components/PageLoader";
 import { CheckoutCoupon } from "@/components/CheckoutCoupon";
 import type { CouponQuote } from "@/lib/coupons";
+import { isValidMpesaPhone } from "@/lib/phone";
 
 const LEDGER_LABEL: Record<LedgerEntry["type"], string> = {
   purchase: "Purchase",
@@ -82,9 +83,26 @@ export default function CreditsPage() {
   const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
   const [couponQuote, setCouponQuote] = useState<CouponQuote | null>(null);
   const [couponCode, setCouponCode] = useState("");
+  const [invoiceDownloading, setInvoiceDownloading] = useState<string | null>(
+    null
+  );
 
   const selectedPack =
     packs.find((p) => p.id === selectedPackId) ?? packs[1] ?? packs[0] ?? null;
+
+  async function handleDownloadInvoice(paymentId: string) {
+    setInvoiceDownloading(paymentId);
+    try {
+      await downloadCreditInvoice(paymentId);
+      toast.success("Invoice downloaded");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not download invoice"
+      );
+    } finally {
+      setInvoiceDownloading(null);
+    }
+  }
 
   const payGateway =
     selectedGateway === "auto" ? defaultGateway : selectedGateway;
@@ -130,7 +148,7 @@ export default function CreditsPage() {
   const canPay =
     !!selectedPack &&
     !buying &&
-    (!payWithMpesa || mpesaPhone.trim().length >= 9);
+    (!payWithMpesa || isValidMpesaPhone(mpesaPhone));
 
   const payButtonLabel = buying
     ? payWithRazorpay
@@ -274,8 +292,10 @@ export default function CreditsPage() {
     setBuying(pack.id);
     setAwaitingPay(null);
     try {
-      if (payWithMpesa && mpesaPhone.trim().length < 9) {
-        throw new Error("Enter your M-Pesa phone number (Safaricom).");
+      if (payWithMpesa && !isValidMpesaPhone(mpesaPhone)) {
+        throw new Error(
+          "Enter a valid Safaricom M-Pesa number (e.g. 07XX XXX XXX)."
+        );
       }
       const res = await purchaseCredits(pack.id, {
         gateway:
@@ -471,7 +491,7 @@ export default function CreditsPage() {
         </div>
       )}
       {error && (
-        <div className="mt-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mt-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200">
           {error}
         </div>
       )}
@@ -902,13 +922,25 @@ export default function CreditsPage() {
                   {new Date(e.createdAt).toLocaleString()} · balance{" "}
                   {e.balanceAfter}
                 </p>
+                {e.type === "purchase" && e.payment && (
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadInvoice(e.payment!)}
+                    disabled={invoiceDownloading === e.payment}
+                    className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-sage/35 bg-sage/10 px-3 py-2 text-xs font-semibold text-sage-dark transition hover:bg-sage/15 disabled:opacity-50"
+                  >
+                    {invoiceDownloading === e.payment
+                      ? "Downloading…"
+                      : "Download invoice"}
+                  </button>
+                )}
               </li>
             ))}
           </ul>
 
           <div className="card mt-4 hidden overflow-hidden rounded-2xl md:block">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] text-left text-sm">
+              <table className="w-full min-w-[720px] text-left text-sm">
                 <thead className="border-b border-ink/10 bg-sage/[0.06] text-xs uppercase tracking-wider text-ink-muted">
                   <tr>
                     <th className="w-12 px-4 py-3.5 font-semibold">#</th>
@@ -917,13 +949,14 @@ export default function CreditsPage() {
                     <th className="px-4 py-3.5 font-semibold">Balance</th>
                     <th className="px-4 py-3.5 font-semibold">Note</th>
                     <th className="px-4 py-3.5 font-semibold">When</th>
+                    <th className="px-4 py-3.5 font-semibold">Invoice</th>
                   </tr>
                 </thead>
                 <tbody>
                   {ledgerLoading ? (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="px-4 py-10 text-center text-ink-muted"
                       >
                         <span className="inline-flex items-center gap-2">
@@ -968,6 +1001,22 @@ export default function CreditsPage() {
                         </td>
                         <td className="whitespace-nowrap px-4 py-3.5 text-ink-muted">
                           {new Date(e.createdAt).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          {e.type === "purchase" && e.payment ? (
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadInvoice(e.payment!)}
+                              disabled={invoiceDownloading === e.payment}
+                              className="rounded-full border border-sage/30 bg-sage/10 px-3 py-1.5 text-xs font-semibold text-sage-dark transition hover:bg-sage/15 disabled:opacity-50"
+                            >
+                              {invoiceDownloading === e.payment
+                                ? "…"
+                                : "Download"}
+                            </button>
+                          ) : (
+                            <span className="text-xs text-ink-muted">—</span>
+                          )}
                         </td>
                       </tr>
                     ))

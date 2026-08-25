@@ -1,7 +1,16 @@
 import * as Sentry from "@sentry/nextjs";
+import { cachedRequest, invalidateFetchCache } from "./fetchCache";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+
+export type ApiGetOptions = {
+  /** When set, identical GETs share one network call and cache for this many ms. */
+  cacheTtlMs?: number;
+  /** Override cache key (default: GET:path:tokenSuffix). */
+  cacheKey?: string;
+  signal?: AbortSignal;
+};
 
 export class ApiHttpError extends Error {
   status: number;
@@ -36,13 +45,34 @@ async function handle<T>(res: Response, path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export async function apiGet<T>(path: string, token?: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    cache: "no-store",
-  });
-  return handle<T>(res, path);
+export async function apiGet<T>(
+  path: string,
+  token?: string,
+  opts?: ApiGetOptions
+): Promise<T> {
+  const run = async () => {
+    const res = await fetch(`${API_BASE}${path}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      cache: "no-store",
+      signal: opts?.signal,
+    });
+    return handle<T>(res, path);
+  };
+
+  const ttl = opts?.cacheTtlMs;
+  if (ttl != null && ttl > 0) {
+    // Don't attach AbortSignal to deduped calls — one consumer aborting
+    // would cancel the shared request for everyone (e.g. Strict Mode).
+    const key =
+      opts.cacheKey ||
+      `GET:${path}:${token ? token.slice(-12) : "anon"}`;
+    return cachedRequest(key, run, ttl);
+  }
+
+  return run();
 }
+
+export { invalidateFetchCache };
 
 export async function apiPost<T>(
   path: string,

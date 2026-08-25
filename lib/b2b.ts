@@ -7,9 +7,15 @@ import {
   apiDelete,
   apiSendForm,
   API_BASE,
+  invalidateFetchCache,
 } from "./api";
 import { getToken, type AuthUser } from "./auth";
 import { TRY_ON_FEATURE_OPTIONS } from "./tryOnFeatures";
+
+const TTL_BALANCE = 10_000;
+const TTL_CATALOG = 20_000;
+const TTL_CONFIG = 60_000;
+const TTL_STATS = 12_000;
 
 export {
   TRY_ON_FEATURE_OPTIONS,
@@ -40,6 +46,8 @@ export type LedgerEntry = {
   reference: string | null;
   note: string | null;
   job: string | null;
+  /** Present for credit purchases — used to re-download the PDF invoice. */
+  payment?: string | null;
   createdAt: string;
 };
 
@@ -188,6 +196,8 @@ function tok() {
 
 // Fired whenever the credit balance may have changed, so the layout badge refreshes.
 export function notifyCreditsChanged() {
+  invalidateFetchCache("/api/b2b/credits");
+  invalidateFetchCache("/api/b2b/stats");
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event("zdc-credits"));
   }
@@ -196,7 +206,9 @@ export function notifyCreditsChanged() {
 /* --------------------------------- Profile -------------------------------- */
 
 export function getProfile() {
-  return apiGet<{ user: AuthUser; credits: number }>("/api/b2b/me", tok());
+  return apiGet<{ user: AuthUser; credits: number }>("/api/b2b/me", tok(), {
+    cacheTtlMs: TTL_BALANCE,
+  });
 }
 
 export function updateProfile(body: {
@@ -213,7 +225,8 @@ export function updateProfile(body: {
 export function listBranches() {
   return apiGet<{ branches: Branch[]; count: number }>(
     "/api/b2b/branches",
-    tok()
+    tok(),
+    { cacheTtlMs: TTL_CATALOG }
   );
 }
 
@@ -224,7 +237,12 @@ export function createBranch(body: {
   isPrimary?: boolean;
   status?: "active" | "inactive";
 }) {
-  return apiPost<{ branch: Branch }>("/api/b2b/branches", body, tok());
+  return apiPost<{ branch: Branch }>("/api/b2b/branches", body, tok()).then(
+    (r) => {
+      invalidateFetchCache("/api/b2b/branches");
+      return r;
+    }
+  );
 }
 
 export function updateBranch(
@@ -237,17 +255,31 @@ export function updateBranch(
     status?: "active" | "inactive";
   }
 ) {
-  return apiPatch<{ branch: Branch }>(`/api/b2b/branches/${id}`, body, tok());
+  return apiPatch<{ branch: Branch }>(
+    `/api/b2b/branches/${id}`,
+    body,
+    tok()
+  ).then((r) => {
+    invalidateFetchCache("/api/b2b/branches");
+    return r;
+  });
 }
 
 export function deleteBranch(id: string) {
-  return apiDelete<{ ok: boolean }>(`/api/b2b/branches/${id}`, tok());
+  return apiDelete<{ ok: boolean }>(`/api/b2b/branches/${id}`, tok()).then(
+    (r) => {
+      invalidateFetchCache("/api/b2b/branches");
+      return r;
+    }
+  );
 }
 
 /* --------------------------------- Stats ---------------------------------- */
 
 export function getStats() {
-  return apiGet<{ stats: BusinessStats }>("/api/b2b/stats", tok());
+  return apiGet<{ stats: BusinessStats }>("/api/b2b/stats", tok(), {
+    cacheTtlMs: TTL_STATS,
+  });
 }
 
 // Downloads the KPI report as an .xlsx file (streams the blob then saves it).
@@ -275,13 +307,17 @@ export async function downloadReport() {
 /* --------------------------------- Credits -------------------------------- */
 
 export function getBalance() {
-  return apiGet<{ balance: number }>("/api/b2b/credits", tok());
+  return apiGet<{ balance: number }>("/api/b2b/credits", tok(), {
+    cacheTtlMs: TTL_BALANCE,
+    cacheKey: `GET:/api/b2b/credits:${tok()?.slice(-12) || "anon"}`,
+  });
 }
 
 export function getCreditPacks() {
   return apiGet<{ packs: CreditPack[]; dualPrices?: boolean }>(
     "/api/b2b/credits/packs",
-    tok()
+    tok(),
+    { cacheTtlMs: TTL_CONFIG }
   );
 }
 
@@ -304,7 +340,8 @@ export function getLedger(opts?: { page?: number; limit?: number } | number) {
   }
   return apiGet<LedgerPage>(
     `/api/b2b/credits/ledger?limit=${limit}&page=${page}`,
-    tok()
+    tok(),
+    { cacheTtlMs: 8_000 }
   );
 }
 
@@ -408,7 +445,9 @@ export async function downloadCreditInvoice(paymentId: string) {
 /* ------------------------------- Categories ------------------------------- */
 
 export function listCategories() {
-  return apiGet<{ categories: Category[] }>("/api/b2b/categories", tok());
+  return apiGet<{ categories: Category[] }>("/api/b2b/categories", tok(), {
+    cacheTtlMs: TTL_CATALOG,
+  });
 }
 
 export function createCategory(body: {
@@ -418,7 +457,12 @@ export function createCategory(body: {
   hairColorPreset?: string;
   beardTemplateId?: string;
 }) {
-  return apiPost<{ category: Category }>("/api/b2b/categories", body, tok());
+  return apiPost<{ category: Category }>("/api/b2b/categories", body, tok()).then(
+    (r) => {
+      invalidateFetchCache("/api/b2b/categories");
+      return r;
+    }
+  );
 }
 
 export function updateCategory(
@@ -436,11 +480,21 @@ export function updateCategory(
     `/api/b2b/categories/${id}`,
     body,
     tok()
-  );
+  ).then((r) => {
+    invalidateFetchCache("/api/b2b/categories");
+    invalidateFetchCache("/api/b2b/products");
+    return r;
+  });
 }
 
 export function deleteCategory(id: string) {
-  return apiDelete<{ ok: boolean }>(`/api/b2b/categories/${id}`, tok());
+  return apiDelete<{ ok: boolean }>(`/api/b2b/categories/${id}`, tok()).then(
+    (r) => {
+      invalidateFetchCache("/api/b2b/categories");
+      invalidateFetchCache("/api/b2b/products");
+      return r;
+    }
+  );
 }
 
 /* -------------------------------- Products -------------------------------- */
@@ -450,10 +504,10 @@ export function listProducts(params?: { categoryId?: string; status?: string }) 
   if (params?.categoryId) q.set("categoryId", params.categoryId);
   if (params?.status) q.set("status", params.status);
   const qs = q.toString();
-  return apiGet<{ products: Product[] }>(
-    `/api/b2b/products${qs ? `?${qs}` : ""}`,
-    tok()
-  );
+  const path = `/api/b2b/products${qs ? `?${qs}` : ""}`;
+  return apiGet<{ products: Product[] }>(path, tok(), {
+    cacheTtlMs: TTL_CATALOG,
+  });
 }
 
 export function createProduct(form: FormData) {
@@ -462,7 +516,10 @@ export function createProduct(form: FormData) {
     "/api/b2b/products",
     form,
     tok()
-  );
+  ).then((r) => {
+    invalidateFetchCache("/api/b2b/products");
+    return r;
+  });
 }
 
 export type BulkCreateResult = {
@@ -478,7 +535,10 @@ export function createProductsBulk(form: FormData) {
     "/api/b2b/products/bulk",
     form,
     tok()
-  );
+  ).then((r) => {
+    invalidateFetchCache("/api/b2b/products");
+    return r;
+  });
 }
 
 export function updateProduct(id: string, form: FormData) {
@@ -487,11 +547,19 @@ export function updateProduct(id: string, form: FormData) {
     `/api/b2b/products/${id}`,
     form,
     tok()
-  );
+  ).then((r) => {
+    invalidateFetchCache("/api/b2b/products");
+    return r;
+  });
 }
 
 export function deleteProduct(id: string) {
-  return apiDelete<{ ok: boolean }>(`/api/b2b/products/${id}`, tok());
+  return apiDelete<{ ok: boolean }>(`/api/b2b/products/${id}`, tok()).then(
+    (r) => {
+      invalidateFetchCache("/api/b2b/products");
+      return r;
+    }
+  );
 }
 
 /* -------------------------------- Try-on ---------------------------------- */

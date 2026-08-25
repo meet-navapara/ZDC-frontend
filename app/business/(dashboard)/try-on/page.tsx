@@ -181,21 +181,28 @@ export default function B2BTryOnPage() {
   }, [preview]);
 
   useEffect(() => {
+    let cancelled = false;
     Promise.all([
       listProducts({ status: "active" }).catch(() => ({ products: [] })),
       listCategories().catch(() => ({ categories: [] as Category[] })),
       getBalance().catch(() => ({ balance: 0 })),
     ]).then(([p, c, b]) => {
+      if (cancelled) return;
       setProducts(p.products.filter((x) => x.imageUrls.length > 0));
       setCategories(c.categories);
       setBalance(b.balance);
     });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     if (!isSalon) return;
+    let cancelled = false;
     listPerfectCorpOptions()
       .then((r) => {
+        if (cancelled) return;
         setHairColorOptions(r.hairColors || []);
         setBeardTemplates(r.beardTemplates || []);
         setHairColorPreset(
@@ -214,6 +221,9 @@ export default function B2BTryOnPage() {
         );
       })
       .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, [isSalon]);
 
   useEffect(() => {

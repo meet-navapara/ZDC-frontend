@@ -277,6 +277,7 @@ export default function CatalogPage() {
     }
     const token = getToken();
     if (!token) return;
+    let cancelled = false;
     apiGet<{
       user: {
         business?: {
@@ -285,8 +286,9 @@ export default function CatalogPage() {
           address?: { country?: string | null };
         };
       };
-    }>("/api/auth/me", token)
+    }>("/api/auth/me", token, { cacheTtlMs: 30_000 })
       .then((r) => {
+        if (cancelled) return;
         const cat = r.user?.business?.category;
         const cur =
           r.user?.business?.currency ||
@@ -306,6 +308,9 @@ export default function CatalogPage() {
         }
       })
       .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {

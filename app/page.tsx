@@ -44,6 +44,7 @@ const features = [
     alt: "AI virtual outfit try-on preview on a fashion shopper",
     pos: "object-center",
     cta: "Try AI outfit try-on",
+    ctaHref: "/try-on",
     reverse: false,
   },
   {
@@ -54,6 +55,7 @@ const features = [
     alt: "AI hairstyle try-on preview with locs",
     pos: "object-top",
     cta: "Try AI hairstyle try-on",
+    ctaHref: "/try-on",
     reverse: true,
   },
   {
@@ -64,6 +66,7 @@ const features = [
     alt: "Fashion boutique using virtual try-on for catalog",
     pos: "object-center",
     cta: "Explore business try-on",
+    ctaHref: "/register?as=business",
     reverse: false,
   },
 ];
@@ -164,10 +167,27 @@ export default async function Home() {
             description:
               "AI virtual try-on platform for outfits, hairstyles, hair color, and beards. Photorealistic previews for shoppers, boutiques, and salons.",
             offers: {
-              "@type": "Offer",
+              "@type": "AggregateOffer",
               priceCurrency: "KES",
-              price: String(singlePack?.amount ?? 20),
-              description: "AI virtual try-on packs and business credits",
+              lowPrice: String(singlePack?.amount ?? 20),
+              highPrice: String(trioPack?.amount ?? singlePack?.amount ?? 50),
+              offerCount: 2,
+              offers: [
+                {
+                  "@type": "Offer",
+                  priceCurrency: "KES",
+                  price: String(singlePack?.amount ?? 20),
+                  description: "Single AI virtual try-on (Kenya · M-Pesa)",
+                },
+                {
+                  "@type": "Offer",
+                  priceCurrency: "INR",
+                  price: String(
+                    singlePack?.amountInr ?? singlePack?.amount ?? 49
+                  ),
+                  description: "Single AI virtual try-on (India · Razorpay)",
+                },
+              ],
             },
             keywords:
               "AI virtual try-on, virtual outfit try-on, AI hairstyle try-on, hair color try-on, beard try-on, boutique, salon",
@@ -180,37 +200,114 @@ export default async function Home() {
 
       {/* ============ HERO ============ */}
       <Spotlight>
-        <section className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-8 px-4 pb-16 pt-28 sm:gap-12 sm:px-6 sm:pb-24 sm:pt-36 md:grid-cols-[1fr_1fr] md:pt-44">
-          <Reveal className="relative z-10">
-            <BrandLogo href={false} size="hero" priority className="mb-4" />
-            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-ink/10 bg-white/60 px-3 py-1.5 text-[11px] font-medium text-ink-muted sm:px-4 sm:text-xs">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sage" />
-              <span className="truncate">{hero.badge}</span>
-            </div>
-
-            <h1 className="mt-5 font-display text-[2.4rem] font-semibold leading-[1.08] tracking-tight text-ink sm:mt-6 sm:text-5xl md:text-[3.5rem]">
-              <span className="italic text-sage">AI Virtual Try-On</span>
-              {" "}for outfits &amp; hair.
+        <section className="relative mx-auto grid max-w-6xl grid-cols-1 items-start gap-10 px-4 pb-24 pt-28 sm:gap-12 sm:px-6 sm:pb-28 sm:pt-36 md:grid-cols-2 md:items-center md:gap-10 md:pb-28 md:pt-44 lg:gap-14">
+          <Reveal className="relative z-10 min-w-0">
+            <h1 className="sr-only">
+              AI Virtual Try-On for outfits and hair — upload a photo, pay via
+              M-Pesa or Razorpay, get an instant AI try-on
             </h1>
 
-            <p className="mt-5 max-w-md text-base text-ink-muted sm:mt-6 sm:text-lg">
-              {hero.subtitle ||
-                "Upload a selfie and preview photorealistic outfits, hairstyles, hair color, or beard looks in seconds — try before you buy or book."}
-            </p>
+            <div className="card relative w-full max-w-md overflow-hidden rounded-[1.75rem] border border-ink/10 bg-white/90 p-4 shadow-[0_24px_60px_-28px_rgba(28,26,22,0.28)] backdrop-blur-sm sm:rounded-[2rem] sm:p-5 dark:border-white/10 dark:bg-[#181511]/95 md:max-w-none">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-sage/[0.07] to-transparent dark:from-sage/[0.12]" aria-hidden />
 
-            <div className="mt-7 flex w-full flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-4">
-              <Link
-                href="/try-on"
-                className="w-full rounded-full bg-sage px-8 py-3.5 text-center text-base font-semibold text-paper shadow-lg shadow-sage/20 transition hover:bg-sage-dark sm:w-auto"
-              >
-                {hero.primaryCta}
-              </Link>
-              <a
-                href="#lookbook"
-                className="w-full rounded-full border border-ink/15 px-8 py-3.5 text-center text-base font-semibold text-ink transition hover:border-ink/30 hover:bg-white/40 sm:w-auto"
-              >
-                View AI lookbook
-              </a>
+              <div className="relative flex flex-col gap-4 sm:gap-5">
+                <div className="flex justify-center">
+                  <span className="inline-flex items-center rounded-full bg-sage px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-paper shadow-md shadow-sage/25 sm:text-xs">
+                    Try On Instantly
+                  </span>
+                </div>
+
+                <div className="w-full space-y-2.5 sm:space-y-3">
+                  <Link
+                    href="/try-on"
+                    className="group flex items-center gap-3.5 rounded-2xl border border-ink/8 bg-white px-4 py-3.5 transition hover:-translate-y-0.5 hover:border-sage/30 hover:bg-sage/[0.04] dark:border-white/10 dark:bg-[#1f1c18] sm:gap-4 sm:px-5 sm:py-4"
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink/[0.04] text-ink dark:bg-white/5 dark:text-[#e8e2d8]">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 8.5A2.5 2.5 0 016.5 6h2.1l1.2-1.8A1.5 1.5 0 0111 3.5h2a1.5 1.5 0 011.2.7L15.4 6h2.1A2.5 2.5 0 0120 8.5v8A2.5 2.5 0 0117.5 19h-11A2.5 2.5 0 014 16.5v-8z" />
+                        <circle cx="12" cy="12.5" r="3.2" />
+                      </svg>
+                    </span>
+                    <span className="min-w-0 flex-1 text-left text-sm font-semibold text-ink sm:text-base">
+                      Upload Your Photo
+                    </span>
+                    <span className="text-ink/35 transition group-hover:translate-x-0.5 group-hover:text-sage" aria-hidden>
+                      ›
+                    </span>
+                  </Link>
+
+                  <Link
+                    href="/try-on"
+                    className="group flex items-center gap-3.5 rounded-2xl border border-ink/8 bg-white px-4 py-3.5 transition hover:-translate-y-0.5 hover:border-sage/30 hover:bg-sage/[0.04] dark:border-white/10 dark:bg-[#1f1c18] sm:gap-4 sm:px-5 sm:py-4"
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink/[0.04] text-ink dark:bg-white/5 dark:text-[#e8e2d8]">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                        <rect x="3" y="6" width="18" height="12" rx="2.2" />
+                        <path strokeLinecap="round" d="M3 10h18" />
+                        <path strokeLinecap="round" d="M7 14.5h4" />
+                      </svg>
+                    </span>
+                    <span className="min-w-0 flex-1 text-left text-sm font-semibold text-ink sm:text-base">
+                      Pay via M-Pesa or Razorpay
+                    </span>
+                    <span className="text-ink/35 transition group-hover:translate-x-0.5 group-hover:text-sage" aria-hidden>
+                      ›
+                    </span>
+                  </Link>
+
+                  <Link
+                    href="/try-on"
+                    className="group flex items-center gap-3.5 rounded-2xl border border-ink/8 bg-white px-4 py-3.5 transition hover:-translate-y-0.5 hover:border-sage/30 hover:bg-sage/[0.04] dark:border-white/10 dark:bg-[#1f1c18] sm:gap-4 sm:px-5 sm:py-4"
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink/[0.04] text-ink dark:bg-white/5 dark:text-[#e8e2d8]">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                        <rect x="3.5" y="5" width="17" height="14" rx="2.2" />
+                        <circle cx="9" cy="11" r="2" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 16.5l3.2-3.2a1.2 1.2 0 011.6 0L14 16l1.4-1.4a1.2 1.2 0 011.6 0l2 2" />
+                        <path strokeLinecap="round" d="M17.5 8.2l.7.7M19.5 8.2l-.7.7M18.2 6.8v2.2" />
+                      </svg>
+                    </span>
+                    <span className="min-w-0 flex-1 text-left text-sm font-semibold text-ink sm:text-base">
+                      Get Instant AI Try-On
+                    </span>
+                    <span className="text-ink/35 transition group-hover:translate-x-0.5 group-hover:text-sage" aria-hidden>
+                      ›
+                    </span>
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5 border-t border-ink/8 pt-4 sm:gap-3 dark:border-white/10">
+                  <Link
+                    href="/try-on"
+                    className="group flex min-w-0 flex-col rounded-2xl bg-[#f3ddd4] p-3.5 transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-16px_rgba(120,70,50,0.4)] sm:rounded-[1.15rem] sm:p-4 dark:bg-[#3a2a24]"
+                  >
+                    <span className="font-display text-sm font-semibold leading-snug text-ink sm:text-base dark:text-[#f4ebe4]">
+                      For Consumers
+                    </span>
+                    <span className="mt-1.5 text-[11px] leading-relaxed text-ink/70 sm:text-xs dark:text-[#e8d5c8]/80">
+                      Try outfits &amp; hairstyles on you before you buy.
+                    </span>
+                    <span className="mt-3 text-[11px] font-semibold text-ink/50 transition group-hover:text-ink dark:text-[#e8d5c8]/55 dark:group-hover:text-[#f4ebe4]">
+                      Start try-on ›
+                    </span>
+                  </Link>
+
+                  <Link
+                    href="/register?as=business"
+                    className="group flex min-w-0 flex-col rounded-2xl bg-[#dce6df] p-3.5 transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-16px_rgba(47,93,80,0.45)] sm:rounded-[1.15rem] sm:p-4 dark:bg-[#243029]"
+                  >
+                    <span className="font-display text-sm font-semibold leading-snug text-ink sm:text-base dark:text-[#e6efe8]">
+                      For Boutiques &amp; Salons
+                    </span>
+                    <span className="mt-1.5 text-[11px] leading-relaxed text-ink/70 sm:text-xs dark:text-[#c9d8cf]/80">
+                      Offer AI try-on in-store and grow conversions.
+                    </span>
+                    <span className="mt-3 text-[11px] font-semibold text-ink/50 transition group-hover:text-ink dark:text-[#c9d8cf]/55 dark:group-hover:text-[#e6efe8]">
+                      Create business ›
+                    </span>
+                  </Link>
+                </div>
+              </div>
             </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 sm:mt-10 sm:gap-x-8 sm:gap-y-4">
@@ -226,7 +323,7 @@ export default async function Home() {
           </Reveal>
 
           {/* Hero collage — entrance animations via CSS classes */}
-          <div className="relative z-10">
+          <div className="relative z-10 min-w-0 pb-10 sm:pb-12">
             <div className="grid grid-cols-2 grid-rows-[auto_auto] gap-3 sm:gap-4">
 
               {/* Top-left: Upload */}
@@ -285,8 +382,8 @@ export default async function Home() {
               </div>
             </div>
 
-            {/* Confidence badge */}
-            <div className="hero-badge absolute -bottom-1 right-2 flex max-w-[calc(100%-1rem)] items-center gap-2.5 rounded-2xl glass-strong px-3.5 py-3 shadow-xl sm:-bottom-3 sm:-right-5 sm:gap-3 sm:px-4 sm:py-3.5">
+            {/* Confidence badge — kept inside collage bounds so it doesn't overlap the next section */}
+            <div className="hero-badge absolute bottom-2 right-2 z-20 flex max-w-[min(16rem,calc(100%-1rem))] items-center gap-2.5 rounded-2xl glass-strong px-3.5 py-3 shadow-xl sm:bottom-3 sm:right-3 sm:gap-3 sm:px-4 sm:py-3.5">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sage text-base text-paper shadow-md shadow-sage/35 sm:h-10 sm:w-10">
                 ✓
               </span>
@@ -338,18 +435,18 @@ export default async function Home() {
                   {f.desc}
                 </p>
                 <div className="mt-6 flex flex-wrap items-center gap-4 sm:mt-8 sm:gap-6">
-                  <a
-                    href="#how"
+                  <Link
+                    href={f.ctaHref}
                     className="rounded-full border border-ink/15 px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-ink/30 hover:bg-white/50 sm:px-6"
                   >
                     {f.cta}
-                  </a>
-                  <a
-                    href="#how"
+                  </Link>
+                  <Link
+                    href={f.ctaHref}
                     className="text-sm font-semibold text-sage transition hover:text-sage-dark"
                   >
                     Learn more →
-                  </a>
+                  </Link>
                 </div>
               </div>
 

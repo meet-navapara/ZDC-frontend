@@ -51,7 +51,7 @@ function ResetForm() {
 
         <form onSubmit={onSubmit} className="mt-8 space-y-4">
           {error && (
-            <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200">
               {error}
             </div>
           )}
@@ -65,7 +65,7 @@ function ResetForm() {
               maxLength={LIMITS.email}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-sage"
+              className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-sage dark:border-white/15 dark:bg-[#12100e]"
             />
           </div>
           <div>
@@ -80,7 +80,7 @@ function ResetForm() {
               maxLength={6}
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 font-mono tracking-widest text-ink outline-none transition focus:border-sage"
+              className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 font-mono tracking-widest text-ink outline-none transition focus:border-sage dark:border-white/15 dark:bg-[#12100e]"
               placeholder="6-digit code"
             />
           </div>
@@ -95,7 +95,7 @@ function ResetForm() {
               maxLength={LIMITS.password}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-sage"
+              className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-sage dark:border-white/15 dark:bg-[#12100e]"
               placeholder="At least 8 characters"
             />
           </div>
@@ -109,7 +109,7 @@ function ResetForm() {
               maxLength={LIMITS.password}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-sage"
+              className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-sage dark:border-white/15 dark:bg-[#12100e]"
             />
           </div>
           <button

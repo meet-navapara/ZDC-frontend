@@ -28,6 +28,7 @@ import { openRazorpayCheckout } from "@/lib/razorpay";
 import { toast } from "@/lib/toast";
 import { CheckoutCoupon } from "@/components/CheckoutCoupon";
 import { fetchWelcomeCoupon, type CouponQuote } from "@/lib/coupons";
+import { isValidMpesaPhone } from "@/lib/phone";
 import {
   friendlyTryOnError,
   readImageDimensions,
@@ -381,21 +382,30 @@ export default function B2cTryOnStudio() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    let cancelled = false;
     listPricing()
       .then((r) => {
+        if (cancelled) return;
         setPacks(r.packs);
         if (r.packs.length && !r.packs.some((p) => p.id === packId)) {
           setPackId(r.packs[0].id);
         }
       })
-      .catch(() => setPacks([]));
+      .catch(() => {
+        if (!cancelled) setPacks([]);
+      });
 
     getMyReferral()
-      .then((r) => setFreeTryons(r.referral.freeTryons))
-      .catch(() => setFreeTryons(getUser()?.freeTryons || 0));
+      .then((r) => {
+        if (!cancelled) setFreeTryons(r.referral.freeTryons);
+      })
+      .catch(() => {
+        if (!cancelled) setFreeTryons(getUser()?.freeTryons || 0);
+      });
 
     listPaymentMethods()
       .then((r) => {
+        if (cancelled) return;
         setPaymentNotice(r.paymentNotice || null);
         const def = (r.defaultGateway || "stub") as
           | "mpesa"
@@ -422,6 +432,7 @@ export default function B2cTryOnStudio() {
 
     listPerfectCorpOptions()
       .then((r) => {
+        if (cancelled) return;
         if (r.features?.length) setFeatureOptions(r.features);
         const initial =
           r.features?.find((f) => f.id === r.defaultFeature)?.id ||
@@ -440,6 +451,9 @@ export default function B2cTryOnStudio() {
         setBeardSelections([beardDefault]);
       })
       .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -606,7 +620,7 @@ export default function B2cTryOnStudio() {
     stage !== "working" &&
     stage !== "awaiting_mpesa" &&
     stage !== "awaiting_razorpay" &&
-    (!needsMpesaPhone || mpesaPhone.trim().length >= 9);
+    (!needsMpesaPhone || isValidMpesaPhone(mpesaPhone));
 
   async function handleSubmit(useFreeTryon = false) {
     setError("");
@@ -640,8 +654,8 @@ export default function B2cTryOnStudio() {
       setError("Free try-ons only work with the Single pack.");
       return;
     }
-    if (!useFreeTryon && needsMpesaPhone && mpesaPhone.trim().length < 9) {
-      setError("Enter your M-Pesa phone number (Safaricom).");
+    if (!useFreeTryon && needsMpesaPhone && !isValidMpesaPhone(mpesaPhone)) {
+      setError("Enter a valid Safaricom M-Pesa number (e.g. 07XX XXX XXX).");
       return;
     }
     setStage("working");
@@ -813,7 +827,7 @@ export default function B2cTryOnStudio() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-5xl pb-28 lg:pb-0">
       {stage === "awaiting_mpesa" && (
         <div className="card mx-auto max-w-lg rounded-2xl p-8 text-center">
           <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-sage/30 border-t-sage" />
@@ -1104,7 +1118,7 @@ export default function B2cTryOnStudio() {
               )}
 
               {error && (
-                <div className="mt-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="mt-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200">
                   {error}
                 </div>
               )}
@@ -1177,7 +1191,7 @@ export default function B2cTryOnStudio() {
               <button
                 onClick={() => handleSubmit(false)}
                 disabled={!canSubmit}
-                className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-sage py-4 text-base font-semibold text-paper shadow-lg shadow-sage/20 transition hover:bg-sage-dark hover:shadow-sage/30 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
+                className="mt-5 hidden w-full items-center justify-center gap-2 rounded-full bg-sage py-4 text-base font-semibold text-paper shadow-lg shadow-sage/20 transition hover:bg-sage-dark hover:shadow-sage/30 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none lg:flex"
               >
                 {stage === "working" && (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-paper/40 border-t-paper" />
@@ -1200,7 +1214,7 @@ export default function B2cTryOnStudio() {
                   type="button"
                   onClick={() => handleSubmit(true)}
                   disabled={!canSubmit}
-                  className="mt-2 flex w-full items-center justify-center rounded-full border border-sage/40 bg-white py-3 text-sm font-semibold text-sage-dark transition hover:bg-sage/10 disabled:opacity-50 dark:bg-[#181511] dark:text-[#d7cfbf] dark:hover:bg-sage/15"
+                  className="mt-2 hidden w-full items-center justify-center rounded-full border border-sage/40 bg-white py-3 text-sm font-semibold text-sage-dark transition hover:bg-sage/10 disabled:opacity-50 dark:bg-[#181511] dark:text-[#d7cfbf] dark:hover:bg-sage/15 lg:flex"
                 >
                   Redeem 1 free try-on
                 </button>
@@ -1239,6 +1253,95 @@ export default function B2cTryOnStudio() {
               </ul>
             </div>
           </aside>
+        </div>
+      )}
+
+      {(stage === "form" || stage === "working") && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ink/10 bg-paper/95 px-4 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md dark:border-white/10 dark:bg-[#0c0b09]/95 lg:hidden">
+          <div className="mx-auto max-w-5xl space-y-2">
+            {(allowGatewayChoice || (mpesaEnabled && razorpayEnabled)) && (
+              <div className="flex gap-2">
+                {mpesaEnabled && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGateway("mpesa")}
+                    className={`flex-1 rounded-xl border-2 px-3 py-2.5 text-sm font-semibold transition ${
+                      payGateway === "mpesa"
+                        ? "border-sage bg-sage/10 text-sage-dark"
+                        : "border-ink/12 text-ink"
+                    }`}
+                  >
+                    M-Pesa · KES
+                  </button>
+                )}
+                {razorpayEnabled && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGateway("razorpay")}
+                    className={`flex-1 rounded-xl border-2 px-3 py-2.5 text-sm font-semibold transition ${
+                      payGateway === "razorpay"
+                        ? "border-sage bg-sage/10 text-sage-dark"
+                        : "border-ink/12 text-ink"
+                    }`}
+                  >
+                    Razorpay · INR
+                  </button>
+                )}
+              </div>
+            )}
+            {needsMpesaPhone && (
+              <input
+                type="tel"
+                value={mpesaPhone}
+                onChange={(e) => setMpesaPhone(e.target.value)}
+                placeholder="M-Pesa 07XX XXX XXX"
+                className="w-full rounded-xl border border-ink/15 bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-sage dark:border-white/15 dark:bg-[#12100e]"
+              />
+            )}
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs text-ink-muted">
+                  {selectedPack
+                    ? `${selectedPack.label} pack`
+                    : "Select a pack above"}
+                </p>
+                <p className="font-display text-lg font-semibold text-ink">
+                  {selectedPack
+                    ? isFreeCheckout
+                      ? "Free"
+                      : `${displayCurrency} ${payableAmount}`
+                    : "—"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleSubmit(false)}
+                disabled={!canSubmit}
+                className="flex shrink-0 items-center justify-center gap-2 rounded-full bg-sage px-5 py-3 text-sm font-semibold text-paper shadow-lg shadow-sage/25 transition hover:bg-sage-dark disabled:cursor-not-allowed disabled:opacity-55"
+              >
+                {stage === "working" && (
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-paper/40 border-t-paper" />
+                )}
+                {stage === "working"
+                  ? "Processing…"
+                  : selectedPack
+                    ? isFreeCheckout
+                      ? "Start free"
+                      : `Pay · ${displayCurrency} ${payableAmount}`
+                    : "Pay"}
+              </button>
+            </div>
+            {freeTryons > 0 && targetCount === 1 && !isFreeCheckout && (
+              <button
+                type="button"
+                onClick={() => handleSubmit(true)}
+                disabled={!canSubmit}
+                className="w-full rounded-full border border-sage/40 bg-white py-2.5 text-sm font-semibold text-sage-dark transition hover:bg-sage/10 disabled:opacity-50 dark:bg-[#181511] dark:text-[#d7cfbf]"
+              >
+                Redeem 1 free try-on
+              </button>
+            )}
+          </div>
         </div>
       )}
 

@@ -74,7 +74,7 @@ const config: Config = {
           "100%": { opacity: "1", transform: "scale(1) translateY(0)" },
         },
         fadeUp: {
-          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         glowPulse: {
@@ -105,7 +105,7 @@ const config: Config = {
         gradient: "gradientMove 8s ease infinite",
         spinSlow: "spinSlow 22s linear infinite",
         lookReveal: "lookReveal 1.15s cubic-bezier(0.22,1,0.36,1) both",
-        fadeUp: "fadeUp 0.7s ease both",
+        fadeUp: "fadeUp 0.35s ease both",
         glowPulse: "glowPulse 2.4s ease-in-out infinite",
         softRise: "softRise 0.85s cubic-bezier(0.22,1,0.36,1) both",
         revealSheen: "revealSheen 1.4s cubic-bezier(0.22,1,0.36,1) 0.35s both",

@@ -3,7 +3,7 @@ import Link from "next/link";
 type BrandLogoProps = {
   /** Set to `false` to render without a link (e.g. hero). */
   href?: string | false;
-  size?: "sm" | "md" | "lg" | "hero";
+  size?: "sm" | "md" | "nav" | "lg" | "hero";
   /** Dark sidebars — light plate behind the mark */
   onDark?: boolean;
   className?: string;
@@ -17,6 +17,8 @@ type BrandLogoProps = {
 const SIZE = {
   sm: { mark: "h-8 sm:h-9", tag: false },
   md: { mark: "h-9 sm:h-10", tag: false },
+  /** Landing / marketing navbar — full wordmark + tagline */
+  nav: { mark: "h-9 sm:h-10 md:h-11", tag: true },
   lg: { mark: "h-14 sm:h-16", tag: true },
   hero: { mark: "h-[4.25rem] sm:h-20 md:h-24", tag: true },
 } as const;
@@ -47,7 +49,11 @@ export function BrandLogo({
       <img
         src={withTag ? "/images/zimji-logo.png" : "/images/zimji-mark.png"}
         alt="zimji"
-        className={`w-auto ${s.mark} ${onDark ? "" : "dark:invert"}`}
+        className={`w-auto object-contain object-left ${
+          size === "nav"
+            ? "max-w-[7.5rem] sm:max-w-[9rem] md:max-w-[10rem]"
+            : ""
+        } ${s.mark} ${onDark ? "" : "dark:invert"}`}
         fetchPriority={priority ? "high" : undefined}
       />
       {badge ? (

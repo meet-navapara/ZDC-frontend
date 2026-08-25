@@ -15,7 +15,6 @@ const LINKS = [
 export function LandingNav() {
   const [open, setOpen] = useState(false);
 
-  // Lock body scroll while the mobile sheet is open.
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
@@ -25,21 +24,31 @@ export function LandingNav() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 sm:px-4">
-      <div className="mx-auto mt-3 flex max-w-6xl items-center justify-between rounded-full glass px-3 py-2.5 sm:mt-4 sm:px-5 sm:py-3">
-        <div onClick={() => setOpen(false)}>
-          <BrandLogo size="md" priority />
+      {/* 3-column bar: logo | centered links | actions */}
+      <div className="mx-auto mt-3 grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 rounded-full glass px-3 py-2 sm:mt-4 sm:gap-x-3 sm:px-5 sm:py-2.5 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        {/* Logo — left, vertically centered */}
+        <div
+          className="flex min-w-0 max-w-full items-center justify-start overflow-hidden"
+          onClick={() => setOpen(false)}
+        >
+          <BrandLogo size="nav" priority className="origin-left max-w-full" />
         </div>
 
-        {/* Desktop links */}
-        <nav className="hidden items-center gap-8 text-sm text-ink-muted dark:text-[#9a9387] md:flex">
+        {/* Desktop links — true center column */}
+        <nav className="hidden items-center justify-center gap-5 text-sm text-ink-muted dark:text-[#9a9387] md:flex lg:gap-8">
           {LINKS.map((l) => (
-            <a key={l.href} href={l.href} className="transition hover:text-ink dark:hover:text-[#e8e2d8]">
+            <a
+              key={l.href}
+              href={l.href}
+              className="whitespace-nowrap transition hover:text-ink dark:hover:text-[#e8e2d8]"
+            >
               {l.label}
             </a>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Actions — right, mirrors logo column */}
+        <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-3">
           <Link
             href="/login"
             className="hidden text-sm font-medium text-ink-muted transition hover:text-ink dark:text-[#9a9387] dark:hover:text-[#e8e2d8] sm:block"
@@ -54,7 +63,6 @@ export function LandingNav() {
           </Link>
           <DarkModeToggle />
 
-          {/* Hamburger (mobile only) */}
           <button
             type="button"
             aria-label={open ? "Close menu" : "Open menu"}
@@ -83,7 +91,6 @@ export function LandingNav() {
         </div>
       </div>
 
-      {/* Mobile sheet */}
       {open && (
         <>
           <button
@@ -93,13 +100,16 @@ export function LandingNav() {
           />
           <div className="relative z-50 mx-auto mt-2 max-w-6xl md:hidden">
             <div className="glass-strong rounded-3xl p-4">
+              <div className="mb-3 flex justify-center border-b border-ink/8 pb-3 dark:border-white/8">
+                <BrandLogo size="nav" href={false} />
+              </div>
               <nav className="flex flex-col">
                 {LINKS.map((l) => (
                   <a
                     key={l.href}
                     href={l.href}
                     onClick={() => setOpen(false)}
-                    className="rounded-xl px-4 py-3 text-base font-medium text-ink transition hover:bg-white/60 dark:text-[#e8e2d8] dark:hover:bg-white/5"
+                    className="rounded-xl px-4 py-3 text-center text-base font-medium text-ink transition hover:bg-white/60 dark:text-[#e8e2d8] dark:hover:bg-white/5"
                   >
                     {l.label}
                   </a>

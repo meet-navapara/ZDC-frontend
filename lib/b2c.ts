@@ -1,6 +1,13 @@
 import { apiGet, apiPost, apiPostForm } from "./api";
 import { getToken } from "./auth";
 
+/** Shared TTL for rarely-changing public config. */
+const TTL_CONFIG = 60_000;
+/** PerfectCorp options are expensive (upstream). */
+const TTL_PERFECTCORP = 5 * 60_000;
+/** User/stats — short so dashboards stay fresh. */
+const TTL_USER = 15_000;
+
 function tok() {
   return getToken() || undefined;
 }
@@ -63,7 +70,9 @@ export type B2cPayment = {
 };
 
 export function listPricing() {
-  return apiGet<{ packs: B2cPack[] }>("/api/tryon/pricing");
+  return apiGet<{ packs: B2cPack[] }>("/api/tryon/pricing", undefined, {
+    cacheTtlMs: TTL_CONFIG,
+  });
 }
 
 export type PerfectCorpFeatureOption = {
@@ -93,13 +102,16 @@ export function listPerfectCorpOptions() {
     features: PerfectCorpFeatureOption[];
     hairColors: HairColorOption[];
     beardTemplates: BeardTemplateOption[];
-  }>("/api/tryon/perfectcorp/options");
+  }>("/api/tryon/perfectcorp/options", undefined, {
+    cacheTtlMs: TTL_PERFECTCORP,
+  });
 }
 
 export function getMyStats() {
   return apiGet<{ stats: B2cStats; recent: B2cJob[] }>(
     "/api/tryon/mine/stats",
-    tok()
+    tok(),
+    { cacheTtlMs: TTL_USER }
   );
 }
 
@@ -237,7 +249,7 @@ export function listPaymentMethods() {
       available: boolean;
       currency?: string;
     }[];
-  }>("/api/payments/methods", tok());
+  }>("/api/payments/methods", tok(), { cacheTtlMs: TTL_CONFIG });
 }
 
 export function getPayment(id: string) {
@@ -308,7 +320,9 @@ export type ReferralStats = {
 };
 
 export function getMyReferral() {
-  return apiGet<{ referral: ReferralStats }>("/api/auth/referral", tok());
+  return apiGet<{ referral: ReferralStats }>("/api/auth/referral", tok(), {
+    cacheTtlMs: TTL_USER,
+  });
 }
 
 export function listMyPayments(params?: { page?: number; limit?: number }) {

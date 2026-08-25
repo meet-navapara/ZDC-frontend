@@ -44,7 +44,9 @@ export default function ConsumerSettingsPage() {
         phone: "",
       });
     }
-    apiGet<{ user: AuthUser }>("/api/auth/me", token || undefined)
+    apiGet<{ user: AuthUser }>("/api/auth/me", token || undefined, {
+      cacheTtlMs: 30_000,
+    })
       .then((r) => {
         setEmail(r.user.email);
         setForm({

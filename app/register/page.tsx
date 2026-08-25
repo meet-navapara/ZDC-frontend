@@ -36,7 +36,7 @@ type AuthResponse = {
 
 const HAS_MAPS = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
 const inputClass =
-  "w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-sage";
+  "w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-sage dark:border-white/15 dark:bg-[#12100e]";
 
 function AccountSwitch({
   value,
@@ -349,7 +349,7 @@ export default function RegisterPage() {
                     </div>
                   )}
                   {error && (
-                    <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200">
                       {error}
                     </div>
                   )}
@@ -392,7 +392,7 @@ export default function RegisterPage() {
               ) : (
                 <form onSubmit={onSubmit} className="mt-8 space-y-4">
                   {error && (
-                    <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200">
                       {error}
                     </div>
                   )}
