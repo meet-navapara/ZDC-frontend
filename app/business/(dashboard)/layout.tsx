@@ -9,6 +9,7 @@ import { apiGet } from "@/lib/api";
 import { BrandLogo } from "@/components/BrandLogo";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
+import { normalizeBusinessCategory } from "@/lib/businessCategories";
 
 const NAV = [
   { href: "/business", label: "Overview", exact: true, icon: "◪" },
@@ -76,6 +77,10 @@ export default function DashboardLayout({
   }
 
   const businessName = user.business?.name || "Your Studio";
+  const categoryId = normalizeBusinessCategory(user.business?.category);
+  const categoryShort = categoryId === "salon" ? "Salon" : "Boutique";
+  const contactName =
+    [user.firstName, user.lastName].filter(Boolean).join(" ") || null;
 
   function logout() {
     clearAuth();
@@ -238,10 +243,32 @@ export default function DashboardLayout({
                 <span className="absolute left-0 top-3 block h-0.5 w-4 rounded-full bg-current" />
               </span>
             </button>
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate font-display text-base font-semibold text-ink dark:text-[#f4efe7] sm:text-lg">
+                  {businessName}
+                </span>
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                    categoryId === "salon"
+                      ? "bg-amber-500/15 text-amber-800 dark:bg-amber-400/15 dark:text-amber-200"
+                      : "bg-sage/15 text-sage-dark dark:bg-sage/20 dark:text-[#c5d9cb]"
+                  }`}
+                >
+                  {categoryShort}
+                </span>
+              </div>
+              <p className="mt-0.5 truncate text-xs text-ink-muted dark:text-[#b1a99c]">
+                {contactName ? `${contactName} · ${user.email}` : user.email}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <DarkModeToggle />
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-sage/10 px-3 py-1.5 text-sm font-semibold text-sage-dark dark:border dark:border-white/8 dark:bg-white/5 dark:text-[#d8d0c2]">
+            <Link
+              href="/business/credits"
+              className="inline-flex items-center gap-1.5 rounded-full bg-sage/10 px-3 py-1.5 text-sm font-semibold text-sage-dark transition hover:bg-sage/15 dark:border dark:border-white/8 dark:bg-white/5 dark:text-[#d8d0c2] dark:hover:bg-white/10"
+            >
               <span className="text-xs">◈</span>
               <span className="hidden sm:inline">
                 {credits === null ? "…" : credits} credits
@@ -249,7 +276,7 @@ export default function DashboardLayout({
               <span className="sm:hidden">
                 {credits === null ? "…" : credits}
               </span>
-            </span>
+            </Link>
             <button
               onClick={logout}
               className="hidden rounded-full border border-ink/15 px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink/30 dark:border-white/10 dark:text-[#f4efe7] dark:hover:border-white/25 sm:block"

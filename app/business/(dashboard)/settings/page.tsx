@@ -12,6 +12,7 @@ import {
   normalizeBusinessCategory,
 } from "@/lib/businessCategories";
 import { getUser, saveAuth, getToken } from "@/lib/auth";
+import { apiPatch } from "@/lib/api";
 import { LIMITS } from "@/lib/limits";
 import {
   CURRENCIES,
@@ -37,10 +38,16 @@ const inputClass =
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [pwdSaving, setPwdSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [email, setEmail] = useState("");
   const [branchRefreshKey, setBranchRefreshKey] = useState(0);
+  const [pwd, setPwd] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirm: "",
+  });
   const [form, setForm] = useState({
     businessName: "",
     category: "boutique",
@@ -163,24 +170,64 @@ export default function SettingsPage() {
     }
   }
 
+  async function savePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setNotice("");
+    if (pwd.newPassword.length < 8) {
+      const msg = "New password must be at least 8 characters.";
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+    if (pwd.newPassword !== pwd.confirm) {
+      const msg = "New passwords do not match.";
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+    setPwdSaving(true);
+    try {
+      const token = getToken();
+      await apiPatch(
+        "/api/auth/me",
+        {
+          currentPassword: pwd.currentPassword,
+          newPassword: pwd.newPassword,
+        },
+        token || undefined
+      );
+      setPwd({ currentPassword: "", newPassword: "", confirm: "" });
+      setNotice("Password updated.");
+      toast.success("Password updated");
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Could not update password";
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setPwdSaving(false);
+    }
+  }
+
   if (loading) {
     return <PageLoader label="Loading settings…" />;
   }
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-        <form onSubmit={onSubmit} className="card space-y-4 rounded-2xl p-6">
-          {notice && (
-            <div className="rounded-xl border border-sage/40 bg-sage/10 px-4 py-3 text-sm text-sage-dark">
-              {notice}
-            </div>
-          )}
-          {error && (
-            <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
+      {notice && (
+        <div className="rounded-xl border border-sage/40 bg-sage/10 px-4 py-3 text-sm text-sage-dark dark:border-sage/30 dark:bg-sage/15 dark:text-[#d7e8dc]">
+          {notice}
+        </div>
+      )}
+      {error && (
+        <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200">
+          {error}
+        </div>
+      )}
 
+        <form onSubmit={onSubmit} className="card space-y-4 rounded-2xl p-6">
           <div>
             <label className="mb-1 block text-sm font-medium text-ink-700">
               Email
@@ -349,6 +396,87 @@ export default function SettingsPage() {
               className="rounded-full bg-sage px-6 py-2.5 font-semibold text-paper transition hover:bg-sage-dark disabled:opacity-60"
             >
               {saving ? "Saving…" : "Save changes"}
+            </button>
+          </div>
+        </form>
+
+        <form
+          onSubmit={savePassword}
+          className="card space-y-5 rounded-2xl p-6"
+        >
+          <div>
+            <h3 className="font-display text-lg font-semibold text-ink">
+              Security
+            </h3>
+            <p className="mt-0.5 text-sm text-ink-muted">
+              Change your password to keep your business account secure.
+            </p>
+          </div>
+
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-muted">
+              Current password
+            </span>
+            <input
+              type="password"
+              maxLength={LIMITS.password}
+              value={pwd.currentPassword}
+              onChange={(e) =>
+                setPwd((p) => ({ ...p, currentPassword: e.target.value }))
+              }
+              className={inputClass}
+              placeholder="••••••••"
+              autoComplete="current-password"
+            />
+          </label>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                New password
+              </span>
+              <input
+                type="password"
+                maxLength={LIMITS.password}
+                value={pwd.newPassword}
+                onChange={(e) =>
+                  setPwd((p) => ({ ...p, newPassword: e.target.value }))
+                }
+                className={inputClass}
+                placeholder="At least 8 characters"
+                autoComplete="new-password"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                Confirm new
+              </span>
+              <input
+                type="password"
+                maxLength={LIMITS.password}
+                value={pwd.confirm}
+                onChange={(e) =>
+                  setPwd((p) => ({ ...p, confirm: e.target.value }))
+                }
+                className={inputClass}
+                placeholder="Repeat new password"
+                autoComplete="new-password"
+              />
+            </label>
+          </div>
+
+          <div className="flex justify-end pt-1">
+            <button
+              type="submit"
+              disabled={
+                pwdSaving ||
+                !pwd.currentPassword ||
+                !pwd.newPassword ||
+                !pwd.confirm
+              }
+              className="rounded-full border border-ink/15 bg-white px-6 py-2.5 text-sm font-semibold text-ink transition hover:border-sage disabled:opacity-50 dark:border-white/15 dark:bg-[#181511] dark:text-[#e8e2d8]"
+            >
+              {pwdSaving ? "Updating…" : "Update password"}
             </button>
           </div>
         </form>

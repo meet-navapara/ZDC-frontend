@@ -10,21 +10,39 @@ type BrandLogoProps = {
   /** unused — kept for call-site compatibility */
   priority?: boolean;
   badge?: string;
-  /** Show the “STYLE, SMARTER!” lockup under the wordmark */
+  /**
+   * Kept for call-site compatibility. The full landing lockup
+   * (wordmark + tagline) is always used — one logo everywhere.
+   */
   showTagline?: boolean;
 };
 
 const SIZE = {
-  sm: { mark: "h-8 sm:h-9", tag: false },
-  md: { mark: "h-9 sm:h-10", tag: false },
-  /** Landing / marketing navbar — full wordmark + tagline */
-  nav: { mark: "h-9 sm:h-10 md:h-11", tag: true },
-  lg: { mark: "h-14 sm:h-16", tag: true },
-  hero: { mark: "h-[4.25rem] sm:h-20 md:h-24", tag: true },
+  sm: {
+    mark: "h-8 sm:h-9",
+    max: "max-w-[6.5rem] sm:max-w-[7.5rem]",
+  },
+  md: {
+    mark: "h-9 sm:h-10",
+    max: "max-w-[7.5rem] sm:max-w-[9rem]",
+  },
+  /** Landing / marketing navbar */
+  nav: {
+    mark: "h-9 sm:h-10 md:h-11",
+    max: "max-w-[7.5rem] sm:max-w-[9rem] md:max-w-[10rem]",
+  },
+  lg: {
+    mark: "h-14 sm:h-16",
+    max: "max-w-[11rem] sm:max-w-[13rem]",
+  },
+  hero: {
+    mark: "h-[4.25rem] sm:h-20 md:h-24",
+    max: "max-w-[14rem] sm:max-w-[16rem] md:max-w-[18rem]",
+  },
 } as const;
 
 /**
- * zimji brand mark — Sifonn wordmark with optional Baskerville tagline lockup.
+ * zimji brand — always the landing lockup (wordmark + tagline asset).
  */
 export function BrandLogo({
   href = "/",
@@ -32,11 +50,9 @@ export function BrandLogo({
   onDark = false,
   className = "",
   badge,
-  showTagline,
   priority,
 }: BrandLogoProps) {
   const s = SIZE[size];
-  const withTag = showTagline ?? s.tag;
 
   const node = (
     <span
@@ -47,13 +63,11 @@ export function BrandLogo({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={withTag ? "/images/zimji-logo.png" : "/images/zimji-mark.png"}
+        src="/images/zimji-logo.png"
         alt="zimji"
-        className={`w-auto object-contain object-left ${
-          size === "nav"
-            ? "max-w-[7.5rem] sm:max-w-[9rem] md:max-w-[10rem]"
-            : ""
-        } ${s.mark} ${onDark ? "" : "dark:invert"}`}
+        className={`w-auto object-contain object-left ${s.mark} ${s.max} ${
+          onDark ? "" : "dark:invert"
+        }`}
         fetchPriority={priority ? "high" : undefined}
       />
       {badge ? (

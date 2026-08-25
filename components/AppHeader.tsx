@@ -48,8 +48,8 @@ export function AppHeader() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 sm:px-4">
       <div className="mx-auto mt-3 flex max-w-6xl items-center justify-between rounded-full glass px-3 py-2.5 sm:mt-4 sm:px-5 sm:py-3">
-        <div className="flex min-w-0 items-center justify-start" onClick={() => setOpen(false)}>
-          <BrandLogo size="md" href={user ? accountHref : "/"} />
+        <div className="flex min-w-0 items-center justify-start overflow-hidden" onClick={() => setOpen(false)}>
+          <BrandLogo size="nav" href={user ? accountHref : "/"} priority className="origin-left max-w-full" />
         </div>
 
         {/* Desktop actions */}
