@@ -207,7 +207,7 @@ export default async function Home() {
               M-Pesa or Razorpay, get an instant AI try-on
             </h1>
 
-            <div className="card relative w-full max-w-md overflow-hidden rounded-[1.75rem] border border-ink/10 bg-white/90 p-4 shadow-[0_24px_60px_-28px_rgba(28,26,22,0.28)] backdrop-blur-sm sm:rounded-[2rem] sm:p-5 dark:border-white/10 dark:bg-[#181511]/95 md:max-w-none">
+            <div className="card relative mx-auto w-full max-w-md overflow-hidden rounded-[1.75rem] border border-ink/10 bg-white/90 p-4 shadow-[0_24px_60px_-28px_rgba(28,26,22,0.28)] backdrop-blur-sm sm:rounded-[2rem] sm:p-5 dark:border-white/10 dark:bg-[#181511]/95 md:mx-0 md:max-w-none">
               <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-sage/[0.07] to-transparent dark:from-sage/[0.12]" aria-hidden />
 
               <div className="relative flex flex-col gap-4 sm:gap-5">
@@ -310,13 +310,15 @@ export default async function Home() {
               </div>
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 sm:mt-10 sm:gap-x-8 sm:gap-y-4">
+            <div className="mx-auto mt-8 flex w-full max-w-md items-start justify-between gap-x-3 gap-y-3 sm:mt-10 sm:gap-x-4 md:mx-0 md:max-w-none">
               {hero.stats.map((s) => (
-                <div key={s.label}>
-                  <div className="font-display text-lg font-semibold text-ink sm:text-xl">
+                <div key={s.label} className="min-w-0 flex-1 text-center">
+                  <div className="font-display text-base font-semibold leading-tight text-ink sm:text-xl">
                     {s.value}
                   </div>
-                  <div className="text-[11px] text-ink-muted sm:text-xs">{s.label}</div>
+                  <div className="mt-0.5 text-[10px] text-ink-muted sm:text-xs">
+                    {s.label}
+                  </div>
                 </div>
               ))}
             </div>
