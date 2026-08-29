@@ -124,7 +124,7 @@ export default function AdminLayout({
               aria-label="Open menu"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/15 bg-white/60 text-ink transition hover:border-ink/30 dark:border-white/10 dark:bg-white/5 dark:text-[#f4efe7] dark:hover:border-white/20 md:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-ink/15 bg-white/60 text-ink transition hover:border-ink/30 dark:border-white/10 dark:bg-white/5 dark:text-[#f4efe7] dark:hover:border-white/20 md:hidden"
             >
               <span className="relative block h-3.5 w-4">
                 <span className="absolute left-0 top-0 block h-0.5 w-4 rounded-full bg-current" />

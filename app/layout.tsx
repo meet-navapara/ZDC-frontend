@@ -45,9 +45,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  // One stable PNG only — multiple icon entries (and app/icon.png) make the
+  // browser re-fetch favicons on every client-side sidebar navigation.
   icons: {
-    icon: [{ url: "/icon", type: "image/png" }],
-    apple: [{ url: "/icon", type: "image/png" }],
+    icon: [{ url: "/icon.png", type: "image/png", sizes: "32x32" }],
+    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
   },
   openGraph: {
     title: "zimji — AI Virtual Try-On for Outfits & Hairstyles",
@@ -87,10 +89,6 @@ export default function RootLayout({
       </head>
       <body className="grain relative min-h-screen bg-paper text-ink transition-colors duration-300 dark:bg-[#0f0e0c] dark:text-[#e8e2d8]">
         <PostHogProvider>
-          <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-            <div className="aurora animate-aurora left-[-10%] top-[-15%] h-[42vw] w-[42vw] bg-[#cdd8cf]" />
-            <div className="aurora animate-floatSlow right-[-12%] top-[12%] h-[36vw] w-[36vw] bg-[#e7d8c4]" />
-          </div>
           {children}
           <Toaster />
         </PostHogProvider>

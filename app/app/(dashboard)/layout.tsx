@@ -152,7 +152,7 @@ export default function ConsumerDashboardLayout({
               aria-label="Open menu"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(true)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white/60 text-ink transition hover:border-ink/30 dark:border-white/10 dark:bg-white/5 dark:text-[#f4efe7] dark:hover:border-white/20 md:hidden"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white/60 text-ink transition hover:border-ink/30 dark:border-white/10 dark:bg-white/5 dark:text-[#f4efe7] dark:hover:border-white/20 md:hidden"
             >
               <span className="relative block h-3.5 w-4">
                 <span className="absolute left-0 top-0 block h-0.5 w-4 rounded-full bg-current" />
@@ -164,20 +164,20 @@ export default function ConsumerDashboardLayout({
               {displayName}
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <DarkModeToggle />
-            <span className="hidden max-w-[220px] truncate text-sm text-ink-muted sm:inline">
+            <span className="hidden max-w-[180px] truncate text-sm text-ink-muted md:inline lg:max-w-[220px]">
               {user.email}
             </span>
             <Link
               href="/app/try-on"
-              className="rounded-full bg-sage px-4 py-2 text-sm font-semibold text-paper transition hover:bg-sage-dark"
+              className="rounded-full bg-sage px-3.5 py-2.5 text-sm font-semibold text-paper transition hover:bg-sage-dark sm:px-4"
             >
               Try on
             </Link>
             <button
               onClick={logout}
-              className="hidden rounded-full border border-ink/15 px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink/30 dark:border-white/15 dark:text-[#f4efe7] dark:hover:border-white/30 sm:block"
+              className="hidden rounded-full border border-ink/15 px-4 py-2.5 text-sm font-semibold text-ink transition hover:border-ink/30 dark:border-white/15 dark:text-[#f4efe7] dark:hover:border-white/30 md:block"
             >
               Log out
             </button>

@@ -12,6 +12,12 @@ const nextConfig = {
     ],
   },
   async headers() {
+    const immutable = [
+      {
+        key: "Cache-Control",
+        value: "public, max-age=31536000, immutable",
+      },
+    ];
     return [
       {
         source: "/(.*)",
@@ -19,6 +25,17 @@ const nextConfig = {
           { key: "ngrok-skip-browser-warning", value: "true" },
         ],
       },
+      { source: "/icon.png", headers: immutable },
+      { source: "/apple-icon.png", headers: immutable },
+      { source: "/favicon.png", headers: immutable },
+      { source: "/favicon.ico", headers: immutable },
+      { source: "/images/zimji-logo.png", headers: immutable },
+    ];
+  },
+  async rewrites() {
+    return [
+      { source: "/icon", destination: "/icon.png" },
+      { source: "/apple-icon", destination: "/apple-icon.png" },
     ];
   },
 };

@@ -282,11 +282,11 @@ export default function RegisterPage() {
       <section className="mx-auto flex min-h-[100dvh] w-full max-w-6xl items-center px-4 pb-10 pt-24 sm:px-6 sm:pt-28">
         <div
           className={`flex w-full flex-col gap-6 md:grid md:grid-cols-2 md:items-stretch md:gap-12 ${
-            isBusiness ? "md:h-[min(820px,calc(100vh-8.5rem))]" : ""
+            isBusiness ? "lg:h-[min(820px,calc(100vh-8.5rem))]" : ""
           }`}
         >
           <div className="card hidden w-full shrink-0 overflow-hidden rounded-[2rem] md:block md:h-full">
-            <div className="relative h-full min-h-[480px] w-full">
+            <div className="relative h-full min-h-[320px] w-full lg:min-h-[480px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={isBusiness ? "/images/boutique.png" : "/images/model-print.png"}
@@ -299,7 +299,7 @@ export default function RegisterPage() {
           <div
             className={`min-h-0 w-full ${
               isBusiness
-                ? "md:h-full md:overflow-y-auto md:overscroll-contain md:pr-2 [scrollbar-gutter:stable]"
+                ? "lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-2 lg:[scrollbar-gutter:stable]"
                 : ""
             }`}
           >

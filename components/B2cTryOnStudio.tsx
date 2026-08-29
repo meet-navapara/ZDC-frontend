@@ -257,12 +257,12 @@ function UploadBox({
                 e.stopPropagation();
                 accept(null);
               }}
-              className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink/55 text-sm leading-none text-paper opacity-0 backdrop-blur-sm transition hover:bg-ink group-hover:opacity-100"
+              className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-full bg-ink/60 text-base leading-none text-paper backdrop-blur-sm transition hover:bg-ink [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
             >
               ×
             </button>
-            <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/70 to-transparent pb-2 pt-6 text-xs font-medium text-paper opacity-0 transition group-hover:opacity-100">
-              Click to change
+            <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/70 to-transparent pb-2 pt-6 text-xs font-medium text-paper [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
+              Tap to change
             </span>
           </>
         ) : (

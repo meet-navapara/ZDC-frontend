@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Reveal } from "@/components/Reveal";
-import { Spotlight } from "@/components/Spotlight";
 import { LandingNav } from "@/components/LandingNav";
 import { BrandLogo } from "@/components/BrandLogo";
 import { TransformationShowcase } from "@/components/TransformationShowcase";
@@ -199,211 +198,175 @@ export default async function Home() {
       <LandingNav />
 
       {/* ============ HERO ============ */}
-      <Spotlight>
-        <section className="relative mx-auto grid max-w-6xl grid-cols-1 items-start gap-10 px-4 pb-24 pt-28 sm:gap-12 sm:px-6 sm:pb-28 sm:pt-36 md:grid-cols-2 md:items-center md:gap-10 md:pb-28 md:pt-44 lg:gap-14">
-          <Reveal className="relative z-10 min-w-0">
+        <section className="relative mx-auto flex max-w-6xl items-center justify-center px-4 pb-10 pt-28 sm:px-6 sm:pb-12 sm:pt-32 lg:min-h-[100svh] lg:pb-12 lg:pt-36">
+          <div className="hero-duo grid w-full grid-cols-1 items-center justify-items-stretch gap-8 sm:gap-9 lg:max-w-[62rem] lg:grid-cols-[minmax(0,1.2fr)_auto] lg:items-stretch lg:gap-8">
+          <Reveal className="relative z-10 order-1 flex w-full min-w-0 lg:h-full">
             <h1 className="sr-only">
               AI Virtual Try-On for outfits and hair — upload a photo, pay via
               M-Pesa or Razorpay, get an instant AI try-on
             </h1>
 
-            <div className="card relative mx-auto w-full max-w-md overflow-hidden rounded-[1.75rem] border border-ink/10 bg-white/90 p-4 shadow-[0_24px_60px_-28px_rgba(28,26,22,0.28)] backdrop-blur-sm sm:rounded-[2rem] sm:p-5 dark:border-white/10 dark:bg-[#181511]/95 md:mx-0 md:max-w-none">
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-sage/[0.07] to-transparent dark:from-sage/[0.12]" aria-hidden />
+            <div className="hero-action-card relative flex h-full w-full flex-col overflow-hidden rounded-[1.5rem] border border-ink/10 bg-gradient-to-br from-white via-white to-[#f4f7f5] p-4 shadow-[0_20px_50px_-28px_rgba(28,26,22,0.32),0_0_0_1px_rgba(92,122,104,0.06)] backdrop-blur-sm sm:rounded-[1.75rem] sm:p-5 dark:border-white/10 dark:from-[#181511] dark:via-[#181511] dark:to-[#1a201c]">
+              <div
+                className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-sage/[0.14] blur-2xl dark:bg-sage/[0.2]"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute -bottom-10 -left-6 h-28 w-28 rounded-full bg-[#e8c4b4]/35 blur-2xl dark:bg-[#5c3d32]/25"
+                aria-hidden
+              />
 
-              <div className="relative flex flex-col gap-4 sm:gap-5">
-                <div className="flex justify-center">
-                  <span className="inline-flex items-center rounded-full bg-sage px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-paper shadow-md shadow-sage/25 sm:text-xs">
+              <div className="relative flex flex-1 flex-col gap-3 sm:gap-4">
+                <div className="flex justify-start">
+                  <span className="inline-flex items-center rounded-full bg-sage px-3 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-paper shadow-md shadow-sage/25 sm:px-4 sm:text-[11px]">
                     Try On Instantly
                   </span>
                 </div>
 
-                <div className="w-full space-y-2.5 sm:space-y-3">
+                <div className="relative w-full space-y-1.5 sm:space-y-2">
                   <Link
                     href="/try-on"
-                    className="group flex items-center gap-3.5 rounded-2xl border border-ink/8 bg-white px-4 py-3.5 transition hover:-translate-y-0.5 hover:border-sage/30 hover:bg-sage/[0.04] dark:border-white/10 dark:bg-[#1f1c18] sm:gap-4 sm:px-5 sm:py-4"
+                    className="group relative flex items-center gap-2.5 rounded-xl border border-ink/[0.06] bg-white/90 px-2.5 py-2 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset] transition hover:-translate-y-0.5 hover:border-sage/25 hover:shadow-[0_8px_20px_-14px_rgba(92,122,104,0.45)] dark:border-white/10 dark:bg-[#1f1c18]/90 dark:shadow-none sm:gap-3.5 sm:rounded-2xl sm:px-3.5 sm:py-3"
                   >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink/[0.04] text-ink dark:bg-white/5 dark:text-[#e8e2d8]">
-                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                    <span className="relative z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sage text-paper shadow-sm shadow-sage/30 ring-4 ring-white dark:ring-[#181511] sm:h-10 sm:w-10">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 sm:h-[17px] sm:w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4 8.5A2.5 2.5 0 016.5 6h2.1l1.2-1.8A1.5 1.5 0 0111 3.5h2a1.5 1.5 0 011.2.7L15.4 6h2.1A2.5 2.5 0 0120 8.5v8A2.5 2.5 0 0117.5 19h-11A2.5 2.5 0 014 16.5v-8z" />
                         <circle cx="12" cy="12.5" r="3.2" />
                       </svg>
                     </span>
-                    <span className="min-w-0 flex-1 text-left text-sm font-semibold text-ink sm:text-base">
+                    <span className="min-w-0 flex-1 text-left text-[12px] font-semibold leading-snug text-ink sm:text-sm">
                       Upload Your Photo
                     </span>
-                    <span className="text-ink/35 transition group-hover:translate-x-0.5 group-hover:text-sage" aria-hidden>
+                    <span className="hidden text-ink/30 transition group-hover:translate-x-0.5 group-hover:text-sage sm:inline" aria-hidden>
                       ›
                     </span>
                   </Link>
 
                   <Link
                     href="/try-on"
-                    className="group flex items-center gap-3.5 rounded-2xl border border-ink/8 bg-white px-4 py-3.5 transition hover:-translate-y-0.5 hover:border-sage/30 hover:bg-sage/[0.04] dark:border-white/10 dark:bg-[#1f1c18] sm:gap-4 sm:px-5 sm:py-4"
+                    className="group relative flex items-center gap-2.5 rounded-xl border border-ink/[0.06] bg-white/90 px-2.5 py-2 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset] transition hover:-translate-y-0.5 hover:border-sage/25 hover:shadow-[0_8px_20px_-14px_rgba(92,122,104,0.45)] dark:border-white/10 dark:bg-[#1f1c18]/90 dark:shadow-none sm:gap-3.5 sm:rounded-2xl sm:px-3.5 sm:py-3"
                   >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink/[0.04] text-ink dark:bg-white/5 dark:text-[#e8e2d8]">
-                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                    <span className="relative z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sage text-paper shadow-sm shadow-sage/30 ring-4 ring-white dark:ring-[#181511] sm:h-10 sm:w-10">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 sm:h-[17px] sm:w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
                         <rect x="3" y="6" width="18" height="12" rx="2.2" />
                         <path strokeLinecap="round" d="M3 10h18" />
                         <path strokeLinecap="round" d="M7 14.5h4" />
                       </svg>
                     </span>
-                    <span className="min-w-0 flex-1 text-left text-sm font-semibold text-ink sm:text-base">
+                    <span className="min-w-0 flex-1 text-left text-[12px] font-semibold leading-snug text-ink sm:text-sm">
                       Pay via M-Pesa or Razorpay
                     </span>
-                    <span className="text-ink/35 transition group-hover:translate-x-0.5 group-hover:text-sage" aria-hidden>
+                    <span className="hidden text-ink/30 transition group-hover:translate-x-0.5 group-hover:text-sage sm:inline" aria-hidden>
                       ›
                     </span>
                   </Link>
 
                   <Link
                     href="/try-on"
-                    className="group flex items-center gap-3.5 rounded-2xl border border-ink/8 bg-white px-4 py-3.5 transition hover:-translate-y-0.5 hover:border-sage/30 hover:bg-sage/[0.04] dark:border-white/10 dark:bg-[#1f1c18] sm:gap-4 sm:px-5 sm:py-4"
+                    className="group relative flex items-center gap-2.5 rounded-xl border border-ink/[0.06] bg-white/90 px-2.5 py-2 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset] transition hover:-translate-y-0.5 hover:border-sage/25 hover:shadow-[0_8px_20px_-14px_rgba(92,122,104,0.45)] dark:border-white/10 dark:bg-[#1f1c18]/90 dark:shadow-none sm:gap-3.5 sm:rounded-2xl sm:px-3.5 sm:py-3"
                   >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink/[0.04] text-ink dark:bg-white/5 dark:text-[#e8e2d8]">
-                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                    <span className="relative z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sage text-paper shadow-sm shadow-sage/30 ring-4 ring-white dark:ring-[#181511] sm:h-10 sm:w-10">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 sm:h-[17px] sm:w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
                         <rect x="3.5" y="5" width="17" height="14" rx="2.2" />
                         <circle cx="9" cy="11" r="2" />
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 16.5l3.2-3.2a1.2 1.2 0 011.6 0L14 16l1.4-1.4a1.2 1.2 0 011.6 0l2 2" />
                         <path strokeLinecap="round" d="M17.5 8.2l.7.7M19.5 8.2l-.7.7M18.2 6.8v2.2" />
                       </svg>
                     </span>
-                    <span className="min-w-0 flex-1 text-left text-sm font-semibold text-ink sm:text-base">
+                    <span className="min-w-0 flex-1 text-left text-[12px] font-semibold leading-snug text-ink sm:text-sm">
                       Get Instant AI Try-On
                     </span>
-                    <span className="text-ink/35 transition group-hover:translate-x-0.5 group-hover:text-sage" aria-hidden>
+                    <span className="hidden text-ink/30 transition group-hover:translate-x-0.5 group-hover:text-sage sm:inline" aria-hidden>
                       ›
                     </span>
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5 border-t border-ink/8 pt-4 sm:gap-3 dark:border-white/10">
+                <div className="flex flex-col gap-1.5 pt-2.5 sm:gap-2 sm:pt-3">
                   <Link
                     href="/try-on"
-                    className="group flex min-w-0 flex-col rounded-2xl bg-[#f3ddd4] p-3.5 transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-16px_rgba(120,70,50,0.4)] sm:rounded-[1.15rem] sm:p-4 dark:bg-[#3a2a24]"
+                    className="group relative flex items-center gap-3 overflow-hidden rounded-xl bg-gradient-to-r from-[#f8e8e1] to-[#f0d5c8] p-2.5 transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(120,70,50,0.45)] sm:rounded-[1.1rem] sm:p-3.5 dark:from-[#3a2a24] dark:to-[#2e211c]"
                   >
-                    <span className="font-display text-sm font-semibold leading-snug text-ink sm:text-base dark:text-[#f4ebe4]">
-                      For Consumers
+                    <span className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/40 blur-xl dark:bg-white/5" aria-hidden />
+                    <span className="relative min-w-0 flex-1">
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <span className="font-display text-[12px] font-semibold leading-snug text-ink sm:text-sm dark:text-[#f4ebe4]">
+                          For Consumers
+                        </span>
+                        <span className="rounded-full bg-white/60 px-1.5 py-[1px] text-[8px] font-semibold uppercase tracking-wider text-ink/60 sm:text-[9px] dark:bg-white/10 dark:text-[#e8d5c8]/70">
+                          Free to start
+                        </span>
+                      </span>
+                      <span className="mt-1 block text-[9px] leading-relaxed text-ink/70 sm:text-[11px] dark:text-[#e8d5c8]/80">
+                        Try outfits, hairstyles, hair colour &amp; beards on your
+                        own selfie before you buy — photorealistic results in
+                        seconds, no app download needed.
+                      </span>
+                      <span className="mt-1 block text-[8px] font-medium leading-relaxed text-ink/55 sm:text-[10px] dark:text-[#e8d5c8]/65">
+                        Upload one photo · Pick any look · Pay per try-on with
+                        M-Pesa or Razorpay
+                      </span>
                     </span>
-                    <span className="mt-1.5 text-[11px] leading-relaxed text-ink/70 sm:text-xs dark:text-[#e8d5c8]/80">
-                      Try outfits &amp; hairstyles on you before you buy.
-                    </span>
-                    <span className="mt-3 text-[11px] font-semibold text-ink/50 transition group-hover:text-ink dark:text-[#e8d5c8]/55 dark:group-hover:text-[#f4ebe4]">
+                    <span className="relative shrink-0 self-center whitespace-nowrap rounded-full bg-white/70 px-2.5 py-1 text-[9px] font-semibold text-ink/70 transition group-hover:bg-white group-hover:text-ink sm:text-[11px] dark:bg-white/10 dark:text-[#f4ebe4]/80 dark:group-hover:bg-white/20">
                       Start try-on ›
                     </span>
                   </Link>
 
                   <Link
                     href="/register?as=business"
-                    className="group flex min-w-0 flex-col rounded-2xl bg-[#dce6df] p-3.5 transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-16px_rgba(47,93,80,0.45)] sm:rounded-[1.15rem] sm:p-4 dark:bg-[#243029]"
+                    className="group relative flex items-center gap-3 overflow-hidden rounded-xl bg-gradient-to-r from-[#e4eee8] to-[#d2e0d8] p-2.5 transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(47,93,80,0.5)] sm:rounded-[1.1rem] sm:p-3.5 dark:from-[#243029] dark:to-[#1c2721]"
                   >
-                    <span className="font-display text-sm font-semibold leading-snug text-ink sm:text-base dark:text-[#e6efe8]">
-                      For Boutiques &amp; Salons
+                    <span className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/50 blur-xl dark:bg-white/5" aria-hidden />
+                    <span className="relative min-w-0 flex-1">
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <span className="font-display text-[12px] font-semibold leading-snug text-ink sm:text-sm dark:text-[#e6efe8]">
+                          For Boutiques &amp; Salons
+                        </span>
+                        <span className="rounded-full bg-white/60 px-1.5 py-[1px] text-[8px] font-semibold uppercase tracking-wider text-ink/60 sm:text-[9px] dark:bg-white/10 dark:text-[#c9d8cf]/70">
+                          Prepaid credits
+                        </span>
+                      </span>
+                      <span className="mt-1 block text-[9px] leading-relaxed text-ink/70 sm:text-[11px] dark:text-[#c9d8cf]/80">
+                        Upload your catalog once and let customers try it on
+                        in-store or online — lift conversions, cut returns, and
+                        see which styles actually sell.
+                      </span>
+                      <span className="mt-1 block text-[8px] font-medium leading-relaxed text-ink/55 sm:text-[10px] dark:text-[#c9d8cf]/65">
+                        Bulk upload · Staff try-on dashboard · Usage analytics
+                        &amp; invoices
+                      </span>
                     </span>
-                    <span className="mt-1.5 text-[11px] leading-relaxed text-ink/70 sm:text-xs dark:text-[#c9d8cf]/80">
-                      Offer AI try-on in-store and grow conversions.
-                    </span>
-                    <span className="mt-3 text-[11px] font-semibold text-ink/50 transition group-hover:text-ink dark:text-[#c9d8cf]/55 dark:group-hover:text-[#e6efe8]">
+                    <span className="relative shrink-0 self-center whitespace-nowrap rounded-full bg-white/70 px-2.5 py-1 text-[9px] font-semibold text-ink/70 transition group-hover:bg-white group-hover:text-ink sm:text-[11px] dark:bg-white/10 dark:text-[#e6efe8]/80 dark:group-hover:bg-white/20">
                       Create business ›
                     </span>
                   </Link>
                 </div>
-              </div>
-            </div>
 
-            <div className="mx-auto mt-8 flex w-full max-w-md items-start justify-between gap-x-3 gap-y-3 sm:mt-10 sm:gap-x-4 md:mx-0 md:max-w-none">
-              {hero.stats.map((s) => (
-                <div key={s.label} className="min-w-0 flex-1 text-center">
-                  <div className="font-display text-base font-semibold leading-tight text-ink sm:text-xl">
-                    {s.value}
-                  </div>
-                  <div className="mt-0.5 text-[10px] text-ink-muted sm:text-xs">
-                    {s.label}
-                  </div>
+                <div className="mt-auto flex items-stretch justify-between gap-1.5 rounded-xl bg-ink/[0.02] px-1.5 py-1.5 dark:bg-white/[0.03] sm:gap-3 sm:px-3 sm:py-2">
+                  {hero.stats.map((s) => (
+                    <div key={s.label} className="min-w-0 flex-1 text-center">
+                      <div className="font-display text-sm font-semibold leading-tight text-ink sm:text-base">
+                        {s.value}
+                      </div>
+                      <div className="mt-0.5 text-[10px] leading-snug text-ink-muted sm:text-[11px]">
+                        {s.label}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
           </Reveal>
 
-          {/* Hero collage — entrance animations via CSS classes */}
-          <div className="relative z-10 min-w-0 pb-10 sm:pb-12">
-            <div className="grid grid-cols-2 grid-rows-[auto_auto] gap-3 sm:gap-4">
-
-              {/* Top-left: Upload */}
-              <div className="hero-card-1 img-card card group overflow-hidden rounded-[1.25rem] bg-white sm:rounded-[1.7rem]">
-                <div className="relative aspect-[4/5]">
-                  <Image
-                    src="/images/braids-light.png"
-                    alt="Customer portrait before AI virtual try-on"
-                    fill
-                    priority
-                    sizes="(max-width: 768px) 45vw, 260px"
-                    className="object-cover object-top transition duration-700 group-hover:scale-[1.04]"
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/25 to-transparent" />
-                </div>
-              </div>
-
-              {/* Tall-right: AI Result */}
-              <div
-                className="hero-card-2 img-card card group row-span-2 overflow-hidden rounded-[1.25rem] bg-white sm:rounded-[1.7rem]"
-                style={{ boxShadow: "0 28px 60px -18px rgba(92,122,104,0.4)" }}
-              >
-                <div className="relative h-full min-h-[260px]">
-                  <Image
-                    src="/images/apparel.png"
-                    alt="AI generated outfit try-on result on zimji"
-                    fill
-                    priority
-                    sizes="(max-width: 768px) 45vw, 300px"
-                    className="object-cover object-top transition duration-700 group-hover:scale-[1.04]"
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/0 to-transparent opacity-0 transition duration-700 group-hover:via-white/8 group-hover:opacity-100" />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/85 via-ink/30 to-transparent p-3.5 sm:p-4">
-                    <div className="text-[9px] font-bold uppercase tracking-[0.22em] text-paper/70">
-                      AI Virtual Try-On
-                    </div>
-                    <div className="mt-0.5 font-display text-base font-semibold leading-tight text-paper sm:text-lg">
-                      Photorealistic look in seconds
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom-left: Transform */}
-              <div className="hero-card-3 img-card card group overflow-hidden rounded-[1.25rem] bg-white sm:rounded-[1.7rem]">
-                <div className="relative aspect-[4/5]">
-                  <Image
-                    src="/images/hairstyle.png"
-                    alt="AI hairstyle transformation preview"
-                    fill
-                    sizes="(max-width: 768px) 45vw, 260px"
-                    className="object-cover object-top transition duration-700 group-hover:scale-[1.04]"
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/25 to-transparent" />
-                </div>
-              </div>
-            </div>
-
-            {/* Confidence badge — kept inside collage bounds so it doesn't overlap the next section */}
-            <div className="hero-badge absolute bottom-2 right-2 z-20 flex max-w-[min(16rem,calc(100%-1rem))] items-center gap-2.5 rounded-2xl glass-strong px-3.5 py-3 shadow-xl sm:bottom-3 sm:right-3 sm:gap-3 sm:px-4 sm:py-3.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sage text-base text-paper shadow-md shadow-sage/35 sm:h-10 sm:w-10">
-                ✓
-              </span>
-              <div className="min-w-0">
-                <div className="truncate text-xs font-bold text-ink sm:text-sm">
-                  Rendered in 8s
-                </div>
-                <div className="truncate text-[10px] text-ink-muted sm:text-[11px]">
-                  98% match confidence
-                </div>
-              </div>
-            </div>
+          <div className="relative z-10 order-2 flex w-full justify-center lg:w-auto lg:self-stretch">
+            <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[65%] w-[75%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-sage/[0.12] blur-3xl dark:bg-sage/[0.18]" aria-hidden />
+            <TransformationShowcase variant="hero" />
+          </div>
           </div>
         </section>
-      </Spotlight>
 
       {/* ============ CATEGORY STRIP ============ */}
-      <section className="overflow-hidden border-y border-ink/10 bg-white/50 backdrop-blur-sm">
+      <section className="overflow-hidden bg-white/50 backdrop-blur-sm">
         <div className="flex w-max animate-marquee gap-x-10 py-5 hover:[animation-play-state:paused] sm:gap-x-14 sm:py-6">
           {[...categories, ...categories].map((c, i) => (
             <span
@@ -470,7 +433,7 @@ export default async function Home() {
       </section>
 
       {/* ============ LOOKBOOK ============ */}
-      <section id="lookbook" className="border-y border-ink/10 bg-white/40">
+      <section id="lookbook" className="bg-white/40">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 md:py-28">
           <Reveal className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end sm:gap-6">
             <div className="max-w-xl">
@@ -522,9 +485,7 @@ export default async function Home() {
 
       {/* ============ HOW IT WORKS ============ */}
       <section id="how" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 md:py-28">
-        <TransformationShowcase />
-
-        <Reveal className="mt-16 text-center sm:mt-20">
+        <Reveal className="text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sage">
             How AI try-on works
           </p>
@@ -537,8 +498,6 @@ export default async function Home() {
           For shoppers
         </p>
         <div className="relative mt-4 grid gap-4 sm:gap-6 md:grid-cols-3">
-          {/* connector line */}
-          <div className="pointer-events-none absolute left-[3.25rem] right-[3.25rem] top-[1.35rem] hidden h-px bg-gradient-to-r from-sage/20 via-sage/40 to-sage/20 md:block" />
           {steps.map((s, i) => (
             <Reveal key={`b2c-${s.n}`} delay={i * 130}>
               <div className="step-card card relative flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
@@ -563,7 +522,6 @@ export default async function Home() {
           </p>
         </div>
         <div className="relative mt-6 grid gap-4 sm:mt-8 sm:gap-6 md:grid-cols-3">
-          <div className="pointer-events-none absolute left-[3.25rem] right-[3.25rem] top-[1.35rem] hidden h-px bg-gradient-to-r from-sage/20 via-sage/40 to-sage/20 md:block" />
           {b2bSteps.map((s, i) => (
             <Reveal key={`b2b-${s.n}`} delay={i * 130}>
               <div className="step-card card relative flex h-full flex-col rounded-2xl p-6 sm:rounded-3xl sm:p-8">
@@ -581,7 +539,7 @@ export default async function Home() {
       </section>
 
       {/* ============ B2B ============ */}
-      <section id="business" className="border-y border-ink/10 bg-white/40">
+      <section id="business" className="bg-white/40">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 pb-20 sm:gap-12 sm:px-6 sm:py-20 sm:pb-24 md:grid-cols-2 md:py-28 md:pb-28">
           <Reveal className="relative order-2 md:order-1">
             <div className="img-card feat-img-wrap card overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
@@ -596,7 +554,7 @@ export default async function Home() {
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/20 to-transparent" />
               </div>
             </div>
-            <div className="absolute -bottom-5 right-3 w-[min(14rem,70%)] rounded-2xl glass-strong p-4 sm:-bottom-6 sm:right-4 sm:w-56 sm:p-5 md:-right-4 lg:-right-8">
+            <div className="absolute bottom-3 right-3 w-[min(14rem,calc(100%-1.5rem))] rounded-2xl glass-strong p-4 sm:bottom-4 sm:right-4 sm:w-56 sm:p-5">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-ink-muted">This week</span>
                 <span className="rounded-full bg-sage/15 px-2 py-0.5 text-[10px] font-semibold text-sage-dark">
@@ -772,7 +730,7 @@ export default async function Home() {
 
       {/* ============ TESTIMONIALS ============ */}
       {testimonials.length > 0 && (
-        <section className="border-y border-ink/10 bg-white/40">
+        <section className="bg-white/40">
           <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
             <Reveal className="text-center">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sage">
@@ -810,8 +768,6 @@ export default async function Home() {
       <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 sm:pb-20 md:pb-28">
         <Reveal>
           <div className="relative overflow-hidden rounded-[1.5rem] bg-ink px-5 py-12 text-center text-paper sm:rounded-[2.5rem] sm:px-8 sm:py-20">
-            <div className="aurora animate-aurora left-[8%] top-[-30%] h-[26vw] w-[26vw] bg-sage/40" />
-            <div className="aurora animate-floatSlow right-[6%] bottom-[-30%] h-[22vw] w-[22vw] bg-[#e7d8c4]/30" />
             <h2 className="relative z-10 mx-auto max-w-2xl font-display text-3xl font-semibold sm:text-4xl md:text-5xl">
               Your next AI try-on is one tap away.
             </h2>
@@ -830,7 +786,7 @@ export default async function Home() {
       </section>
 
       {/* ============ FOOTER ============ */}
-      <footer id="contact" className="border-t border-ink/10 bg-white/40">
+      <footer id="contact" className="bg-white/40">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
           <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
             <div>
@@ -870,7 +826,7 @@ export default async function Home() {
               </Link>
             </nav>
           </div>
-          <div className="mt-8 border-t border-ink/10 pt-5 text-center text-xs text-ink-muted sm:mt-10 sm:pt-6">
+          <div className="mt-8 pt-5 text-center text-xs text-ink-muted sm:mt-10 sm:pt-6">
             © {new Date().getFullYear()} zimji — AI Virtual Try-On · Style, Smarter!
           </div>
         </div>

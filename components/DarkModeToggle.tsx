@@ -28,7 +28,7 @@ export function DarkModeToggle({ className = "" }: { className?: string }) {
   }
 
   // Reserve space while mounting to avoid layout shift
-  if (!mounted) return <div className="h-9 w-9" />;
+  if (!mounted) return <div className="h-11 w-11" />;
 
   return (
     <button
@@ -36,7 +36,7 @@ export function DarkModeToggle({ className = "" }: { className?: string }) {
       onClick={toggle}
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       title={dark ? "Light mode" : "Dark mode"}
-      className={`group relative flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-300
+      className={`group relative flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300
         border-ink/10 bg-white/60 text-ink hover:border-ink/20 hover:bg-white/90
         dark:border-white/10 dark:bg-white/5 dark:text-[#f4efe7] dark:hover:border-white/20 dark:hover:bg-white/10
         ${className}`}

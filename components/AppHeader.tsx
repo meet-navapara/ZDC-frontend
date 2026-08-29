@@ -98,10 +98,11 @@ export function AppHeader() {
 
         {/* Mobile: primary CTA + menu */}
         <div className="flex items-center gap-2 md:hidden">
+          <DarkModeToggle />
           {user ? (
             <Link
               href={accountHref}
-              className="rounded-full bg-sage px-3.5 py-2 text-xs font-semibold text-paper transition hover:bg-sage-dark"
+              className="rounded-full bg-sage px-3.5 py-2.5 text-xs font-semibold text-paper transition hover:bg-sage-dark"
               onClick={() => setOpen(false)}
             >
               Account
@@ -109,7 +110,7 @@ export function AppHeader() {
           ) : (
             <Link
               href="/register"
-              className="rounded-full bg-sage px-3.5 py-2 text-xs font-semibold text-paper transition hover:bg-sage-dark"
+              className="rounded-full bg-sage px-3.5 py-2.5 text-xs font-semibold text-paper transition hover:bg-sage-dark"
               onClick={() => setOpen(false)}
             >
               Sign up
@@ -120,7 +121,7 @@ export function AppHeader() {
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 bg-white/60 text-ink transition hover:border-ink/25 dark:border-white/10 dark:bg-white/5 dark:text-[#f4efe7]"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 bg-white/60 text-ink transition hover:border-ink/25 dark:border-white/10 dark:bg-white/5 dark:text-[#f4efe7]"
           >
             <span className="relative block h-3.5 w-4">
               <span

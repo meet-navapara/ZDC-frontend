@@ -555,7 +555,7 @@ export default function B2BTryOnPage() {
                             type="button"
                             disabled={busy}
                             onClick={() => fileRef.current?.click()}
-                            className="rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-semibold text-paper backdrop-blur-sm transition hover:bg-black/70 disabled:opacity-50"
+                            className="rounded-full bg-black/55 px-3 py-2 text-xs font-semibold text-paper backdrop-blur-sm transition hover:bg-black/70 disabled:opacity-50"
                           >
                             Change
                           </button>
@@ -563,7 +563,7 @@ export default function B2BTryOnPage() {
                             type="button"
                             disabled={busy}
                             onClick={() => pickFile(null)}
-                            className="rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-semibold text-paper/90 backdrop-blur-sm transition hover:bg-black/70 disabled:opacity-50"
+                            className="rounded-full bg-black/55 px-3 py-2 text-xs font-semibold text-paper/90 backdrop-blur-sm transition hover:bg-black/70 disabled:opacity-50"
                           >
                             Remove
                           </button>
@@ -625,7 +625,7 @@ export default function B2BTryOnPage() {
                             type="button"
                             disabled={busy}
                             onClick={() => setProductId("")}
-                            className="rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-semibold text-paper backdrop-blur-sm transition hover:bg-black/70 disabled:opacity-50"
+                            className="rounded-full bg-black/55 px-3 py-2 text-xs font-semibold text-paper backdrop-blur-sm transition hover:bg-black/70 disabled:opacity-50"
                           >
                             Clear
                           </button>

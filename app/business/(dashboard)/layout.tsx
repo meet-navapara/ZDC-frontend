@@ -235,7 +235,7 @@ export default function DashboardLayout({
               aria-label="Open menu"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(true)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white/60 text-ink transition hover:border-ink/30 dark:border-white/10 dark:bg-white/5 dark:text-[#f4efe7] dark:hover:border-white/20 md:hidden"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white/60 text-ink transition hover:border-ink/30 dark:border-white/10 dark:bg-white/5 dark:text-[#f4efe7] dark:hover:border-white/20 md:hidden"
             >
               <span className="relative block h-3.5 w-4">
                 <span className="absolute left-0 top-0 block h-0.5 w-4 rounded-full bg-current" />
@@ -244,7 +244,7 @@ export default function DashboardLayout({
               </span>
             </button>
             <div className="min-w-0">
-              <div className="flex min-w-0 items-center gap-2">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <span className="truncate font-display text-base font-semibold text-ink dark:text-[#f4efe7] sm:text-lg">
                   {businessName}
                 </span>
@@ -258,7 +258,7 @@ export default function DashboardLayout({
                   {categoryShort}
                 </span>
               </div>
-              <p className="mt-0.5 truncate text-xs text-ink-muted dark:text-[#b1a99c]">
+              <p className="mt-0.5 hidden truncate text-xs text-ink-muted dark:text-[#b1a99c] sm:block">
                 {contactName ? `${contactName} · ${user.email}` : user.email}
               </p>
             </div>
@@ -267,7 +267,7 @@ export default function DashboardLayout({
             <DarkModeToggle />
             <Link
               href="/business/credits"
-              className="inline-flex items-center gap-1.5 rounded-full bg-sage/10 px-3 py-1.5 text-sm font-semibold text-sage-dark transition hover:bg-sage/15 dark:border dark:border-white/8 dark:bg-white/5 dark:text-[#d8d0c2] dark:hover:bg-white/10"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-sage/10 px-3 py-2.5 text-sm font-semibold text-sage-dark transition hover:bg-sage/15 dark:border dark:border-white/8 dark:bg-white/5 dark:text-[#d8d0c2] dark:hover:bg-white/10"
             >
               <span className="text-xs">◈</span>
               <span className="hidden sm:inline">
