@@ -6,28 +6,28 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const STEPS = [
   {
-    id: "upload",
-    label: "Upload",
-    title: "Upload your photo",
-    desc: "Add a clear selfie — your canvas for the new look.",
-    src: "/images/tryon-upload.jpg",
-    alt: "Customer photo ready for AI virtual outfit try-on",
+    id: "discover",
+    label: "",
+    title: "In the salon",
+    desc: "She stands in the salon, staring at gorgeous different hairstyles on the salon poster.",
+    src: "/images/phone-scene-v2-1.jpg",
+    alt: "Customer browsing braided hairstyles on a salon poster",
   },
   {
-    id: "style",
-    label: "Style",
-    title: "Apply the style you want",
-    desc: "Pick a hairstyle, hair color, beard, or outfit — zimji tries it on you.",
-    src: "/images/tryon-style.jpg",
-    alt: "AI virtual try-on applying a styled outfit look",
+    id: "snap",
+    label: "",
+    title: "Snap the style",
+    desc: "She taps her phone and captures one braid style — a gorgeous model picture from the poster.",
+    src: "/images/phone-scene-v2-2.jpg",
+    alt: "Customer photographing a braid style from a salon poster on her phone",
   },
   {
-    id: "reveal",
-    label: "Reveal",
-    title: "Your AI-generated look",
-    desc: "A photorealistic preview in seconds — ready to share, buy, or book.",
-    src: "/images/tryon-reveal.jpg",
-    alt: "Photorealistic AI virtual try-on outfit result",
+    id: "tryon",
+    label: "",
+    title: "Try it on zimji",
+    desc: "After using the zimji website on her phone in the same salon, she sees her VTON and feels so excited.",
+    src: "/images/phone-scene-v2-3.jpg",
+    alt: "Excited customer showing zimji virtual try-on result on her phone in the salon",
   },
 ] as const;
 
@@ -177,11 +177,12 @@ export function TransformationShowcase({ variant = "default" }: ShowcaseProps) {
                     src={s.src}
                     alt={s.alt}
                     fill
-                    sizes="(max-width: 768px) 78vw, 400px"
-                    className="object-cover object-[center_18%]"
+                    sizes="(max-width: 768px) 85vw, 360px"
+                    quality={95}
                     priority={i === 0}
+                    className="object-cover object-center"
                   />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/30" />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-black/15" />
                 </div>
               );
             })}
@@ -195,10 +196,16 @@ export function TransformationShowcase({ variant = "default" }: ShowcaseProps) {
           </div>
 
           <div className="absolute inset-x-0 bottom-0 z-20 px-3.5 pb-5 pt-14 sm:px-5 sm:pb-7 sm:pt-16">
-            <span className="inline-flex items-center rounded-full bg-sage px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-paper shadow-md shadow-sage/35 sm:px-3 sm:text-[11px]">
-              {step.label}
-            </span>
-            <h3 className="mt-2.5 font-display text-lg font-semibold leading-snug text-white sm:mt-3 sm:text-2xl">
+            {step.label ? (
+              <span className="inline-flex items-center rounded-full bg-sage px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-paper shadow-md shadow-sage/35 sm:px-3 sm:text-[11px]">
+                {step.label}
+              </span>
+            ) : null}
+            <h3
+              className={`font-display text-lg font-semibold leading-snug text-white sm:text-2xl ${
+                step.label ? "mt-2.5 sm:mt-3" : ""
+              }`}
+            >
               {step.title}
             </h3>
             <p
@@ -225,7 +232,7 @@ export function TransformationShowcase({ variant = "default" }: ShowcaseProps) {
               type="button"
               role="tab"
               aria-selected={i === active}
-              aria-label={`${s.label}: ${s.title}`}
+              aria-label={s.title}
               onClick={() => goTo(i, true)}
               className="flex min-h-11 min-w-11 items-center justify-center"
             >
